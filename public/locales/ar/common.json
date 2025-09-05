@@ -1,0 +1,252 @@
+{
+    "search": "البحث عن الأدوية والمكملات ومنتجات العناية...",
+    "login": "تسجيل الدخول",
+    "register": "إنشاء حساب",
+    "cart": "السلة",
+    "dashboard": "لوحة التحكم",
+    "currency": "ج.م",
+    "cancel": "إلغاء",
+    "close": "إغلاق",
+    "save": "حفظ",
+    "edit": "تعديل",
+    "delete": "حذف",
+    "add": "إضافة",
+    "update": "تحديث",
+    "view": "عرض",
+    "loading": "جاري التحميل...",
+    "error": "خطأ",
+    "success": "نجح",
+    "warning": "تحذير",
+    "info": "معلومات",
+    "confirm": "تأكيد",
+    "yes": "نعم",
+    "no": "لا",
+    "ok": "موافق",
+    "next": "التالي",
+    "previous": "السابق",
+    "back": "رجوع",
+    "continue": "متابعة",
+    "submit": "إرسال",
+    "upload": "رفع",
+    "uploadPrescription": "ارفع روشتتك",
+    "viewOptions": "عرض الخيارات",
+    "signOut": "تسجيل الخروج",
+    "myDashboard": "لوحة التحكم الخاصة بي",
+    "shopMedicines": "تسوق الأدوية",
+    "myCart": "سلتي",
+    "myOrders": "طلباتي",
+    "myPrescriptions": "وصفاتي الطبية",
+    "mySubscriptions": "اشتراكاتي",
+    "search": {
+        "title": "البحث",
+        "placeholder": "البحث عن الأدوية والصيدليات والفئات...",
+        "suggestions": "اقتراحات",
+        "results": "نتائج البحث",
+        "noResults": "لم يتم العثور على نتائج",
+        "noResultsDescription": "لم نتمكن من العثور على أي شيء يطابق بحثك. جرب تعديل مصطلحات البحث.",
+        "searching": "جاري البحث...",
+        "found": "تم العثور على {count} نتيجة",
+        "showingResults": "عرض {start}-{end} من {total} نتيجة",
+        "viewAllResults": "عرض جميع النتائج لـ \"{query}\"",
+        "clearSearch": "مسح البحث",
+        "recentSearches": "عمليات البحث الأخيرة",
+        "popularSearches": "عمليات البحث الشائعة",
+        "searchHistory": "تاريخ البحث",
+        "clearHistory": "مسح التاريخ"
+    },
+    "navigation": {
+        "home": "الرئيسية",
+        "about": "من نحن",
+        "contact": "اتصل بنا",
+        "faq": "الأسئلة الشائعة",
+        "shop": "المتجر",
+        "categories": "الفئات",
+        "account": "الحساب",
+        "profile": "الملف الشخصي",
+        "logout": "تسجيل الخروج",
+        "settings": "الإعدادات"
+    },
+    "categories": {
+        "medications": "الأدوية",
+        "hairCare": "العناية بالشعر",
+        "skinCare": "العناية بالبشرة",
+        "dailyEssentials": "الأساسيات اليومية",
+        "babyEssentials": "مستلزمات الأطفال",
+        "vitamins": "الفيتامينات",
+        "sexualWellness": "الصحة الجنسية",
+        "title": "الفئات"
+    },
+    "prescription": {
+        "uploadPrescription": "ارفع روشتتك",
+        "uploadYourFiles": "ارفع ملفات وصفتك الطبية",
+        "clickToUpload": "انقر للرفع أو اسحب وأفلت",
+        "fileFormats": "PNG، JPG، PDF حتى 10 ميجابايت لكل ملف (بحد أقصى 5 ملفات لكل وصفة طبية)",
+        "takePhoto": "التقط صورة",
+        "cancel": "إلغاء",
+        "submitPrescription": "إرسال الوصفة الطبية ({{count}} ملفات)",
+        "noFilesUploaded": "لم يتم رفع ملفات بعد. ارفع صور متعددة لوصفتك الطبية للحصول على دقة أفضل.",
+        "step1": "رفع الملفات",
+        "step2": "إكمال",
+        "status": {
+            "title": "حالة الوصفة الطبية",
+            "description": "تتبع تقدم وصفتك الطبية واحصل على تحديثات حول حالتها",
+            "breadcrumb": "حالة الوصفة الطبية",
+            "loading": "جاري تحميل الوصفات الطبية...",
+            "noResults": "لم يتم العثور على وصفات طبية",
+            "noResultsDescription": "لم تقم برفع أي وصفات طبية بعد.",
+            "uploadFirst": "ارفع وصفتك الطبية الأولى",
+            "successMessage": {
+                "title": "تم رفع الوصفة الطبية بنجاح",
+                "description": "تم رفع وصفتك الطبية وهي قيد المراجعة من قبل الصيادلة."
+            },
+            "authPrompt": {
+                "title": "سجل الدخول لتتبع وصفاتك الطبية",
+                "description": "أنشئ حساباً أو سجل الدخول لرفع وتتبع وصفاتك الطبية.",
+                "signIn": "تسجيل الدخول",
+                "createAccount": "إنشاء حساب"
+            },
+            "timeline": {
+                "title": "الجدول الزمني للتقدم",
+                "prescriptionSubmitted": "تم إرسال الوصفة الطبية",
+                "underPharmacistReview": "قيد مراجعة الصيدلي",
+                "prescriptionApproved": "تم اعتماد الوصفة الطبية"
+            },
+            "statuses": {
+                "submitted": "مُرسلة",
+                "reviewing": "قيد المراجعة",
+                "approved": "مُعتمدة",
+                "rejected": "مرفوضة",
+                "cancelled": "ملغية"
+            },
+            "details": {
+                "submittedOn": "تم الإرسال في"
+            },
+            "actions": {
+                "selectMedicines": "اختيار الأدوية",
+                "waitingReview": "في انتظار مراجعة الصيدلي...",
+                "underReview": "قيد المراجعة حالياً من قبل الصيادلة..."
+            },
+            "medicines": {
+                "processedMedicines": "الأدوية المُعالجة",
+                "quantity": "الكمية:",
+                "instructions": "التعليمات:"
+            },
+            "statusHistory": {
+                "title": "تاريخ الحالة",
+                "progress": "التقدم",
+                "by": "بواسطة"
+            },
+            "help": {
+                "title": "تحتاج مساعدة؟",
+                "callUs": "اتصل بنا",
+                "phone": "19123",
+                "email": "راسلنا",
+                "emailAddress": "support@cura.com"
+            }
+        }
+    },
+    "footer": {
+        "quickLinks": "روابط سريعة",
+        "customerService": "خدمة العملاء",
+        "followUs": "تابعنا",
+        "newsletter": "النشرة الإخبارية",
+        "subscribe": "اشتراك",
+        "enterEmail": "أدخل بريدك الإلكتروني",
+        "subscribeText": "اشترك للحصول على تحديثات حول المنتجات والعروض الجديدة",
+        "copyright": "© 2025 كورا. جميع الحقوق محفوظة.",
+        "privacy": "سياسة الخصوصية",
+        "terms": "شروط الخدمة",
+        "support": "الدعم",
+        "categories": "الفئات",
+        "medicines": "الأدوية",
+        "forPharmacies": "للصيدليات",
+        "registerPharmacy": "تسجيل صيدلية"
+    },
+    "subscription": {
+        "title": "اشتراكاتي",
+        "description": "إدارة اشتراكات الأدوية للتوصيل المنتظم",
+        "loading": "جاري تحميل الاشتراكات...",
+        "createNew": "إنشاء اشتراك جديد",
+        "createFirst": "إنشاء اشتراكك الأول",
+        "viewPlans": "عرض الخطط",
+        "viewDetails": "عرض التفاصيل",
+        "hideDetails": "إخفاء التفاصيل",
+        "pause": "إيقاف مؤقت",
+        "resume": "استئناف",
+        "cancel": "إلغاء",
+        "tabs": {
+            "active": "نشط",
+            "paused": "متوقف مؤقتاً",
+            "cancelled": "ملغي"
+        },
+        "status": {
+            "active": "نشط",
+            "paused": "متوقف مؤقتاً",
+            "cancelled": "ملغي"
+        },
+        "frequency": {
+            "label": "التكرار",
+            "weekly": "أسبوعياً",
+            "bi-weekly": "كل أسبوعين",
+            "monthly": "شهرياً",
+            "quarterly": "كل ثلاثة أشهر",
+            "weeklyDescription": "توصيل كل أسبوع",
+            "bi-weeklyDescription": "توصيل كل أسبوعين",
+            "monthlyDescription": "توصيل كل شهر",
+            "quarterlyDescription": "توصيل كل 3 أشهر"
+        },
+        "totalAmount": "المبلغ الإجمالي",
+        "discount": "الخصم",
+        "nextDelivery": "التوصيل التالي",
+        "deliveryAddress": "عنوان التوصيل",
+        "products": "المنتجات",
+        "quantity": "الكمية",
+        "details": "تفاصيل الاشتراك",
+        "created": "تم الإنشاء",
+        "lastUpdated": "آخر تحديث",
+        "deliveryInstructions": "تعليمات التوصيل",
+        "pauseReason": "سبب الإيقاف المؤقت",
+        "pausedUntil": "متوقف حتى",
+        "deliveryHistory": "تاريخ التوصيل",
+        "deliveryStatus": {
+            "pending": "في الانتظار",
+            "out-for-delivery": "في الطريق للتوصيل",
+            "delivered": "تم التوصيل",
+            "failed": "فشل"
+        },
+        "noDeliveries": "لا يوجد تاريخ توصيل",
+        "moreDeliveries": "و {count} توصيلات أخرى",
+        "inDays": "خلال {days} أيام",
+        "today": "اليوم",
+        "overdue": "متأخر",
+        "noSubscriptions": "لم يتم العثور على اشتراكات",
+        "noActiveSubscriptions": "ليس لديك أي اشتراكات نشطة بعد.",
+        "noCancelledSubscriptions": "ليس لديك أي اشتراكات ملغية.",
+        "createFirstDescription": "ابدأ اشتراكك الأول للحصول على توصيل منتظم لأدويتك.",
+        "cancelModal": {
+            "title": "إلغاء الاشتراك",
+            "description": "هل أنت متأكد من أنك تريد إلغاء هذا الاشتراك؟ لا يمكن التراجع عن هذا الإجراء.",
+            "reasonPlaceholder": "يرجى إخبارنا لماذا تقوم بالإلغاء (اختياري)",
+            "confirm": "نعم، إلغاء الاشتراك",
+            "cancel": "الاحتفاظ بالاشتراك"
+        },
+        "pauseModal": {
+            "title": "إيقاف الاشتراك مؤقتاً",
+            "description": "كم من الوقت تريد إيقاف هذا الاشتراك؟",
+            "duration": "مدة الإيقاف المؤقت",
+            "reason": "السبب (اختياري)",
+            "reasonPlaceholder": "أخبرنا لماذا تقوم بالإيقاف المؤقت",
+            "confirm": "إيقاف الاشتراك مؤقتاً"
+        },
+        "empty": {
+            "active": {
+                "title": "لا توجد اشتراكات نشطة",
+                "description": "ليس لديك أي اشتراكات نشطة بعد."
+            },
+            "cancelled": {
+                "title": "لا توجد اشتراكات ملغية",
+                "description": "ليس لديك أي اشتراكات ملغية."
+            }
+        }
+    }
+}

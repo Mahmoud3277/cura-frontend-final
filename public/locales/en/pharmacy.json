@@ -1,0 +1,48 @@
+{
+    "register": {
+        "title": "Register Your Pharmacy",
+        "subtitle": "Join CURA's Network of Trusted Pharmacies",
+        "description": "Become a part of Egypt's leading online pharmacy network and reach more customers",
+        "form": {
+            "pharmacyName": "Pharmacy Name",
+            "pharmacyNamePlaceholder": "Enter your pharmacy name",
+            "ownerName": "Owner Name",
+            "ownerNamePlaceholder": "Enter owner's full name",
+            "email": "Email Address",
+            "emailPlaceholder": "Enter email address",
+            "phone": "Phone Number",
+            "phonePlaceholder": "Enter phone number",
+            "licenseNumber": "License Number",
+            "licenseNumberPlaceholder": "Enter pharmacy license number",
+            "address": "Address",
+            "addressPlaceholder": "Enter complete address",
+            "city": "City",
+            "cityPlaceholder": "Select your city",
+            "governorate": "Governorate",
+            "governoratePlaceholder": "Select your governorate",
+            "operatingHours": "Operating Hours",
+            "operatingHoursPlaceholder": "e.g., 9:00 AM - 10:00 PM",
+            "description": "Description",
+            "descriptionPlaceholder": "Brief description of your pharmacy",
+            "website": "Website",
+            "websitePlaceholder": "Enter website URL (optional)",
+            "socialMedia": "Social Media",
+            "socialMediaPlaceholder": "Enter social media links (optional)",
+            "submit": "Submit Application",
+            "submitting": "Submitting...",
+            "successMessage": "Your pharmacy registration has been submitted successfully!",
+            "errorMessage": "There was an error submitting your application. Please try again."
+        },
+        "benefits": {
+            "title": "Why Join CURA?",
+            "reachCustomers": "Reach More Customers",
+            "reachCustomersDesc": "Connect with thousands of customers across Egypt",
+            "increaseRevenue": "Increase Revenue",
+            "increaseRevenueDesc": "Boost your sales with our online platform",
+            "easyManagement": "Easy Management",
+            "easyManagementDesc": "Manage orders and inventory through our dashboard",
+            "trustedPlatform": "Trusted Platform",
+            "trustedPlatformDesc": "Join Egypt's most trusted pharmacy network"
+        }
+    }
+}

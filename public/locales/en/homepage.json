@@ -1,0 +1,97 @@
+{
+    "hero": {
+        "uploadPrescription": "Upload Your Prescription",
+        "trustedPharmacies": "Trusted Pharmacies",
+        "healthWellness": "Health & Wellness",
+        "subscriptionTitle": "Subscribe & Save on Monthly Medications",
+        "subscriptionSubtitle": "Never Run Out Again",
+        "subscriptionDescription": "Automatic delivery with no effort required. Save up to 15% with free delivery.",
+        "startSubscription": "Start Subscription",
+        "browseProducts": "Browse Products",
+        "uploadPrescriptionDesc": "Get your medicines delivered safely to your door",
+        "trustedPharmaciesDesc": "Connect with verified pharmacies in your area",
+        "healthWellnessDesc": "Complete range of supplements and skincare"
+    },
+    "categories": {
+        "title": "Shop by Category",
+        "medicines": "Medications",
+        "haircare": "Hair Care",
+        "skincare": "Skin Care",
+        "dailyEssentials": "Daily Essentials",
+        "babyEssentials": "Baby Essentials",
+        "vitamins": "Vitamins",
+        "sexualWellness": "Sexual Wellness",
+        "prescriptionMedicines": "Prescription Medicines",
+        "supplements": "Supplements",
+        "medicalSupplies": "Medical Supplies",
+        "babyCare": "Baby Care"
+    },
+    "prescription": {
+        "title": "Upload Your Prescription",
+        "description": "Upload your prescription for fast processing",
+        "uploadButton": "📄 Upload Prescription",
+        "howItWorks": "How It Works",
+        "step1": "Upload prescription",
+        "step2": "Pharmacy processes",
+        "step3": "Delivery to door"
+    },
+    "features": {
+        "freeDelivery": "Free delivery",
+        "upToSavings": "Up to 15% savings",
+        "pauseAnytime": "Pause anytime",
+        "safeDelivery": "Safe delivery to your door",
+        "verifiedPharmacies": "Verified pharmacies in your area",
+        "completeRange": "Complete range of supplements"
+    },
+    "cta": {
+        "getStarted": "Get Started",
+        "shopNow": "Shop Now",
+        "learnMore": "Learn More",
+        "viewAll": "View All",
+        "showAll": "Show All",
+        "exploreAll": "Explore All Products"
+    },
+    "sections": {
+        "painRelievers": "Pain Relievers",
+        "supplements": "Supplements",
+        "babyEssentials": "Baby Essentials",
+        "skinCareProducts": "Skin Care Products",
+        "stomachColonMedications": "Stomach & Colon Medications",
+        "supplementsVitamins": "Supplements & Vitamins"
+    },
+    "hardcoded": {
+        "autoDelivery": "Auto Delivery",
+        "licenseAndTrusted": "Licensed & Trusted",
+        "saveUpTo": "Save up to 15% • Never run out",
+        "qualityGuaranteed": "Quality guaranteed • Fast delivery",
+        "inCart": "In Cart ({quantity})"
+    },
+    "products": {
+        "paracetamol": "Paracetamol 500mg",
+        "amoxicillin": "Amoxicillin 250mg",
+        "digitalThermometer": "Digital Thermometer",
+        "omega3FishOil": "Omega-3 Fish Oil",
+        "bloodPressureMonitor": "Blood Pressure Monitor",
+        "vitaminD3": "Vitamin D3 1000IU",
+        "calciumMagnesium": "Calcium + Magnesium",
+        "babyFormulaPowder": "Baby Formula Powder",
+        "babyDiaperRash": "Baby Diaper Rash Cream",
+        "premiumBabyDiapers": "Premium Baby Diapers",
+        "babyMoisturizingLotion": "Baby Moisturizing Lotion",
+        "babyVitaminDrops": "Baby Vitamin Drops",
+        "babyShampoo": "Baby Shampoo",
+        "moisturizingFaceCream": "Moisturizing Face Cream",
+        "sunscreenSPF50": "Sunscreen SPF 50",
+        "antiAgingSerum": "Anti-Aging Serum",
+        "acneTreatmentGel": "Acne Treatment Gel",
+        "gentleCleansingFoam": "Gentle Cleansing Foam",
+        "hydratingToner": "Hydrating Toner",
+        "insulinPen": "Insulin Pen",
+        "viewOptions": "View Options"
+    },
+    "banner": {
+        "discoverMoreCategories": "Discover More Categories",
+        "exploreCompleteRange": "Explore our complete range of healthcare products including stomach medications, hygiene products, daily essentials, and much more.",
+        "exploreAllProducts": "Explore All Products"
+    }
+}

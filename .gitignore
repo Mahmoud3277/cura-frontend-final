@@ -8,8 +8,6 @@
 
 # testing
 /coverage
-/public/images
-/public/locales
 # next.js
 /.next/
 /out/

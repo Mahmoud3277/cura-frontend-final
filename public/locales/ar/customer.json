@@ -1,0 +1,366 @@
+{
+    "dashboard": {
+        "title": "لوحة التحكم الخاصة بي",
+        "welcome": "مرحباً بعودتك",
+        "overview": "نظرة عامة",
+        "recentOrders": "الطلبات الأخيرة",
+        "activePrescriptions": "الوصفات الطبية النشطة",
+        "quickActions": "إجراءات سريعة",
+        "stats": {
+            "totalOrders": "إجمالي الطلبات",
+            "activeSubscriptions": "الاشتراكات النشطة",
+            "savedAddresses": "العناوين المحفوظة",
+            "rewardPoints": "نقاط المكافآت"
+        }
+    },
+    "orders": {
+        "title": "طلباتي",
+        "subtitle": "تتبع وإدارة طلباتك",
+        "viewAll": "عرض جميع الطلبات",
+        "orderNumber": "طلب رقم #{number}",
+        "status": "الحالة",
+        "total": "المجموع",
+        "items": "عناصر",
+        "viewDetails": "عرض التفاصيل",
+        "reorder": "إعادة الطلب",
+        "trackOrder": "تتبع الطلب",
+        "cancelOrder": "إلغاء الطلب",
+        "returnOrder": "إرجاع الطلب",
+        "buyAgain": "اشتري مرة أخرى",
+        "noOrders": "لم يتم العثور على طلبات",
+        "noOrdersDescription": "ليس لديك أي طلبات تطابق الفلتر المحدد.",
+        "startShopping": "ابدأ التسوق",
+        "filters": {
+            "all": "جميع الطلبات",
+            "delivered": "تم التوصيل",
+            "processing": "قيد المعالجة",
+            "returned": "مُرجع"
+        },
+        "statuses": {
+            "delivered": "تم التوصيل",
+            "processing": "قيد المعالجة",
+            "cancelled": "ملغي",
+            "returned": "مُرجع"
+        },
+        "labels": {
+            "pharmacy": "الصيدلية",
+            "prescriptionId": "رقم الوصفة الطبية",
+            "refunded": "تم الاسترداد",
+            "returnStatus": "إرجاع {status}"
+        }
+    },
+    "orderDetails": {
+        "title": "تفاصيل الطلب",
+        "tabs": {
+            "details": "تفاصيل الطلب",
+            "prescription": "الروشتة",
+            "tracking": "التتبع"
+        },
+        "fields": {
+            "orderDate": "تاريخ الطلب",
+            "pharmacy": "الصيدلية",
+            "totalAmount": "المبلغ الإجمالي",
+            "status": "الحالة",
+            "orderItems": "عناصر الطلب",
+            "quantity": "الكمية"
+        },
+        "buttons": {
+            "returnOrder": "إرجاع الطلب",
+            "close": "إغلاق",
+            "buyAgain": "اشتري مرة أخرى"
+        },
+        "prescription": {
+            "title": "معلومات الروشتة",
+            "description": "عرض وإدارة تفاصيل الروشتة لهذا الطلب",
+            "documents": "مستندات الروشتة",
+            "view": "عرض",
+            "download": "تحميل",
+            "uploadedOn": "تم الرفع في",
+            "uploadAdditional": "رفع مستندات روشتة إضافية",
+            "supportedFormats": "الصيغ المدعومة: PDF، JPG، PNG (الحد الأقصى 5 ميجابايت)",
+            "chooseFiles": "اختر الملفات",
+            "verified": "تم التحقق من الروشتة",
+            "verifiedDesc": "تمت مراجعة والموافقة على الروشتة من قبل الصيدلي",
+            "itemsInOrder": "أدوية الروشتة في هذا الطلب",
+            "qty": "الكمية"
+        },
+        "tracking": {
+            "title": "تتبع الطلب",
+            "description": "تتبع حالة طلبك وتقدم التوصيل",
+            "orderPlaced": "تم تقديم الطلب",
+            "orderPlacedDesc": "تم استلام وتأكيد طلبك",
+            "processing": "قيد التجهيز",
+            "processingDesc": "الصيدلية تجهز طلبك",
+            "outForDelivery": "في طريقه للتوصيل",
+            "outForDeliveryDesc": "طلبك في الطريق",
+            "delivered": "تم التوصيل",
+            "deliveredDesc": "تم توصيل الطلب بنجاح",
+            "deliveryInfo": "معلومات التوصيل",
+            "address": "العنوان",
+            "estimatedTime": "الوقت المتوقع",
+            "deliveryMethod": "طريقة التوصيل",
+            "standardDelivery": "توصيل عادي"
+        }
+    },
+    "returnOrder": {
+        "title": "إرجاع الطلب",
+        "steps": {
+            "eligibility": "حالة المنتج",
+            "selectItems": "اختيار العناصر",
+            "returnDetails": "تفاصيل الإرجاع",
+            "confirmation": "التأكيد"
+        },
+        "eligibilityCheck": {
+            "title": "فحص حالة المنتج",
+            "notEligible": "الطلب غير مؤهل للإرجاع",
+            "windowExpired": "انتهت فترة الإرجاع. يمكن إرجاع الطلبات خلال يومين فقط."
+        },
+        "buttons": {
+            "cancel": "إلغاء",
+            "back": "رجوع",
+            "continue": "متابعة"
+        },
+        "content": {
+            "orderEligible": "الطلب مؤهل للإرجاع",
+            "orderEligibleDesc": "يمكن إرجاع هذا الطلب وفقًا لسياستنا",
+            "returnWindow": "فترة الإرجاع",
+            "daysFromDelivery": "في خلال اليوم",
+            "selectItemsTitle": "اختر العناصر المراد إرجاعها",
+            "selectItemsDesc": "اختر العناصر التي تريد إرجاعها وحالتها",
+            "returnQuantity": "الكمية المراد إرجاعها",
+            "condition": "الحالة",
+            "reason": "السبب",
+            "selectReason": "اختر السبب",
+            "unopened": "غير مفتوح",
+            "opened": "مفتوح",
+            "damaged": "تالف",
+            "expired": "منتهي الصلاحية",
+            "estimatedRefund": "المبلغ المتوقع للاسترداد",
+            "originalQuantity": "الكمية الأصلية",
+            "price": "السعر",
+            "primaryReturnReason": "السبب الرئيسي للإرجاع",
+            "additionalNotes": "ملاحظات إضافية (اختياري)",
+            "reasons": {
+                "productDamaged": "المنتج تالف/معيب",
+                "wrongItem": "تم استلام منتج خاطئ",
+                "productExpired": "المنتج منتهي الصلاحية",
+                "noLongerNeeded": "لم أعد بحاجة إليه",
+                "doctorChanged": "الطبيب غير الروشتة",
+                "other": "أخرى"
+            },
+            "details": {
+                "title": "تفاصيل الإرجاع",
+                "description": "قدم معلومات إضافية حول الإرجاع",
+                "selectPrimaryReason": "اختر السبب الرئيسي",
+                "detailsPlaceholder": "يرجى تقديم المزيد من التفاصيل حول سبب الإرجاع...",
+                "additionalNotesPlaceholder": "أي معلومات إضافية تود مشاركتها...",
+                "returnSummary": "ملخص الإرجاع",
+                "itemsToReturn": "العناصر المراد إرجاعها:",
+                "totalQuantity": "إجمالي الكمية:",
+                "totalRefund": "إجمالي الاسترداد:",
+                "submitRequest": "إرسال طلب الإرجاع",
+                "submitting": "جاري الإرسال..."
+            }
+        }
+    },
+    "prescriptions": {
+        "title": "روشتاتي",
+        "uploadNew": "رفع وصفة طبية جديدة",
+        "status": "الحالة",
+        "uploadedOn": "تم الرفع في",
+        "prescriptionId": "رقم الوصفة الطبية",
+        "viewMedicines": "عرض الأدوية",
+        "download": "تحميل",
+        "reorder": "إعادة الطلب",
+        "noPrescriptions": "لم يتم العثور على وصفات طبية",
+        "noPrescriptionsDescription": "لم تقم برفع أي وصفات طبية بعد",
+        "totalPrescriptions": "إجمالي الوصفات الطبية",
+        "needUpload": "تحتاج إلى رفع وصفة طبية جديدة؟",
+        "uploadDescription": "ارفع وصفتك الطبية واحصل على أدويتك بسرعة",
+        "uploadPrescription": "رفع وصفة طبية",
+        "prescriptionHistory": "تاريخ الوصفات الطبية",
+        "prescriptionNumber": "وصفة طبية #{number}",
+        "prescriptionDocument": "مستند الوصفة الطبية",
+        "prescriptionDocuments": "مستندات الوصفة الطبية",
+        "photos": "صور",
+        "prescribedMedicines": "الأدوية الموصوفة",
+        "dosage": "الجرعة",
+        "frequency": "التكرار",
+        "qty": "الكمية",
+        "egp": "جنيه",
+        "selectMedicines": "اختيار الأدوية",
+        "buyAgain": "اشتري مرة أخرى",
+        "statuses": {
+            "processed": "تمت المعالجة",
+            "delivered": "تم التوصيل",
+            "pending": "قيد الانتظار",
+            "reviewing": "قيد المراجعة"
+        }
+    },
+    "prescriptionView": {
+        "title": "عرض الروشتة",
+        "prescriptionNumber": "روشتة #{number}",
+        "loading": "جاري تحميل الروشتة...",
+        "prescriptionDocuments": "مستندات الروشتة",
+        "photos": "صور",
+        "prescriptionInformation": "معلومات الروشتة",
+        "prescriptionId": "رقم الروشتة",
+        "uploadDate": "تاريخ الرفع",
+        "status": "الحالة",
+        "close": "إغلاق"
+    },
+    "medicineSelection": {
+        "title": "اختر أدويتك",
+        "subtitle": "اختر أدويتك والصيدلية للتوصيل",
+        "prescriptionNumber": "روشتة #{number}",
+        "patient": "المريض",
+        "date": "التاريخ",
+        "approved": "تمت الموافقة",
+        "loading": "جاري تحميل روشتتك...",
+        "loadingMedicines": "جاري تحميل أدويتك...",
+        "errors": {
+            "notFound": "الروشتة غير موجودة",
+            "accessDenied": "تم رفض الوصول",
+            "notReady": "الروشتة غير جاهزة",
+            "loadFailed": "فشل التحميل",
+            "notFoundDesc": "الروشتة التي تبحث عنها غير موجودة.",
+            "accessDeniedDesc": "ليس لديك إذن للوصول إلى هذه الروشتة.",
+            "notReadyDesc": "هذه الروشتة ليست جاهزة بعد لاختيار الأدوية.",
+            "loadFailedDesc": "فشل في تحميل الروشتة. يرجى المحاولة مرة أخرى.",
+            "loadingMedicinesError": "خطأ في تحميل الأدوية"
+        },
+        "backToPrescriptions": "العودة إلى الروشتات",
+        "tryAgain": "حاول مرة أخرى",
+        "medicine": {
+            "strength": "القوة",
+            "form": "الشكل",
+            "prescribed": "الموصوف",
+            "selected": "تم الاختيار",
+            "skipped": "تم التخطي",
+            "alternativeSelected": "تم اختيار البديل",
+            "selectPackaging": "اختر التعبئة",
+            "perBlister": "لكل شريط",
+            "tabletsPerBlister": "{count} حبة لكل شريط",
+            "perBox": "لكل علبة",
+            "blistersPerBox": "{blisters} شريط ({count} حبة) لكل علبة",
+            "quantity": "الكمية",
+            "total": "المجموع",
+            "tablets": "حبة",
+            "blisters": "شريط",
+            "per": "لكل",
+            "instructions": "التعليمات",
+            "dosage": "الجرعة",
+            "duration": "المدة",
+            "foodInstructions": "تعليمات الطعام",
+            "storage": "التخزين",
+            "price": "سعر",
+            "dosageInstructions": {
+                "takeTablet": "تناول {count} حبة كل {hours} ساعات حسب الحاجة للألم أو الحمى. لا تتجاوز {max} حبات في 24 ساعة.",
+                "continueDays": "استمر لمدة {min}-{max} أيام كحد أقصى أو حسب وصفة طبيبك",
+                "daysMaximum": "{min}-{max} أيام كحد أقصى",
+                "withOrWithoutFood": "يمكن تناوله مع أو بدون طعام",
+                "storeCool": "يحفظ في مكان بارد وجاف تحت {temp}°م. يحفظ بعيداً عن متناول الأطفال."
+            },
+            "take": "تناول",
+            "twiceDaily": "مرتين يومياً",
+            "continueFor": "استمر لمدة",
+            "defaultDuration": "7-10 أيام",
+            "orAsPrescribed": "أو حسب وصفة طبيبك",
+            "defaultStorage": "يحفظ في مكان بارد وجاف بعيداً عن أشعة الشمس المباشرة",
+            "differentFromPrescribed": "مختلف عن الكمية الموصوفة",
+            "notSelected": "هذا الدواء غير مختار للشراء",
+            "alternatives": {
+                "title": "الأدوية البديلة",
+                "purchasing": "أنت تشتري: {medicineName}",
+                "alternativeTo": "هذا بديل للدواء الموصوف أصلاً {medicineName}"
+            },
+            "notSelectedState": {
+                "title": "الدواء غير مختار",
+                "description": "ضع علامة على مربع الدواء لاختيار صيدلية"
+            },
+            "availability": {
+                "inStock": "متوفر",
+                "lowStock": "مخزون قليل",
+                "outOfStock": "غير متوفر"
+            },
+            "capsules": "كبسولة",
+            "forms": {
+                "tablet": "قرص",
+                "capsule": "كبسولة",
+                "syrup": "شراب",
+                "injection": "حقنة",
+                "cream": "كريم",
+                "drops": "قطرة"
+            }
+        },
+        "pharmacy": {
+            "choosePharmacy": "اختر الصيدلية",
+            "available": "متوفر",
+            "noPharmacies": "لا توجد صيدليات متاحة",
+            "notAvailableInArea": "هذا الدواء غير متوفر في منطقتك.",
+            "blister": "شريط",
+            "box": "علبة"
+        },
+        "checkout": {
+            "proceedToCheckout": "المتابعة للدفع",
+            "orderSummary": "ملخص الطلب",
+            "completedSelections": "الاختيارات المكتملة",
+            "totalItems": "إجمالي العناصر",
+            "estimatedTotal": "المجموع المقدر",
+            "medicinesTotal": "مجموع الأدوية:",
+            "deliveryFees": "رسوم التوصيل:",
+            "total": "المجموع:",
+            "completeOrder": "إكمال الطلب",
+            "completeSelections": "أكمل الاختيارات للأدوية المختارة",
+            "selectToSeeOrder": "اختر الأدوية والصيدليات لرؤية ملخص طلبك"
+        },
+        "ui": {
+            "selectUnit": "اختر الوحدة"
+        }
+    },
+    "profile": {
+        "title": "ملفي الشخصي",
+        "personalInfo": "المعلومات الشخصية",
+        "contactInfo": "معلومات الاتصال",
+        "addresses": "العناوين",
+        "preferences": "التفضيلات",
+        "edit": "تعديل الملف الشخصي",
+        "save": "حفظ التغييرات",
+        "cancel": "إلغاء"
+    },
+    "subscriptions": {
+        "title": "اشتراكاتي",
+        "active": "نشط",
+        "paused": "متوقف",
+        "cancelled": "ملغي",
+        "nextDelivery": "التوصيل التالي",
+        "frequency": "التكرار",
+        "manageSubscription": "إدارة الاشتراك",
+        "pauseSubscription": "إيقاف الاشتراك",
+        "cancelSubscription": "إلغاء الاشتراك",
+        "noSubscriptions": "لم يتم العثور على اشتراكات",
+        "noSubscriptionsDescription": "ليس لديك أي اشتراكات نشطة"
+    },
+    "settings": {
+        "title": "الإعدادات",
+        "notifications": "الإشعارات",
+        "privacy": "الخصوصية",
+        "language": "اللغة",
+        "theme": "المظهر",
+        "accountSecurity": "أمان الحساب",
+        "changePassword": "تغيير كلمة المرور",
+        "deleteAccount": "حذف الحساب"
+    },
+    "personalInfo": {
+        "title": "المعلومات الشخصية",
+        "firstName": "الاسم الأول",
+        "lastName": "اسم العائلة",
+        "email": "البريد الإلكتروني",
+        "phone": "الهاتف",
+        "address": "العنوان",
+        "addPhoneNumber": "أضف رقم الهاتف",
+        "memberSince": "عضو منذ {date}",
+        "editProfile": "تعديل الملف الشخصي",
+        "editPersonalInfo": "تعديل المعلومات الشخصية"
+    }
+}

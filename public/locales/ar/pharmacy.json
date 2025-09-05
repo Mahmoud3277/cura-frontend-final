@@ -1,0 +1,48 @@
+{
+    "register": {
+        "title": "سجل صيدليتك",
+        "subtitle": "انضم إلى شبكة كورا من الصيدليات الموثوقة",
+        "description": "كن جزءاً من أكبر شبكة صيدليات أونلاين في مصر وصل إلى المزيد من العملاء",
+        "form": {
+            "pharmacyName": "اسم الصيدلية",
+            "pharmacyNamePlaceholder": "أدخل اسم صيدليتك",
+            "ownerName": "اسم المالك",
+            "ownerNamePlaceholder": "أدخل الاسم الكامل للمالك",
+            "email": "عنوان البريد الإلكتروني",
+            "emailPlaceholder": "أدخل عنوان البريد الإلكتروني",
+            "phone": "رقم الهاتف",
+            "phonePlaceholder": "أدخل رقم الهاتف",
+            "licenseNumber": "رقم الترخيص",
+            "licenseNumberPlaceholder": "أدخل رقم ترخيص الصيدلية",
+            "address": "العنوان",
+            "addressPlaceholder": "أدخل العنوان الكامل",
+            "city": "المدينة",
+            "cityPlaceholder": "اختر مدينتك",
+            "governorate": "المحافظة",
+            "governoratePlaceholder": "اختر محافظتك",
+            "operatingHours": "ساعات العمل",
+            "operatingHoursPlaceholder": "مثال: 9:00 صباحاً - 10:00 مساءً",
+            "description": "الوصف",
+            "descriptionPlaceholder": "وصف مختصر لصيدليتك",
+            "website": "الموقع الإلكتروني",
+            "websitePlaceholder": "أدخل رابط الموقع (اختياري)",
+            "socialMedia": "وسائل التواصل الاجتماعي",
+            "socialMediaPlaceholder": "أدخل روابط وسائل التواصل (اختياري)",
+            "submit": "إرسال الطلب",
+            "submitting": "جاري الإرسال...",
+            "successMessage": "تم إرسال طلب تسجيل صيدليتك بنجاح!",
+            "errorMessage": "حدث خطأ في إرسال طلبك. يرجى المحاولة مرة أخرى."
+        },
+        "benefits": {
+            "title": "لماذا تنضم إلى كورا؟",
+            "reachCustomers": "وصل إلى المزيد من العملاء",
+            "reachCustomersDesc": "تواصل مع آلاف العملاء في جميع أنحاء مصر",
+            "increaseRevenue": "زيادة الإيرادات",
+            "increaseRevenueDesc": "عزز مبيعاتك من خلال منصتنا الإلكترونية",
+            "easyManagement": "إدارة سهلة",
+            "easyManagementDesc": "أدر الطلبات والمخزون من خلال لوحة التحكم",
+            "trustedPlatform": "منصة موثوقة",
+            "trustedPlatformDesc": "انضم إلى أكثر شبكة صيدليات موثوقة في مصر"
+        }
+    }
+}

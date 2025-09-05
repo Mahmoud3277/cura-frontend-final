@@ -1,0 +1,39 @@
+{
+    "title": "اتصل بنا",
+    "subtitle": "تواصل مع فريقنا",
+    "description": "نحن هنا للمساعدة في أي أسئلة حول طلباتك أو وصفاتك الطبية أو خدماتنا.",
+    "form": {
+        "name": "الاسم الكامل",
+        "namePlaceholder": "أدخل اسمك الكامل",
+        "email": "عنوان البريد الإلكتروني",
+        "emailPlaceholder": "أدخل عنوان بريدك الإلكتروني",
+        "phone": "رقم الهاتف",
+        "phonePlaceholder": "أدخل رقم هاتفك",
+        "subject": "الموضوع",
+        "subjectPlaceholder": "ما يخص هذا الأمر؟",
+        "message": "الرسالة",
+        "messagePlaceholder": "أخبرنا كيف يمكننا مساعدتك",
+        "submit": "إرسال الرسالة",
+        "sending": "جاري الإرسال...",
+        "successMessage": "شكراً لك! تم إرسال رسالتك بنجاح.",
+        "errorMessage": "عذراً، حدث خطأ في إرسال رسالتك. يرجى المحاولة مرة أخرى."
+    },
+    "info": {
+        "contactInfo": "معلومات الاتصال",
+        "phone": "الهاتف",
+        "email": "البريد الإلكتروني",
+        "address": "العنوان",
+        "businessHours": "ساعات العمل",
+        "mondayFriday": "الاثنين - الجمعة",
+        "saturday": "السبت",
+        "sunday": "الأحد (طوارئ فقط)",
+        "emergency": "خط الطوارئ 24/7"
+    },
+    "support": {
+        "commonQuestions": "الأسئلة الشائعة",
+        "orderStatus": "حالة الطلب",
+        "prescriptionHelp": "مساعدة الوصفة الطبية",
+        "deliveryInfo": "معلومات التوصيل",
+        "returns": "المرتجعات والاسترداد"
+    }
+}

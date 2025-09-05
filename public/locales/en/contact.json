@@ -1,0 +1,39 @@
+{
+    "title": "Contact Us",
+    "subtitle": "Get in touch with our team",
+    "description": "We're here to help with any questions about your orders, prescriptions, or our services.",
+    "form": {
+        "name": "Full Name",
+        "namePlaceholder": "Enter your full name",
+        "email": "Email Address",
+        "emailPlaceholder": "Enter your email address",
+        "phone": "Phone Number",
+        "phonePlaceholder": "Enter your phone number",
+        "subject": "Subject",
+        "subjectPlaceholder": "What is this regarding?",
+        "message": "Message",
+        "messagePlaceholder": "Tell us how we can help you",
+        "submit": "Send Message",
+        "sending": "Sending...",
+        "successMessage": "Thank you! Your message has been sent successfully.",
+        "errorMessage": "Sorry, there was an error sending your message. Please try again."
+    },
+    "info": {
+        "contactInfo": "Contact Information",
+        "phone": "Phone",
+        "email": "Email",
+        "address": "Address",
+        "businessHours": "Business Hours",
+        "mondayFriday": "Monday - Friday",
+        "saturday": "Saturday",
+        "sunday": "Sunday (Emergency only)",
+        "emergency": "24/7 Emergency Line"
+    },
+    "support": {
+        "commonQuestions": "Common Questions",
+        "orderStatus": "Order Status",
+        "prescriptionHelp": "Prescription Help",
+        "deliveryInfo": "Delivery Information",
+        "returns": "Returns & Refunds"
+    }
+}

@@ -1,0 +1,71 @@
+{
+    "admin": {
+        "title": "لوحة تحكم المدير",
+        "overview": "نظرة عامة",
+        "users": "المستخدمون",
+        "orders": "الطلبات",
+        "pharmacies": "الصيدليات",
+        "doctors": "الأطباء",
+        "vendors": "الموردون",
+        "settings": "الإعدادات",
+        "analytics": "التحليلات",
+        "reports": "التقارير"
+    },
+    "pharmacy": {
+        "title": "لوحة تحكم الصيدلية",
+        "orders": "الطلبات",
+        "inventory": "المخزون",
+        "customers": "العملاء",
+        "analytics": "التحليلات",
+        "profile": "الملف الشخصي",
+        "notifications": "الإشعارات"
+    },
+    "doctor": {
+        "title": "لوحة تحكم الطبيب",
+        "patients": "المرضى",
+        "prescriptions": "الوصفات الطبية",
+        "referrals": "الإحالات",
+        "commission": "العمولة",
+        "profile": "الملف الشخصي",
+        "schedule": "الجدول"
+    },
+    "customer": {
+        "title": "حسابي",
+        "orders": "طلباتي",
+        "prescriptions": "وصفاتي الطبية",
+        "profile": "الملف الشخصي",
+        "addresses": "العناوين",
+        "favorites": "المفضلة",
+        "notifications": "الإشعارات"
+    },
+    "vendor": {
+        "title": "لوحة تحكم المورد",
+        "products": "المنتجات",
+        "orders": "الطلبات",
+        "analytics": "التحليلات",
+        "profile": "الملف الشخصي",
+        "commission": "العمولة"
+    },
+    "orders": {
+        "pending": "في الانتظار",
+        "confirmed": "مؤكد",
+        "preparing": "قيد التحضير",
+        "ready": "جاهز",
+        "delivered": "تم التوصيل",
+        "cancelled": "ملغي",
+        "refunded": "مسترد"
+    },
+    "notifications": {
+        "title": "الإشعارات",
+        "markAsRead": "تعيين كمقروء",
+        "markAllAsRead": "تعيين الكل كمقروء",
+        "clear": "مسح",
+        "empty": "لا توجد إشعارات",
+        "types": {
+            "order": "تحديث الطلب",
+            "prescription": "تحديث الوصفة الطبية",
+            "system": "النظام",
+            "promotion": "عرض ترويجي"
+        }
+    }
+}

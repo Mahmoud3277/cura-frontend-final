@@ -1,0 +1,366 @@
+{
+    "dashboard": {
+        "title": "My Dashboard",
+        "welcome": "Welcome back",
+        "overview": "Overview",
+        "recentOrders": "Recent Orders",
+        "activePrescriptions": "Active Prescriptions",
+        "quickActions": "Quick Actions",
+        "stats": {
+            "totalOrders": "Total Orders",
+            "activeSubscriptions": "Active Subscriptions",
+            "savedAddresses": "Saved Addresses",
+            "rewardPoints": "Reward Points"
+        }
+    },
+    "orders": {
+        "title": "My Orders",
+        "subtitle": "Track and manage your orders",
+        "viewAll": "View All Orders",
+        "orderNumber": "Order #{number}",
+        "status": "Status",
+        "total": "Total",
+        "items": "items",
+        "viewDetails": "View Details",
+        "reorder": "Reorder",
+        "trackOrder": "Track Order",
+        "cancelOrder": "Cancel Order",
+        "returnOrder": "Return Order",
+        "buyAgain": "Buy Again",
+        "noOrders": "No orders found",
+        "noOrdersDescription": "You don't have any orders matching the selected filter.",
+        "startShopping": "Start Shopping",
+        "filters": {
+            "all": "All Orders",
+            "delivered": "Delivered",
+            "processing": "Processing",
+            "returned": "Returned"
+        },
+        "statuses": {
+            "delivered": "delivered",
+            "processing": "processing",
+            "cancelled": "cancelled",
+            "returned": "returned"
+        },
+        "labels": {
+            "pharmacy": "Pharmacy",
+            "prescriptionId": "Prescription ID",
+            "refunded": "Refunded",
+            "returnStatus": "Return {status}"
+        }
+    },
+    "orderDetails": {
+        "title": "Order Details",
+        "tabs": {
+            "details": "Order Details",
+            "prescription": "Prescription",
+            "tracking": "Tracking"
+        },
+        "fields": {
+            "orderDate": "Order Date",
+            "pharmacy": "Pharmacy",
+            "totalAmount": "Total Amount",
+            "status": "Status",
+            "orderItems": "Order Items",
+            "quantity": "Quantity"
+        },
+        "buttons": {
+            "returnOrder": "Return Order",
+            "close": "Close",
+            "buyAgain": "Buy Again"
+        },
+        "prescription": {
+            "title": "Prescription Information",
+            "description": "View and manage prescription details for this order",
+            "documents": "Prescription Documents",
+            "view": "View",
+            "download": "Download",
+            "uploadedOn": "Uploaded on",
+            "uploadAdditional": "Upload additional prescription documents",
+            "supportedFormats": "Supported formats: PDF, JPG, PNG (Max 5MB)",
+            "chooseFiles": "Choose Files",
+            "verified": "Prescription Verified",
+            "verifiedDesc": "Your prescription has been reviewed and approved by our pharmacist",
+            "itemsInOrder": "Prescription Items in this Order",
+            "qty": "Qty"
+        },
+        "tracking": {
+            "title": "Order Tracking",
+            "description": "Track your order status and delivery progress",
+            "orderPlaced": "Order Placed",
+            "orderPlacedDesc": "Your order has been received and confirmed",
+            "processing": "Processing",
+            "processingDesc": "Pharmacy is preparing your order",
+            "outForDelivery": "Out for Delivery",
+            "outForDeliveryDesc": "Your order is on the way",
+            "delivered": "Delivered",
+            "deliveredDesc": "Order has been delivered successfully",
+            "deliveryInfo": "Delivery Information",
+            "address": "Address",
+            "estimatedTime": "Estimated Time",
+            "deliveryMethod": "Delivery Method",
+            "standardDelivery": "Standard Delivery"
+        }
+    },
+    "returnOrder": {
+        "title": "Return Order",
+        "steps": {
+            "eligibility": "Eligibility",
+            "selectItems": "Select Items",
+            "returnDetails": "Return Details",
+            "confirmation": "Confirmation"
+        },
+        "eligibilityCheck": {
+            "title": "Return Eligibility Check",
+            "notEligible": "Order Not Eligible for Return",
+            "windowExpired": "Return window expired. Orders can only be returned within 2 days."
+        },
+        "buttons": {
+            "cancel": "Cancel",
+            "back": "Back",
+            "continue": "Continue"
+        },
+        "content": {
+            "orderEligible": "Order Eligible for Return",
+            "orderEligibleDesc": "This order can be returned according to our policy",
+            "returnWindow": "Return Window",
+            "daysFromDelivery": "days from delivery",
+            "selectItemsTitle": "Select Items to Return",
+            "selectItemsDesc": "Choose which items you'd like to return and their condition",
+            "returnQuantity": "Return Quantity",
+            "condition": "Condition",
+            "reason": "Reason",
+            "selectReason": "Select reason",
+            "unopened": "Unopened",
+            "opened": "Opened",
+            "damaged": "Damaged",
+            "expired": "Expired",
+            "estimatedRefund": "Estimated Refund",
+            "originalQuantity": "Original quantity",
+            "price": "Price",
+            "primaryReturnReason": "Primary Return Reason",
+            "additionalNotes": "Additional Notes (Optional)",
+            "reasons": {
+                "productDamaged": "Product damaged/defective",
+                "wrongItem": "Wrong item received",
+                "productExpired": "Product expired",
+                "noLongerNeeded": "No longer needed",
+                "doctorChanged": "Doctor changed prescription",
+                "other": "Other"
+            },
+            "details": {
+                "title": "Return Details",
+                "description": "Provide additional information about your return",
+                "selectPrimaryReason": "Select primary reason",
+                "detailsPlaceholder": "Please provide more details about the reason for return...",
+                "additionalNotesPlaceholder": "Any additional information you'd like to share...",
+                "returnSummary": "Return Summary",
+                "itemsToReturn": "Items to return:",
+                "totalQuantity": "Total quantity:",
+                "totalRefund": "Total refund:",
+                "submitRequest": "Submit Return Request",
+                "submitting": "Submitting..."
+            }
+        }
+    },
+    "prescriptions": {
+        "title": "My Prescriptions",
+        "uploadNew": "Upload New Prescription",
+        "status": "Status",
+        "uploadedOn": "Uploaded on",
+        "prescriptionId": "Prescription ID",
+        "viewMedicines": "View Medicines",
+        "download": "Download",
+        "reorder": "Reorder",
+        "noPrescriptions": "No prescriptions found",
+        "noPrescriptionsDescription": "You haven't uploaded any prescriptions yet",
+        "totalPrescriptions": "Total Prescriptions",
+        "needUpload": "Need to upload a new prescription?",
+        "uploadDescription": "Upload your prescription and get your medicines delivered quickly",
+        "uploadPrescription": "Upload Prescription",
+        "prescriptionHistory": "Prescription History",
+        "prescriptionNumber": "Prescription #{number}",
+        "prescriptionDocument": "Prescription Document",
+        "prescriptionDocuments": "Prescription Documents",
+        "photos": "photos",
+        "prescribedMedicines": "Prescribed Medicines",
+        "dosage": "Dosage",
+        "frequency": "Frequency",
+        "qty": "Qty",
+        "egp": "EGP",
+        "selectMedicines": "Select Medicines",
+        "buyAgain": "Buy Again",
+        "statuses": {
+            "processed": "Processed",
+            "delivered": "Delivered",
+            "pending": "Pending",
+            "reviewing": "Reviewing"
+        }
+    },
+    "prescriptionView": {
+        "title": "View Prescription",
+        "prescriptionNumber": "Prescription #{number}",
+        "loading": "Loading prescription...",
+        "prescriptionDocuments": "Prescription Documents",
+        "photos": "photos",
+        "prescriptionInformation": "Prescription Information",
+        "prescriptionId": "Prescription ID:",
+        "uploadDate": "Upload Date:",
+        "status": "Status:",
+        "close": "Close"
+    },
+    "medicineSelection": {
+        "title": "Select Your Medicines",
+        "subtitle": "Choose your medicines and pharmacy for delivery",
+        "prescriptionNumber": "Prescription #{number}",
+        "patient": "Patient:",
+        "date": "Date:",
+        "approved": "Approved",
+        "loading": "Loading your prescription...",
+        "loadingMedicines": "Loading your medicines...",
+        "errors": {
+            "notFound": "Prescription Not Found",
+            "accessDenied": "Access Denied",
+            "notReady": "Prescription Not Ready",
+            "loadFailed": "Loading Failed",
+            "notFoundDesc": "The prescription you are looking for does not exist.",
+            "accessDeniedDesc": "You do not have permission to access this prescription.",
+            "notReadyDesc": "This prescription is not yet ready for medicine selection.",
+            "loadFailedDesc": "Failed to load prescription. Please try again.",
+            "loadingMedicinesError": "Error Loading Medicines"
+        },
+        "backToPrescriptions": "Back to Prescriptions",
+        "tryAgain": "Try Again",
+        "medicine": {
+            "strength": "Strength:",
+            "form": "Form:",
+            "prescribed": "Prescribed:",
+            "selected": "Selected",
+            "skipped": "Skipped",
+            "alternativeSelected": "Alternative Selected",
+            "selectPackaging": "Select Packaging",
+            "perBlister": "Per Blister",
+            "tabletsPerBlister": "{count} tablets per blister",
+            "perBox": "Per Box",
+            "blistersPerBox": "{blisters} blisters ({count} tablets) per box",
+            "quantity": "Quantity:",
+            "total": "Total:",
+            "tablets": "tablets",
+            "blisters": "blisters",
+            "per": "per",
+            "instructions": "Instructions",
+            "dosage": "Dosage:",
+            "duration": "Duration:",
+            "foodInstructions": "Food Instructions:",
+            "storage": "Storage:",
+            "price": "price",
+            "dosageInstructions": {
+                "takeTablet": "Take {count} tablet every {hours} hours as needed for pain or fever. Do not exceed {max} tablets in 24 hours.",
+                "continueDays": "Continue for {min}-{max} days maximum or as prescribed by your doctor",
+                "daysMaximum": "{min}-{max} days maximum",
+                "withOrWithoutFood": "Can be taken with or without food",
+                "storeCool": "Store in a cool, dry place below {temp}°C. Keep out of reach of children."
+            },
+            "take": "Take",
+            "twiceDaily": "twice daily",
+            "continueFor": "Continue for",
+            "defaultDuration": "7-10 days",
+            "orAsPrescribed": "or as prescribed by your doctor",
+            "defaultStorage": "Store in a cool, dry place away from direct sunlight",
+            "differentFromPrescribed": "Different from prescribed quantity",
+            "notSelected": "This medicine is not selected for purchase",
+            "alternatives": {
+                "title": "Alternative Medicines",
+                "purchasing": "You are purchasing: {medicineName}",
+                "alternativeTo": "This is an alternative to the originally prescribed {medicineName}"
+            },
+            "notSelectedState": {
+                "title": "Medicine Not Selected",
+                "description": "Check the medicine checkbox to select a pharmacy"
+            },
+            "availability": {
+                "inStock": "in stock",
+                "lowStock": "low stock",
+                "outOfStock": "out of stock"
+            },
+            "capsules": "capsules",
+            "forms": {
+                "tablet": "Tablet",
+                "capsule": "Capsule",
+                "syrup": "Syrup",
+                "injection": "Injection",
+                "cream": "Cream",
+                "drops": "Drops"
+            }
+        },
+        "pharmacy": {
+            "choosePharmacy": "Choose Pharmacy",
+            "available": "available",
+            "noPharmacies": "No Pharmacies Available",
+            "notAvailableInArea": "This medicine is not available in your area.",
+            "blister": "Blister",
+            "box": "Box"
+        },
+        "checkout": {
+            "proceedToCheckout": "Proceed to Checkout",
+            "orderSummary": "Order Summary",
+            "completedSelections": "Completed Selections",
+            "totalItems": "Total Items:",
+            "estimatedTotal": "Estimated Total:",
+            "medicinesTotal": "Medicines Total:",
+            "deliveryFees": "Delivery Fees:",
+            "total": "Total:",
+            "completeOrder": "Complete Order",
+            "completeSelections": "Complete selections for selected medicines",
+            "selectToSeeOrder": "Select medicines and pharmacies to see your order summary"
+        },
+        "ui": {
+            "selectUnit": "Select unit"
+        }
+    },
+    "profile": {
+        "title": "My Profile",
+        "personalInfo": "Personal Information",
+        "contactInfo": "Contact Information",
+        "addresses": "Addresses",
+        "preferences": "Preferences",
+        "edit": "Edit Profile",
+        "save": "Save Changes",
+        "cancel": "Cancel"
+    },
+    "subscriptions": {
+        "title": "My Subscriptions",
+        "active": "Active",
+        "paused": "Paused",
+        "cancelled": "Cancelled",
+        "nextDelivery": "Next delivery",
+        "frequency": "Frequency",
+        "manageSubscription": "Manage Subscription",
+        "pauseSubscription": "Pause Subscription",
+        "cancelSubscription": "Cancel Subscription",
+        "noSubscriptions": "No subscriptions found",
+        "noSubscriptionsDescription": "You don't have any active subscriptions"
+    },
+    "settings": {
+        "title": "Settings",
+        "notifications": "Notifications",
+        "privacy": "Privacy",
+        "language": "Language",
+        "theme": "Theme",
+        "accountSecurity": "Account Security",
+        "changePassword": "Change Password",
+        "deleteAccount": "Delete Account"
+    },
+    "personalInfo": {
+        "title": "Personal Information",
+        "firstName": "First Name",
+        "lastName": "Last Name",
+        "email": "Email",
+        "phone": "Phone",
+        "address": "Address",
+        "addPhoneNumber": "Add phone number",
+        "memberSince": "Member since {date}",
+        "editProfile": "Edit Profile",
+        "editPersonalInfo": "Edit Personal Information"
+    }
+}

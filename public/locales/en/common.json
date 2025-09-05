@@ -1,0 +1,252 @@
+{
+    "search": "Search medicines, supplements, skincare...",
+    "login": "Login",
+    "register": "Sign Up",
+    "cart": "Cart",
+    "dashboard": "Dashboard",
+    "currency": "EGP",
+    "cancel": "Cancel",
+    "close": "Close",
+    "save": "Save",
+    "edit": "Edit",
+    "delete": "Delete",
+    "add": "Add",
+    "update": "Update",
+    "view": "View",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "warning": "Warning",
+    "info": "Information",
+    "confirm": "Confirm",
+    "yes": "Yes",
+    "no": "No",
+    "ok": "OK",
+    "next": "Next",
+    "previous": "Previous",
+    "back": "Back",
+    "continue": "Continue",
+    "submit": "Submit",
+    "upload": "Upload",
+    "uploadPrescription": "Upload Prescription",
+    "viewOptions": "View Options",
+    "signOut": "Sign Out",
+    "myDashboard": "My Dashboard",
+    "shopMedicines": "Shop Medicines",
+    "myCart": "My Cart",
+    "myOrders": "My Orders",
+    "myPrescriptions": "My Prescriptions",
+    "mySubscriptions": "My Subscriptions",
+    "search": {
+        "title": "Search",
+        "placeholder": "Search medicines, pharmacies, categories...",
+        "suggestions": "Suggestions",
+        "results": "Search Results",
+        "noResults": "No results found",
+        "noResultsDescription": "We couldn't find anything matching your search. Try adjusting your search terms.",
+        "searching": "Searching...",
+        "found": "Found {count} result(s)",
+        "showingResults": "Showing {start}-{end} of {total} results",
+        "viewAllResults": "View all results for \"{query}\"",
+        "clearSearch": "Clear search",
+        "recentSearches": "Recent Searches",
+        "popularSearches": "Popular Searches",
+        "searchHistory": "Search History",
+        "clearHistory": "Clear History"
+    },
+    "navigation": {
+        "home": "Home",
+        "about": "About",
+        "contact": "Contact",
+        "faq": "FAQ",
+        "shop": "Shop",
+        "categories": "Categories",
+        "account": "Account",
+        "profile": "Profile",
+        "logout": "Logout",
+        "settings": "Settings"
+    },
+    "categories": {
+        "medications": "Medications",
+        "hairCare": "Hair Care",
+        "skinCare": "Skin Care",
+        "dailyEssentials": "Daily Essentials",
+        "babyEssentials": "Baby Essentials",
+        "vitamins": "Vitamins",
+        "sexualWellness": "Sexual Wellness",
+        "title": "Categories"
+    },
+    "prescription": {
+        "uploadPrescription": "Upload Prescription",
+        "uploadYourFiles": "Upload your prescription files",
+        "clickToUpload": "Click to upload or drag and drop",
+        "fileFormats": "PNG, JPG, PDF up to 10MB each (Max 5 files per prescription)",
+        "takePhoto": "Take Photo",
+        "cancel": "Cancel",
+        "submitPrescription": "Submit Prescription ({{count}} files)",
+        "noFilesUploaded": "No files uploaded yet. Upload multiple images of your prescription for better accuracy.",
+        "step1": "Upload Files",
+        "step2": "Complete",
+        "status": {
+            "title": "Prescription Status",
+            "description": "Track your prescription progress and get updates on its status",
+            "breadcrumb": "Prescription Status",
+            "loading": "Loading prescriptions...",
+            "noResults": "No prescriptions found",
+            "noResultsDescription": "You haven't uploaded any prescriptions yet.",
+            "uploadFirst": "Upload Your First Prescription",
+            "successMessage": {
+                "title": "Prescription Uploaded Successfully",
+                "description": "Your prescription has been uploaded and is being reviewed by our pharmacists."
+            },
+            "authPrompt": {
+                "title": "Sign in to track your prescriptions",
+                "description": "Create an account or sign in to upload and track your prescriptions.",
+                "signIn": "Sign In",
+                "createAccount": "Create Account"
+            },
+            "timeline": {
+                "title": "Progress Timeline",
+                "prescriptionSubmitted": "Prescription Submitted",
+                "underPharmacistReview": "Under Pharmacist Review",
+                "prescriptionApproved": "Prescription Approved"
+            },
+            "statuses": {
+                "submitted": "Submitted",
+                "reviewing": "Under Review",
+                "approved": "Approved",
+                "rejected": "Rejected",
+                "cancelled": "Cancelled"
+            },
+            "details": {
+                "submittedOn": "Submitted on"
+            },
+            "actions": {
+                "selectMedicines": "Select Medicines",
+                "waitingReview": "Waiting for pharmacist review...",
+                "underReview": "Currently under review by our pharmacists..."
+            },
+            "medicines": {
+                "processedMedicines": "Processed Medicines",
+                "quantity": "Quantity:",
+                "instructions": "Instructions:"
+            },
+            "statusHistory": {
+                "title": "Status History",
+                "progress": "Progress",
+                "by": "by"
+            },
+            "help": {
+                "title": "Need Help?",
+                "callUs": "Call Us",
+                "phone": "19123",
+                "email": "Email Us",
+                "emailAddress": "support@cura.com"
+            }
+        }
+    },
+    "footer": {
+        "quickLinks": "Quick Links",
+        "customerService": "Customer Service",
+        "followUs": "Follow Us",
+        "newsletter": "Newsletter",
+        "subscribe": "Subscribe",
+        "enterEmail": "Enter your email",
+        "subscribeText": "Subscribe to get updates on new products and offers",
+        "copyright": "© 2025 CURA. All rights reserved.",
+        "privacy": "Privacy Policy",
+        "terms": "Terms of Service",
+        "support": "Support",
+        "categories": "Categories",
+        "medicines": "Medicines",
+        "forPharmacies": "For Pharmacies",
+        "registerPharmacy": "Register Pharmacy"
+    },
+    "subscription": {
+        "title": "My Subscriptions",
+        "description": "Manage your medicine subscriptions for regular deliveries",
+        "loading": "Loading subscriptions...",
+        "createNew": "Create New Subscription",
+        "createFirst": "Create Your First Subscription",
+        "viewPlans": "View Plans",
+        "viewDetails": "View Details",
+        "hideDetails": "Hide Details",
+        "pause": "Pause",
+        "resume": "Resume",
+        "cancel": "Cancel",
+        "tabs": {
+            "active": "Active",
+            "paused": "Paused",
+            "cancelled": "Cancelled"
+        },
+        "status": {
+            "active": "Active",
+            "paused": "Paused",
+            "cancelled": "Cancelled"
+        },
+        "frequency": {
+            "label": "Frequency",
+            "weekly": "Weekly",
+            "bi-weekly": "Bi-Weekly",
+            "monthly": "Monthly",
+            "quarterly": "Quarterly",
+            "weeklyDescription": "Delivery every week",
+            "bi-weeklyDescription": "Delivery every 2 weeks",
+            "monthlyDescription": "Delivery every month",
+            "quarterlyDescription": "Delivery every 3 months"
+        },
+        "totalAmount": "Total Amount",
+        "discount": "Discount",
+        "nextDelivery": "Next Delivery",
+        "deliveryAddress": "Delivery Address",
+        "products": "Products",
+        "quantity": "Quantity",
+        "details": "Subscription Details",
+        "created": "Created",
+        "lastUpdated": "Last Updated",
+        "deliveryInstructions": "Delivery Instructions",
+        "pauseReason": "Pause Reason",
+        "pausedUntil": "Paused Until",
+        "deliveryHistory": "Delivery History",
+        "deliveryStatus": {
+            "pending": "Pending",
+            "out-for-delivery": "Out for Delivery",
+            "delivered": "Delivered",
+            "failed": "Failed"
+        },
+        "noDeliveries": "No delivery history",
+        "moreDeliveries": "and {count} more deliveries",
+        "inDays": "in {days} days",
+        "today": "today",
+        "overdue": "overdue",
+        "noSubscriptions": "No subscriptions found",
+        "noActiveSubscriptions": "You don't have any active subscriptions yet.",
+        "noCancelledSubscriptions": "You don't have any cancelled subscriptions.",
+        "createFirstDescription": "Start your first subscription to get regular deliveries of your medicines.",
+        "cancelModal": {
+            "title": "Cancel Subscription",
+            "description": "Are you sure you want to cancel this subscription? This action cannot be undone.",
+            "reasonPlaceholder": "Please tell us why you're cancelling (optional)",
+            "confirm": "Yes, Cancel Subscription",
+            "cancel": "Keep Subscription"
+        },
+        "pauseModal": {
+            "title": "Pause Subscription",
+            "description": "How long would you like to pause this subscription?",
+            "duration": "Pause Duration",
+            "reason": "Reason (optional)",
+            "reasonPlaceholder": "Tell us why you're pausing",
+            "confirm": "Pause Subscription"
+        },
+        "empty": {
+            "active": {
+                "title": "No Active Subscriptions",
+                "description": "You don't have any active subscriptions yet."
+            },
+            "cancelled": {
+                "title": "No Cancelled Subscriptions",
+                "description": "You don't have any cancelled subscriptions."
+            }
+        }
+    }
+}

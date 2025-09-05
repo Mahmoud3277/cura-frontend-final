@@ -1,0 +1,71 @@
+{
+    "admin": {
+        "title": "Admin Dashboard",
+        "overview": "Overview",
+        "users": "Users",
+        "orders": "Orders",
+        "pharmacies": "Pharmacies",
+        "doctors": "Doctors",
+        "vendors": "Vendors",
+        "settings": "Settings",
+        "analytics": "Analytics",
+        "reports": "Reports"
+    },
+    "pharmacy": {
+        "title": "Pharmacy Dashboard",
+        "orders": "Orders",
+        "inventory": "Inventory",
+        "customers": "Customers",
+        "analytics": "Analytics",
+        "profile": "Profile",
+        "notifications": "Notifications"
+    },
+    "doctor": {
+        "title": "Doctor Dashboard",
+        "patients": "Patients",
+        "prescriptions": "Prescriptions",
+        "referrals": "Referrals",
+        "commission": "Commission",
+        "profile": "Profile",
+        "schedule": "Schedule"
+    },
+    "customer": {
+        "title": "My Account",
+        "orders": "My Orders",
+        "prescriptions": "My Prescriptions",
+        "profile": "Profile",
+        "addresses": "Addresses",
+        "favorites": "Favorites",
+        "notifications": "Notifications"
+    },
+    "vendor": {
+        "title": "Vendor Dashboard",
+        "products": "Products",
+        "orders": "Orders",
+        "analytics": "Analytics",
+        "profile": "Profile",
+        "commission": "Commission"
+    },
+    "orders": {
+        "pending": "Pending",
+        "confirmed": "Confirmed",
+        "preparing": "Preparing",
+        "ready": "Ready",
+        "delivered": "Delivered",
+        "cancelled": "Cancelled",
+        "refunded": "Refunded"
+    },
+    "notifications": {
+        "title": "Notifications",
+        "markAsRead": "Mark as Read",
+        "markAllAsRead": "Mark All as Read",
+        "clear": "Clear",
+        "empty": "No notifications",
+        "types": {
+            "order": "Order Update",
+            "prescription": "Prescription Update",
+            "system": "System",
+            "promotion": "Promotion"
+        }
+    }
+}
