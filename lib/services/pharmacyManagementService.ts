@@ -3,7 +3,7 @@ import axios, { AxiosResponse } from 'axios';
 import { getAuthToken, setAuthToken, removeAuthToken } from '../utils/cookies';
 
 // Configuration
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 const PHARMACY_ENDPOINTS = {
   BASE: '/pharmacies',
   BY_ID: (id: string) => `/pharmacies/searchPharmacyById/${id}`,

@@ -299,7 +299,7 @@ export interface VendorsByProductResponse {
 
 // Enhanced Pharmacy/Vendor Order Service
 class EnhancedProviderOrderService {
-  private baseUrl = 'http://localhost:5000/api';
+  private baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
   private ordersUrl = `${this.baseUrl}/orders`;
   private vendorsUrl = `${this.baseUrl}/vendors`;
   private token: string | null = null;

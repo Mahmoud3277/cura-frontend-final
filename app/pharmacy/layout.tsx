@@ -75,7 +75,7 @@ export default function PharmacyLayout({ children }: PharmacyLayoutProps) {
     const getUser = async():Promise<any>=>{
         const token = getAuthToken();
         if(token){
-            const user = await fetch('http://localhost:5000/api/auth/me',{
+            const user = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/auth/me`,{
                 headers: {
                     'Content-Type': 'application/json',
                     ...(token && { Authorization: `Bearer ${token}` }),

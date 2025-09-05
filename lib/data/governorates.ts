@@ -298,7 +298,7 @@ export const governorates: Governorate[] = [
     },
 ];
 export async function getAllGovernorates(){
-    const data = await fetch('http://localhost:5000/locations/governorates',{
+    const data = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/locations/governorates`,{
         method:"GET"
     })
     const response = await data.json()

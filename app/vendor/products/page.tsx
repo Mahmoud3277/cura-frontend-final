@@ -134,7 +134,7 @@ export default function VendorProductsPage() {
 
     const getUser = async (): Promise<string> => {
         const token = Cookies.get('authToken');
-        const user = await fetch('http://localhost:5000/api/auth/me', {
+        const user = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/auth/me`, {
             headers: {
                 'Content-Type': 'application/json',
                 ...(token && { Authorization: `Bearer ${token}` }),
@@ -324,7 +324,7 @@ export default function VendorProductsPage() {
         try {
             const vendorId = await getUser();
             const token = Cookies.get('authToken');
-            const response = await fetch(`http://localhost:5000/vendors/update-products/${vendorId}`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/vendors/update-products/${vendorId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -351,7 +351,7 @@ export default function VendorProductsPage() {
         try {
             const vendorId = await getUser();
             const token = Cookies.get('authToken');
-            const response = await fetch(`http://localhost:5000/vendors/delete-products/${vendorId}`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/vendors/delete-products/${vendorId}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
