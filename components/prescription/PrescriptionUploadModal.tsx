@@ -149,7 +149,7 @@ const handleSubmit = async () => {
             // Redirect to prescription status page with the new prescription ID
             setTimeout(() => {
                 handleClose();
-                // router.push(`/prescription/status/${response.data._id}`);
+                router.push(`/prescription/status`);
             }, 2000);
         } else {
             // Handle API error response
