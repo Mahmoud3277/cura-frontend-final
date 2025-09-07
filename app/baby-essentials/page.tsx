@@ -69,16 +69,7 @@ export default function BabyEssentialsPage() {
             setLoading(true);
             try {
                 // Fetch products based on the current filters
-                const fetchedProducts = await filterProducts({
-                    cityIds: selectedCity ? [selectedCity.id] : adminSettings.enabledCityIds,
-                    categories: babyEssentialsCategories,
-                    priceRange: filters.priceRange,
-                    inStockOnly: filters.inStockOnly,
-                    prescriptionOnly: filters.prescriptionOnly,
-                    minRating: filters.minRating,
-                    pharmacyIds:
-                        filters.selectedPharmacies.length > 0 ? filters.selectedPharmacies : undefined,
-                });
+                const fetchedProducts = await filterProducts({});
                 console.log(fetchedProducts, 'fetched products')
                 
                 // Apply the client-side baby essentials and search filters

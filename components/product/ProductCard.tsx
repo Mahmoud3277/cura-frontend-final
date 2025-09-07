@@ -32,8 +32,17 @@ export function ProductCard({ product, onAddToCart, isMobile = false }: ProductC
     // Use the correct ID field and pharmacy ID
     const productId = product._id;
     const pharmacyId = product.pharmacyId || '';
-    const itemQuantity = getItemQuantity(productId, pharmacyId);
-    const inCart = isInCart(productId, pharmacyId);
+    useEffect(()=>{
+        getItemAndCart();
+    },[product])
+    const [itemQuantity, setItemQuantity] = useState(0);
+    const [inCart, setInCart] = useState(false);
+    const getItemAndCart = async()=>{
+        const itemQuantity = await getItemQuantity(productId, pharmacyId);
+        const inCart = await isInCart(productId, pharmacyId);
+        setItemQuantity(itemQuantity);
+        setInCart(inCart);
+    }
 
     // Calculate discount percentage
     const discountPercentage = product.originalPrice && product.price
@@ -359,25 +368,25 @@ export function ProductCard({ product, onAddToCart, isMobile = false }: ProductC
                 {/* Desktop Price & Add to Cart */}
                 <div className="flex items-center justify-between" data-oid="desktop-price-section">
                     <div className="flex items-center space-x-2" data-oid="desktop-price-container">
-                    {product.price && product.price || product?.priceReference || product?.overallAveragePrice > 0 ? (
-                                <>
-                                    <span className="text-base font-bold text-[#1F1F6F]" data-oid="mobile-price">
-                                        {product.pharmacyStocks.length > 0 && product?.pharmacyStocks[0]?.price} EGP
-                                    </span>
-                                    {product.originalPrice && product.originalPrice || product?.priceReference || product?.overallAveragePrice > product.price && (
-                                        <span
-                                            className="text-sm text-gray-500 line-through"
-                                            data-oid="mobile-original-price"
-                                        >
-                                            {product?.price  || product.priceReference  || product?.overallAveragePrice } EGP
-                                        </span>
-                                    )}
-                                </>
-                            ) : (
-                                <span className="text-sm text-gray-500" data-oid="mobile-price-na">
-                                    Price on request
+                        {product.price > 0 ? (
+                            <>
+                                <span className="text-base font-bold text-[#1F1F6F]" data-oid="desktop-price">
+                                    {product.price} EGP
                                 </span>
-                            )}
+                                {product.originalPrice && product.originalPrice > product.price && (
+                                    <span
+                                        className="text-sm text-gray-500 line-through"
+                                        data-oid="desktop-original-price"
+                                    >
+                                        {product.originalPrice} EGP
+                                    </span>
+                                )}
+                            </>
+                        ) : (
+                            <span className="text-sm text-gray-500" data-oid="desktop-price-na">
+                                Price on request
+                            </span>
+                        )}
                     </div>
                     <button
                         onClick={handleAddToCart}

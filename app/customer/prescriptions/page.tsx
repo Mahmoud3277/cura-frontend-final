@@ -7,12 +7,12 @@ import { ResponsiveHeader } from '@/components/layout/ResponsiveHeader';
 import { ClientOnly } from '@/components/common/ClientOnly';
 import { PrescriptionUploadModal } from '@/components/prescription/PrescriptionUploadModal';
 import { PrescriptionViewModal } from '@/components/prescription/PrescriptionViewModal';
-import { useLanguage } from '@/lib/contexts/LanguageContext';
-import { useTranslation } from '@/lib/hooks/useTranslation';
-import { products } from '@/lib/data/products';
 import { prescriptionAPIService } from '@/lib/data/prescriptionWorkflow';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { getAuthToken } from '@/lib/utils/cookies';
+import { useLanguage } from '@/lib/contexts/LanguageContext';
+import { useTranslation } from '@/lib/hooks/useTranslation';
+
 export default function CustomerPrescriptionsPage() {
     const router = useRouter();
     const { locale } = useLanguage();
@@ -74,7 +74,7 @@ export default function CustomerPrescriptionsPage() {
         // Handle successful upload
         setIsUploadModalOpen(false);
     };
-    const getUser = async():Promise<string>=>{
+    const getUser = async():Promise<string | undefined>=>{
         let token;
         if (typeof window !== 'undefined') {
             token = getAuthToken();
@@ -90,8 +90,9 @@ export default function CustomerPrescriptionsPage() {
             console.log(data)
             return data.data.user._id;
         }
+        return undefined;
     }
-    const [prescriptions, setprescriptions] = useState([]);
+    const [prescriptions, setprescriptions] = useState<any[]>([]);
     const fetchPrescriptions = async()=>{
         console.log('fetching the prescriptions')
         const customerId = await getUser()
@@ -107,12 +108,11 @@ export default function CustomerPrescriptionsPage() {
         }
     }
     useEffect(() => {
-        if(user){
-            console.log(user)
+        if (user) {
+            console.log(user);
             fetchPrescriptions();
-        }
-        else{
-            console.log('no user')
+        } else {
+            console.log('no user');
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -162,7 +162,7 @@ export default function CustomerPrescriptionsPage() {
                                     className="text-xl font-bold text-[#1F1F6F]"
                                     data-oid="mobile-summary-count"
                                 >
-                                    12
+                                    {prescriptions.length}
                                 </p>
                             </div>
                             <div
@@ -320,16 +320,45 @@ export default function CustomerPrescriptionsPage() {
                                                         className="w-8 h-8 bg-gray-100 rounded-md overflow-hidden mx-auto mb-2"
                                                         data-oid="vaig_xl"
                                                     >
-                                                        <img
-                                                            src={medicine.image}
-                                                            alt={medicine.name}
-                                                            className="w-full h-full object-cover"
-                                                            onError={(e) => {
-                                                                e.currentTarget.src =
-                                                                    '/api/placeholder/300/300';
+                                                        {medicine.image ? (
+                                                            <img
+                                                                src={medicine.image}
+                                                                alt={medicine.name}
+                                                                className="w-full h-full object-cover rounded"
+                                                                onError={(e) => {
+                                                                    // Hide the image and show fallback emoji on error
+                                                                    const img = e.currentTarget;
+                                                                    img.style.display = 'none';
+                                                                    const container = img.parentElement;
+                                                                    if (container) {
+                                                                        const fallback = container.querySelector('.medicine-fallback-mobile');
+                                                                        if (fallback) {
+                                                                            (fallback as HTMLElement).style.display = 'flex';
+                                                                        }
+                                                                    }
+                                                                }}
+                                                                onLoad={(e) => {
+                                                                    // Ensure fallback is hidden when image loads successfully
+                                                                    const img = e.currentTarget;
+                                                                    const container = img.parentElement;
+                                                                    if (container) {
+                                                                        const fallback = container.querySelector('.medicine-fallback-mobile');
+                                                                        if (fallback) {
+                                                                            (fallback as HTMLElement).style.display = 'none';
+                                                                        }
+                                                                    }
+                                                                }}
+                                                                data-oid="xvqlpj3"
+                                                            />
+                                                        ) : null}
+                                                        <div
+                                                            className="medicine-fallback-mobile w-full h-full bg-gray-200 rounded flex items-center justify-center"
+                                                            style={{
+                                                                display: medicine.image ? 'none' : 'flex'
                                                             }}
-                                                            data-oid="xvqlpj3"
-                                                        />
+                                                        >
+                                                            <span className="text-xs">💊</span>
+                                                        </div>
                                                     </div>
                                                     <div className="text-center" data-oid="u3q643e">
                                                         <p
@@ -445,7 +474,7 @@ export default function CustomerPrescriptionsPage() {
                                             className="text-2xl font-bold text-[#1F1F6F]"
                                             data-oid="gvibvr5"
                                         >
-                                            12
+                                            {prescriptions.length}
                                         </p>
                                     </div>
                                     <div
@@ -532,8 +561,8 @@ export default function CustomerPrescriptionsPage() {
                                         {/* Prescription Card */}
                                         <div
                                             className="bg-white rounded-2xl shadow-lg border-2 border-gray-200 hover:shadow-xl hover:border-[#1F1F6F]/20 transition-all duration-300 relative cursor-pointer"
-                                            onClick={() => 
-                                            scription(prescription.id)}
+                                            onClick={() =>
+                                            handleViewPrescription(prescription.id)}
                                             data-oid="4mf_s8p"
                                         >
                                             <div className="p-8" data-oid="zr41m09">
@@ -747,22 +776,49 @@ export default function CustomerPrescriptionsPage() {
                                                                                 className="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0"
                                                                                 data-oid="pjh3i70"
                                                                             >
-                                                                                <img
-                                                                                    src={
-                                                                                        medicine.image
-                                                                                    }
-                                                                                    alt={
-                                                                                        medicine.name
-                                                                                    }
-                                                                                    className="w-full h-full object-cover"
-                                                                                    onError={(
-                                                                                        e,
-                                                                                    ) => {
-                                                                                        e.currentTarget.src =
-                                                                                            '/api/placeholder/300/300';
+                                                                                {medicine.image ? (
+                                                                                    <img
+                                                                                        src={
+                                                                                            medicine.image
+                                                                                        }
+                                                                                        alt={
+                                                                                            medicine.name
+                                                                                        }
+                                                                                        className="w-full h-full object-cover rounded-lg"
+                                                                                        onError={(e) => {
+                                                                                            // Hide the image and show fallback emoji on error
+                                                                                            const img = e.currentTarget;
+                                                                                            img.style.display = 'none';
+                                                                                            const container = img.parentElement;
+                                                                                            if (container) {
+                                                                                                const fallback = container.querySelector('.medicine-fallback-desktop');
+                                                                                                if (fallback) {
+                                                                                                    (fallback as HTMLElement).style.display = 'flex';
+                                                                                                }
+                                                                                            }
+                                                                                        }}
+                                                                                        onLoad={(e) => {
+                                                                                            // Ensure fallback is hidden when image loads successfully
+                                                                                            const img = e.currentTarget;
+                                                                                            const container = img.parentElement;
+                                                                                            if (container) {
+                                                                                                const fallback = container.querySelector('.medicine-fallback-desktop');
+                                                                                                if (fallback) {
+                                                                                                    (fallback as HTMLElement).style.display = 'none';
+                                                                                                }
+                                                                                            }
+                                                                                        }}
+                                                                                        data-oid="uuapu_x"
+                                                                                    />
+                                                                                ) : null}
+                                                                                <div
+                                                                                    className="medicine-fallback-desktop w-full h-full bg-gray-200 rounded-lg flex items-center justify-center"
+                                                                                    style={{
+                                                                                        display: medicine.image ? 'none' : 'flex'
                                                                                     }}
-                                                                                    data-oid="uuapu_x"
-                                                                                />
+                                                                                >
+                                                                                    <span className="text-sm">💊</span>
+                                                                                </div>
                                                                             </div>
                                                                             <div
                                                                                 className="flex-1 min-w-0"

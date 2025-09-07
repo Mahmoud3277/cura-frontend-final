@@ -39,6 +39,65 @@ export function ReturnOrderModal({
         'eligibility',
     );
 
+    // Helper functions to map the complex order object structure
+    const getCustomerInfo = (order: any) => ({
+        id: order.customerId?._id || order.customerId,
+        name: order.customerId?.name || order.customerName,
+        email: order.customerId?.email || order.customerEmail,
+        phone: order.customerId?.phone || order.customerPhone,
+    });
+
+    const getOrderItems = (order: any) => {
+        return order.items?.map((item: any) => ({
+            id: item._id,
+            productId: item.productId?._id || item.productId,
+            productName: item.productName || item.productId?.name || 'Unknown Product',
+            productNameAr: item.productNameAr || item.productId?.nameAr || '',
+            quantity: item.quantity,
+            unitPrice: item.unitPrice || item.price || 0,
+            totalPrice: item.totalPrice || (item.unitPrice * item.quantity) || 0,
+            image: getProductImage(item),
+            category: item.category || item.productId?.category || '',
+            manufacturer: item.manufacturer || item.productId?.manufacturer || '',
+        })) || [];
+    };
+
+    const getProductImage = (item: any) => {
+        // Try multiple sources for the image
+        if (item.image) {
+            // If image is a JSON string, parse it
+            if (typeof item.image === 'string' && item.image.trim().startsWith('{')) {
+                try {
+                    const parsedImage = JSON.parse(item.image);
+                    if (parsedImage.url) {
+                        return parsedImage.url;
+                    }
+                } catch (e) {
+                    console.warn('Failed to parse image JSON:', item.image);
+                }
+            }
+            // If image is already a URL string
+            if (typeof item.image === 'string' && item.image.startsWith('http')) {
+                return item.image;
+            }
+        }
+
+        // Try productId images array
+        if (item.productId?.images?.length > 0) {
+            return item.productId.images[0].url;
+        }
+
+        // Return empty string if no image found
+        return '';
+    };
+
+    const getImageSource = (imageUrl: string) => {
+        if (!imageUrl || imageUrl.trim() === '') {
+            return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0yNCAyNEg0MFY0MEgyNFYyNFoiIGZpbGw9IiM5Q0EzQUYiLz4KPHBhdGggZD0iTTI4IDI4SDM2VjM2SDI4VjI4WiIgZmlsbD0iIzZCNzI4MCIvPgo8L3N2Zz4K';
+        }
+        return imageUrl;
+    };
+
     // Helper function to translate return reasons
     const translateReason = (reason: string): string => {
         const reasonMap: { [key: string]: string } = {
@@ -66,22 +125,35 @@ export function ReturnOrderModal({
 
     useEffect(() => {
         if (isOpen && order) {
+            console.log('🔄 Opening return modal with order:', order);
+            console.log('📦 Order structure:', {
+                id: order.id,
+                customerId: order.customerId,
+                items: order.items,
+                totalAmount: order.totalAmount,
+                status: order.status,
+            });
+
             // Check eligibility
             const eligibility = orderReturnService.canReturnOrder(order);
             setEligibilityCheck(eligibility);
 
             if (eligibility.canReturn) {
-                // Initialize return items
-                const items: ReturnItemForm[] = order.items.map((item, index) => ({
-                    orderItemId: `item-${index}`,
+                // Initialize return items using the mapped order data
+                const mappedItems = getOrderItems(order);
+                console.log('📋 Mapped order items:', mappedItems);
+
+                const items: ReturnItemForm[] = mappedItems.map((item, index) => ({
+                    orderItemId: item.id || `item-${index}`,
                     productId: item.productId,
-                    productName: `Product ${item.productId}`, // In real app, get from product service
+                    productName: item.productName,
                     originalQuantity: item.quantity,
                     returnQuantity: item.quantity,
                     reason: '',
                     condition: 'unopened',
-                    price: item.price,
+                    price: item.unitPrice,
                 }));
+                console.log('🎯 Return items initialized:', items);
                 setReturnItems(items);
             }
         }
@@ -118,8 +190,8 @@ export function ReturnOrderModal({
         );
 
         const returnRequest: ReturnRequest = {
-            orderId: order.id,
-            customerId: order.customerId,
+            orderId: order._id,
+            customerId: getCustomerInfo(order).id,
             reason: returnReason,
             description: returnDescription,
             returnItems: validReturnItems.map((item) => ({
@@ -196,7 +268,7 @@ export function ReturnOrderModal({
                                 {tCustomer('returnOrder.title')}
                             </h2>
                             <p className="text-red-100 text-sm" data-oid="qkk7zkw">
-                                {order.id}
+                                {order._id || order.id}
                             </p>
                         </div>
                     </div>
@@ -400,13 +472,27 @@ export function ReturnOrderModal({
                                             data-oid="item-header"
                                         >
                                             <div
-                                                className={`${isMobile ? 'w-12 h-12' : 'w-16 h-16'} bg-gray-100 rounded-lg flex items-center justify-center`}
-                                                data-oid="item-icon"
+                                                className={`${isMobile ? 'w-12 h-12' : 'w-16 h-16'} bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden`}
+                                                data-oid="item-image-container"
                                             >
-                                                <Package
-                                                    className={`${isMobile ? 'w-6 h-6' : 'w-8 h-8'} text-gray-400`}
-                                                    data-oid="jek4.ix"
-                                                />
+                                                {(() => {
+                                                    const mappedItems = getOrderItems(order);
+                                                    const currentItem = mappedItems[index];
+                                                    const imageUrl = currentItem?.image || '';
+                                                    return (
+                                                        <img
+                                                            src={getImageSource(imageUrl)}
+                                                            alt={item.productName}
+                                                            className="w-full h-full object-cover"
+                                                            onError={(e) => {
+                                                                // Fallback to a placeholder image if the product image fails to load
+                                                                e.currentTarget.src =
+                                                                    'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0yNCAyNEg0MFY0MEgyNFYyNFoiIGZpbGw9IiM5Q0EzQUYiLz4KPHBhdGggZD0iTTI4IDI4SDM2VjM2SDI4VjI4WiIgZmlsbD0iIzZCNzI4MCIvPgo8L3N2Zz4K';
+                                                            }}
+                                                            data-oid="item-image"
+                                                        />
+                                                    );
+                                                })()}
                                             </div>
                                             <div
                                                 className={`flex-1 space-y-${isMobile ? '3' : '4'}`}
@@ -424,7 +510,7 @@ export function ReturnOrderModal({
                                                         data-oid="jipjv68"
                                                     >
                                                         Original quantity: {item.originalQuantity} •
-                                                        Price: {item.price} EGP
+                                                        Price: {item.total} EGP
                                                     </p>
                                                 </div>
 

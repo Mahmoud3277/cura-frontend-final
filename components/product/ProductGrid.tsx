@@ -108,7 +108,7 @@ export function ProductGrid({
         >
             {products.map((product) => (
                 <ProductCard
-                    key={product._id}
+                    key={product._id || product.id}
                     product={product}
                     onAddToCart={onAddToCart}
                     isMobile={isMobile}

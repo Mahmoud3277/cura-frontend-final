@@ -68,16 +68,7 @@ export default function SkincarePage() {
             setLoading(true);
             try {
                 // Fetch products based on the current filters
-                const fetchedProducts = await filterProducts({
-                    cityIds: selectedCity ? [selectedCity.id] : adminSettings.enabledCityIds,
-                    categories: skincareCategories,
-                    priceRange: filters.priceRange,
-                    inStockOnly: filters.inStockOnly,
-                    prescriptionOnly: filters.prescriptionOnly,
-                    minRating: filters.minRating,
-                    pharmacyIds:
-                        filters.selectedPharmacies.length > 0 ? filters.selectedPharmacies : undefined,
-                });
+                const fetchedProducts = await filterProducts({});
                 console.log(fetchedProducts, 'fetched products')
                 
                 // Apply the client-side skincare and search filters

@@ -73,14 +73,7 @@ export default function DailyEssentialsPage() {
             try {
                 // Fetch products based on the current filters
                 const fetchedProducts = await filterProducts({
-                    cityIds: selectedCity ? [selectedCity.id] : adminSettings.enabledCityIds,
-                    categories: dailyEssentialsCategories,
-                    priceRange: filters.priceRange,
-                    inStockOnly: filters.inStockOnly,
-                    prescriptionOnly: filters.prescriptionOnly,
-                    minRating: filters.minRating,
-                    pharmacyIds:
-                        filters.selectedPharmacies.length > 0 ? filters.selectedPharmacies : undefined,
+                    
                 });
                 console.log(fetchedProducts, 'fetched products')
                 

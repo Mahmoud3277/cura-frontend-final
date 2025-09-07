@@ -283,9 +283,27 @@ export default function ProductDetailPage() {
             : 0;
     
         // Calculate price based on quantity and purchase option - Fixed
-        const getUnitPrice = () => {
-            return currentProvider?.price || 0;
+        const getUnitPrice = (option?: 'blister' | 'box') => {
+            const purchaseOpt = option || purchaseOption;
+            if (!currentProvider?.price) return 0;
+
+            // For medicine products, use different pricing based on purchase option
+            if (product.category === 'otc' || product.category === 'prescription') {
+                // For blister: use the base price
+                if (purchaseOpt === 'blister') {
+                    return currentProvider.price;
+                }
+                // For box: assume a box contains 10 blisters, so price is higher
+                if (purchaseOpt === 'box') {
+                    return currentProvider.price * 10; // Box price = blister price * 10
+                }
+            }
+            // For non-medicine products, use regular pricing
+            return currentProvider.price;
         };
+
+        const getBlisterPrice = () => getUnitPrice('blister');
+        const getBoxPrice = () => getUnitPrice('box');
     
         const getTotalPrice = () => {
             return getUnitPrice() * quantity;
@@ -487,7 +505,7 @@ export default function ProductDetailPage() {
                     </div>
 
                     {/* Purchase Options - Mobile Compact */}
-                    {(product.category === 'otc' || product.category === 'prescription') && (
+                    {product && (
                         <div className="space-y-3">
                             <label className="text-sm font-medium text-gray-900">
                                 Purchase Option:
@@ -507,7 +525,7 @@ export default function ProductDetailPage() {
                                             Per Blister
                                         </div>
                                         <div className="text-xs text-[#1F1F6F] font-medium">
-                                            EGP {getUnitPrice()}
+                                            EGP {getBlisterPrice().toFixed(2)}
                                         </div>
                                     </div>
                                 </button>
@@ -525,7 +543,7 @@ export default function ProductDetailPage() {
                                             Per Box
                                         </div>
                                         <div className="text-xs text-[#1F1F6F] font-medium">
-                                            EGP {getUnitPrice()}
+                                            EGP {getBoxPrice().toFixed(2)}
                                         </div>
                                     </div>
                                 </button>
@@ -574,7 +592,7 @@ export default function ProductDetailPage() {
                                     : 'Unit Price:'}
                             </span>
                             <span className="font-semibold text-gray-900">
-                                EGP {getUnitPrice()}
+                                EGP {getUnitPrice().toFixed(2)}
                             </span>
                         </div>
                         <div className="flex justify-between items-center">
@@ -582,7 +600,7 @@ export default function ProductDetailPage() {
                                 Total Price:
                             </span>
                             <span className="font-bold text-xl text-[#1F1F6F]">
-                                EGP {getTotalPrice()}
+                                EGP {getTotalPrice().toFixed(2)}
                             </span>
                         </div>
                     </div>
@@ -909,7 +927,7 @@ export default function ProductDetailPage() {
                             </div>
 
                             {/* Purchase Options - Per Blister/Per Box (Only for Medicine Products) */}
-                            {(product.category === 'otc' || product.category === 'prescription') && (
+                            {product && (
                                 <div className="space-y-3">
                                     <label className="text-lg font-medium text-gray-900">
                                         Purchase Option:
@@ -929,7 +947,7 @@ export default function ProductDetailPage() {
                                                     Per Blister
                                                 </div>
                                                 <div className="text-sm text-[#1F1F6F] font-medium">
-                                                    EGP {getUnitPrice()}
+                                                    EGP {getBlisterPrice().toFixed(2)}
                                                 </div>
                                                 <div className="text-xs text-gray-600">
                                                     Individual strips
@@ -950,7 +968,7 @@ export default function ProductDetailPage() {
                                                     Per Box
                                                 </div>
                                                 <div className="text-sm text-[#1F1F6F] font-medium">
-                                                    EGP {getUnitPrice()}
+                                                    EGP {getBoxPrice().toFixed(2)}
                                                 </div>
                                                 <div className="text-xs text-gray-600">
                                                     Complete package
@@ -1003,7 +1021,7 @@ export default function ProductDetailPage() {
                                             : 'Unit Price:'}
                                     </span>
                                     <span className="font-semibold text-gray-900">
-                                        EGP {getUnitPrice()}
+                                        EGP {getUnitPrice().toFixed(2)}
                                     </span>
                                 </div>
                                 <div className="flex justify-between items-center text-lg">
@@ -1011,7 +1029,7 @@ export default function ProductDetailPage() {
                                         Total Price:
                                     </span>
                                     <span className="font-bold text-2xl text-[#1F1F6F]">
-                                        EGP {getTotalPrice()}
+                                        EGP {getTotalPrice().toFixed(2)}
                                     </span>
                                 </div>
                             </div>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { ResponsiveHeader } from '@/components/layout/ResponsiveHeader';
 import { Footer } from '@/components/layout/Footer';
 import { ClientOnly } from '@/components/common/ClientOnly';
@@ -18,7 +19,16 @@ export default function CartPage() {
     const { locale } = useLanguage();
     const { t } = useTranslation(locale);
     const isMobile = useIsMobile();
-    
+    const router = useRouter();
+
+    // Handle authentication redirect with proper Next.js routing
+    useEffect(() => {
+        if (!isLoading && (!isAuthenticated || !user)) {
+            console.log('User not authenticated, redirecting to login...');
+            router.push('/auth/login');
+        }
+    }, [isLoading, isAuthenticated, user, router]);
+
     // Show loading while checking authentication
     if (isLoading) {
         return (
@@ -31,10 +41,16 @@ export default function CartPage() {
         );
     }
 
-    // Redirect to login if not authenticated (as fallback to middleware)
+    // Don't render anything while redirecting
     if (!isAuthenticated || !user) {
-        window.location.href = '/auth/login';
-        return null;
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="text-center">
+                    <div className="w-16 h-16 border-4 border-[#1F1F6F] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-gray-600">Redirecting to login...</p>
+                </div>
+            </div>
+        );
     }
     const {
         items,

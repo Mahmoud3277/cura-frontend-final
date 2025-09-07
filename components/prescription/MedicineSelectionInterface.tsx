@@ -43,11 +43,7 @@ export default function MedicineSelectionInterface({
       }
     `;
         document.head.appendChild(style);
-        return () => {
-            if (document.head.contains(style)) {
-                document.head.removeChild(style);
-            }
-        };
+        return () => document.head.removeChild(style);
     }, []);
 
     const router = useRouter();
@@ -67,11 +63,13 @@ export default function MedicineSelectionInterface({
 
         let translatedDescription = option.description;
         if (option.type === 'blister') {
+            // "10 tablets per blister" -> "{count} tablets per blister"
             const tabletCount = option.description.match(/(\d+)\s+tablets/)?.[1] || '10';
             translatedDescription = tCustomer(
                 'medicineSelection.medicine.tabletsPerBlister',
             ).replace('{count}', tabletCount);
         } else if (option.type === 'box') {
+            // "2 blisters (20 tablets) per box" -> "{blisters} blisters ({count} tablets) per box"
             const blisterMatch = option.description.match(/(\d+)\s+blisters/);
             const tabletMatch = option.description.match(/\((\d+)\s+tablets\)/);
             const blisterCount = blisterMatch?.[1] || '2';
@@ -91,13 +89,58 @@ export default function MedicineSelectionInterface({
     // Helper function to translate medicine instructions
     const translateInstructions = (instructions: string) => {
         if (!instructions) return instructions;
-        // Add your translation logic here if needed
-        return instructions;
+
+        // Common instruction patterns
+        const patterns = [
+            {
+                regex: /Take (\d+) tablet every (\d+) hours as needed for pain or fever\. Do not exceed (\d+) tablets in 24 hours\./,
+                key: 'medicineSelection.medicine.dosageInstructions.takeTablet',
+            },
+            {
+                regex: /Continue for (\d+)-(\d+) days maximum or as prescribed by your doctor/,
+                key: 'medicineSelection.medicine.dosageInstructions.continueDays',
+            },
+            {
+                regex: /(\d+)-(\d+) days maximum/,
+                key: 'medicineSelection.medicine.dosageInstructions.daysMaximum',
+            },
+            {
+                regex: /Can be taken with or without food/,
+                key: 'medicineSelection.medicine.dosageInstructions.withOrWithoutFood',
+            },
+            {
+                regex: /Store in a cool, dry place below (\d+)°C\. Keep out of reach of children\./,
+                key: 'medicineSelection.medicine.dosageInstructions.storeCool',
+            },
+        ];
+
+        for (const pattern of patterns) {
+            const match = instructions.match(pattern.regex);
+            if (match) {
+                let translated = tCustomer(pattern.key);
+                // Replace placeholders with matched values
+                if (pattern.key.includes('takeTablet')) {
+                    translated = translated
+                        .replace('{count}', match[1])
+                        .replace('{hours}', match[2])
+                        .replace('{max}', match[3]);
+                } else if (pattern.key.includes('continueDays')) {
+                    translated = translated.replace('{min}', match[1]).replace('{max}', match[2]);
+                } else if (pattern.key.includes('daysMaximum')) {
+                    translated = translated.replace('{min}', match[1]).replace('{max}', match[2]);
+                } else if (pattern.key.includes('storeCool')) {
+                    translated = translated.replace('{temp}', match[1]);
+                }
+                return translated;
+            }
+        }
+
+        return instructions; // Return original if no pattern matches
     };
 
     // Helper function to translate medicine units
     const translateUnit = (unit: string) => {
-        if (unit === 'tablets' || unit === 'capsules') {
+        if (unit === 'tablets') {
             return tCustomer('medicineSelection.medicine.tablets');
         } else if (unit === 'capsules') {
             return tCustomer('medicineSelection.medicine.capsules');
@@ -400,18 +443,37 @@ export default function MedicineSelectionInterface({
                                                     <img
                                                         src={medicineData.image || (medicine as any).image}
                                                         alt={medicine.name || medicineData.name}
-                                                        className="w-full h-full object-cover"
+                                                        className="w-full h-full object-cover rounded-lg"
                                                         onError={(e) => {
-                                                            const target = e.currentTarget as HTMLElement;
-                                                            const sibling = target.nextElementSibling as HTMLElement;
-                                                            target.style.display = 'none';
-                                                            if (sibling) sibling.style.display = 'block';
+                                                            // Hide the image and show fallback emoji on error
+                                                            const img = e.currentTarget;
+                                                            img.style.display = 'none';
+                                                            const container = img.parentElement;
+                                                            if (container) {
+                                                                const fallback = container.querySelector('.medicine-fallback');
+                                                                if (fallback) {
+                                                                    (fallback as HTMLElement).style.display = 'block';
+                                                                }
+                                                            }
+                                                        }}
+                                                        onLoad={(e) => {
+                                                            // Ensure fallback is hidden when image loads successfully
+                                                            const img = e.currentTarget;
+                                                            const container = img.parentElement;
+                                                            if (container) {
+                                                                const fallback = container.querySelector('.medicine-fallback');
+                                                                if (fallback) {
+                                                                    (fallback as HTMLElement).style.display = 'none';
+                                                                }
+                                                            }
                                                         }}
                                                     />
                                                 ) : null}
-                                                <span 
-                                                    className="text-xl md:text-2xl"
-                                                    style={{ display: (medicineData.image || (medicine as any).image) ? 'none' : 'block' }}
+                                                <span
+                                                    className="medicine-fallback text-xl md:text-2xl"
+                                                    style={{
+                                                        display: (medicineData.image || (medicine as any).image) ? 'none' : 'block'
+                                                    }}
                                                 >
                                                     💊
                                                 </span>
@@ -750,12 +812,49 @@ export default function MedicineSelectionInterface({
                                             availablePharmacies.map((pharmacy) => (
                                                 <div
                                                     key={pharmacy.pharmacyId}
-                                                    onClick={() => handlePharmacySelect(medicineId, pharmacy.pharmacyId)}
-                                                    className={`p-3 border-2 rounded-xl cursor-pointer transition-all duration-300 ${
-                                                        selection.selectedPharmacy?.pharmacyId === pharmacy.pharmacyId
+                                                    className={`w-full p-2 md:p-3 rounded-lg border text-left transition-all duration-300 cursor-pointer ${
+                                                        selection.selectedPharmacy
+                                                            ?.pharmacyId === pharmacy.pharmacyId
                                                             ? 'border-[#1F1F6F] bg-[#1F1F6F]/5'
-                                                            : 'border-gray-200 hover:bg-gray-100'
+                                                            : 'border-gray-200 hover:border-gray-300'
                                                     }`}
+                                                    role="button"
+                                                    tabIndex={0}
+                                                    style={{ userSelect: 'none' }}
+                                                    onMouseDown={(e) => {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                    }}
+                                                    onMouseUp={(e) => {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                        console.log(
+                                                            'Pharmacy clicked:',
+                                                            pharmacy.pharmacyName,
+                                                        );
+                                                        handlePharmacySelect(
+                                                            medicineId,
+                                                            pharmacy.pharmacyId,
+                                                        );
+                                                    }}
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                        return false;
+                                                    }}
+                                                    onKeyDown={(e) => {
+                                                        if (
+                                                            e.key === 'Enter' ||
+                                                            e.key === ' '
+                                                        ) {
+                                                            e.preventDefault();
+                                                            e.stopPropagation();
+                                                            handlePharmacySelect(
+                                                                medicineId,
+                                                                pharmacy.pharmacyId,
+                                                            );
+                                                        }
+                                                    }}
                                                 >
                                                     <div className="flex items-center justify-between">
                                                         <div className="flex-1 min-w-0">
@@ -767,9 +866,30 @@ export default function MedicineSelectionInterface({
                                                                         <div className="w-2 h-2 bg-white rounded-full m-0.5"></div>
                                                                     )}
                                                                 </div>
-                                                                <span className="text-sm md:text-base font-semibold text-gray-900 truncate">
-                                                                    {pharmacy.pharmacyName}
-                                                                </span>
+                                                                <h5
+                                                                    className="font-semibold text-gray-900 text-sm md:text-base truncate"
+                                                                    style={{
+                                                                        pointerEvents: 'none',
+                                                                        userSelect: 'none',
+                                                                    }}
+                                                                >
+                                                                    <span
+                                                                        style={{
+                                                                            pointerEvents:
+                                                                                'none',
+                                                                            userSelect: 'none',
+                                                                        }}
+                                                                    >
+                                                                        {pharmacy.pharmacy
+                                                                            ?.nameAr ||
+                                                                            String(
+                                                                                pharmacy.pharmacyName,
+                                                                            ).replace(
+                                                                                /[^\w\s]/gi,
+                                                                                '',
+                                                                            )}
+                                                                    </span>
+                                                                </h5>
                                                             </div>
                                                             <div className="text-xs text-gray-500 ml-6 mt-1 flex items-center gap-2">
                                                                 <span>{tCustomer('medicineSelection.distance')} {pharmacy.distance.toFixed(1)} km</span>
@@ -809,6 +929,13 @@ export default function MedicineSelectionInterface({
                                             </div>
                                         )}
                                     </div>
+                                    {availablePharmacies.length > 3 && (
+                                        <div className="mt-3 text-center">
+                                            <div className="text-xs text-gray-500 bg-gradient-to-t from-gray-50 to-transparent py-2 rounded-b-lg">
+                                                ↑ Scroll to see more pharmacies ↑
+                                            </div>
+                                        </div>
+                                    )}
                                     <div className={`flex items-center justify-between text-xs md:text-sm text-gray-600 border-t border-gray-200 pt-4 mt-4 ${
                                         selection.isSelected === false ? 'opacity-50 pointer-events-none' : ''
                                     }`}>
@@ -824,35 +951,133 @@ export default function MedicineSelectionInterface({
                                 </div>
                             </div>
 
-                            {/* Quantity and Notes Section */}
-                            <div className={`px-4 pb-4 md:px-6 md:pb-6 space-y-4 ${
-                                selection.isSelected === false ? 'opacity-50 pointer-events-none' : ''
-                            }`}>
-                                <div className="border-t border-gray-200 pt-4 md:pt-6">
-                                    <h4 className="text-base md:text-lg font-semibold text-gray-900 mb-3 md:mb-4">
-                                        {tCustomer('medicineSelection.medicine.quantityAndNotes')}
-                                    </h4>
-                                    <div className="flex items-center gap-4">
-                                        <label
-                                            className="text-gray-600 whitespace-nowrap"
-                                            htmlFor={`quantity-${medicineId}`}
-                                        >
-                                            {tCustomer('medicineSelection.medicine.quantity')}:
-                                        </label>
-                                        <input
-                                            type="number"
-                                            id={`quantity-${medicineId}`}
-                                            value={selection.selectedQuantity}
-                                            onChange={(e) => {
-                                                const newQuantity = parseInt(e.target.value, 10);
-                                                handleQuantityChange(medicineId, newQuantity);
-                                            }}
-                                            min="1"
-                                            className="w-24 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1F1F6F] transition-all duration-300"
-                                        />
+                                    {/* Quantity and Notes Section */}
+                                    <div className={`px-4 pb-4 md:px-6 md:pb-6 space-y-4 ${
+                                        selection.isSelected === false ? 'opacity-50 pointer-events-none' : ''
+                                    }`}>
+                                        <div className="border-t border-gray-200 pt-4 md:pt-6">
+                                            <h4 className="text-base md:text-lg font-semibold text-gray-900 mb-3 md:mb-4">
+                                                {tCustomer('medicineSelection.medicine.quantityAndNotes')}
+                                            </h4>
+                                            <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-4">
+                                                <span className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                                                    {tCustomer('medicineSelection.medicine.quantity')}
+                                                    {locale === 'ar' ? ' ' : ': '}
+                                                </span>
+                                                <div className="flex items-center gap-3">
+                                                    <div className="flex items-center border-2 border-gray-200 rounded-xl overflow-hidden">
+                                                        <button
+                                                            onClick={() => {
+                                                                const newQuantity = Math.max(
+                                                                    1,
+                                                                    selection.packagingQuantity - 1,
+                                                                );
+                                                                handlePackagingChange(
+                                                                    medicineId,
+                                                                    selection.selectedPackaging,
+                                                                    newQuantity,
+                                                                );
+                                                            }}
+                                                            disabled={selection.isSelected === false}
+                                                            className="px-3 md:px-4 py-2 md:py-3 text-gray-600 hover:bg-gray-50 transition-colors disabled:cursor-not-allowed"
+                                                        >
+                                                            −
+                                                        </button>
+                                                        <input
+                                                            type="number"
+                                                            min="1"
+                                                            value={selection.packagingQuantity}
+                                                            onChange={(e) => {
+                                                                const quantity =
+                                                                    parseInt(e.target.value) || 1;
+                                                                handlePackagingChange(
+                                                                    medicineId,
+                                                                    selection.selectedPackaging,
+                                                                    quantity,
+                                                                );
+                                                            }}
+                                                            disabled={selection.isSelected === false}
+                                                            className="w-16 md:w-20 px-2 md:px-4 py-2 md:py-3 text-center border-0 focus:ring-0 disabled:bg-gray-100 text-sm md:text-base"
+                                                        />
+
+                                                        <button
+                                                            onClick={() => {
+                                                                const newQuantity =
+                                                                    selection.packagingQuantity + 1;
+                                                                handlePackagingChange(
+                                                                    medicineId,
+                                                                    selection.selectedPackaging,
+                                                                    newQuantity,
+                                                                );
+                                                            }}
+                                                            disabled={selection.isSelected === false}
+                                                            className="px-3 md:px-4 py-2 md:py-3 text-gray-600 hover:bg-gray-50 transition-colors disabled:cursor-not-allowed"
+                                                        >
+                                                            +
+                                                        </button>
+                                                    </div>
+                                                    <Select
+                                                        value={selection.selectedPackaging}
+                                                        onValueChange={(value) => {
+                                                            handlePackagingChange(
+                                                                medicineId,
+                                                                value as 'blister' | 'box',
+                                                                selection.packagingQuantity,
+                                                            );
+                                                        }}
+                                                        disabled={selection.isSelected === false}
+                                                    >
+                                                        <SelectTrigger className="w-28 md:w-32 h-8 text-xs md:text-sm border-[#1F1F6F]/20 focus:border-[#1F1F6F] focus:ring-[#1F1F6F]">
+                                                            <SelectValue placeholder={tCustomer('medicineSelection.ui.selectUnit')} />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {selection.selectedMedicine?.packagingOptions?.map(
+                                                                (option) => (
+                                                                    <SelectItem
+                                                                        key={option.type}
+                                                                        value={option.type}
+                                                                    >
+                                                                        {
+                                                                            translatePackagingOption(
+                                                                                option,
+                                                                            ).name
+                                                                        }
+                                                                    </SelectItem>
+                                                                ),
+                                                            )}
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                            </div>
+                                            {/* Total Units Display */}
+                                            <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                                                <div className="text-base text-gray-600">
+                                                    {tCustomer('medicineSelection.medicine.total')}
+                                                    {locale === 'ar' ? ' ' : ': '}
+                                                    <span className="font-semibold text-gray-900">
+                                                        {selection.selectedQuantity}{' '}
+                                                        {translateUnit(selection.selectedMedicine.unit)}
+                                                    </span>
+                                                </div>
+                                                {selection.selectedQuantity !==
+                                                    selection.prescribedQuantity && (
+                                                    <div className="text-sm text-orange-600 mt-2">
+                                                        {tCustomer(
+                                                            'medicineSelection.medicine.differentFromPrescribed',
+                                                        )}{' '}
+                                                        ({selection.prescribedQuantity}{' '}
+                                                        {translateUnit(selection.selectedMedicine.unit)}
+                                                        )
+                                                    </div>
+                                                )}
+                                            </div>
+                                            {selection.isSelected === false && (
+                                                <p className="text-sm text-gray-500 mt-2">
+                                                    {tCustomer('medicineSelection.medicine.notSelected')}
+                                                </p>
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
-                            </div>
                         </div>
                     );
                 })}
@@ -863,6 +1088,55 @@ export default function MedicineSelectionInterface({
                 {Object.keys(state?.selections).length > 0 &&
                     Object.values(state?.selections).some((s) => s.isSelected) ? (
                     <>
+                        {/* Mobile Order Summary - Collapsible */}
+                        <div className="md:hidden mb-4">
+                            <style jsx>{`
+                                details[open] summary svg {
+                                    transform: rotate(180deg);
+                                }
+                                details > summary {
+                                    list-style: none;
+                                }
+                                details > summary::-webkit-details-marker {
+                                    display: none;
+                                }
+                            `}</style>
+                            <details className="bg-gray-50 rounded-xl p-4">
+                                <summary className="flex items-center justify-between cursor-pointer text-sm font-semibold text-gray-900">
+                                    <span>{tCustomer('medicineSelection.checkout.orderSummary')}</span>
+                                    <svg className="w-4 h-4 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </summary>
+                                <div className="mt-3 space-y-2">
+                                    {/* Medicine List */}
+                                    <div className="space-y-2">
+                                        {Object.values(state?.selections)
+                                            .filter((s) => s.isSelected && s.selectedPharmacy)
+                                            .map((selection) => (
+                                                <div
+                                                    key={selection.medicineId}
+                                                    className="flex items-center justify-between text-xs text-gray-700 bg-white p-2 rounded-lg"
+                                                >
+                                                    <span className="flex-1">
+                                                        {selection.selectedQuantity}x {selection.selectedMedicine.name || selection.selectedMedicine.id.name}
+                                                    </span>
+                                                    <span className="font-semibold text-[#1F1F6F]">
+                                                        EGP {(selection.selectedPharmacy!.packagingPrices[selection.selectedPackaging] * selection.selectedQuantity).toFixed(2)}
+                                                    </span>
+                                                </div>
+                                            ))}
+                                    </div>
+                                    <div className="border-t border-dashed border-gray-300 pt-2">
+                                        <div className="flex items-center justify-between font-semibold text-gray-800 text-sm">
+                                            <span>{tCustomer('medicineSelection.checkout.totalPrice')}</span>
+                                            <span>EGP {state.totalPrice.toFixed(2)}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </details>
+                        </div>
+
                         {/* Summary Block - Desktop Only */}
                         <div className="hidden md:block bg-gray-50 rounded-xl p-6 mb-4">
                             <h3 className="text-xl font-bold text-gray-900 mb-4">
@@ -884,7 +1158,7 @@ export default function MedicineSelectionInterface({
                                                 </span>
                                                 <span className="font-semibold">
                                                     EGP{' '}
-                                                    {(selection.selectedPharmacy!.packagingPrices[selection.selectedPackaging] * selection.packagingQuantity).toFixed(2)}
+                                                    {(selection.selectedPharmacy!.packagingPrices[selection.selectedPackaging] * selection.selectedQuantity).toFixed(2)}
                                                 </span>
                                             </div>
                                         ))}

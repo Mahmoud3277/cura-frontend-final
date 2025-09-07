@@ -337,7 +337,7 @@ export default function MedicinePage() {
 
     return (
         <div className="bg-gray-50 min-h-screen">
-            {isMobile && <ResponsiveHeader />}
+            <ResponsiveHeader />
 
             <ClientOnly>
                 <CategoriesBar />

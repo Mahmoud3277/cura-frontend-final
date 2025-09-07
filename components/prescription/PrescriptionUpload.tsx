@@ -1,10 +1,12 @@
 'use client';
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/lib/contexts/LanguageContext';
 import { useTranslation } from '@/lib/hooks/useTranslation';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { CameraCapture } from './CameraCapture';
 import { CameraDebug } from './CameraDebug';
+import { prescriptionAPIService } from '@/lib/data/prescriptionWorkflow';
 
 interface UploadedFile {
     id: string;
@@ -27,6 +29,7 @@ export function PrescriptionUpload({
     maxFileSize = 10,
     className = '',
 }: PrescriptionUploadProps) {
+    const router = useRouter();
     const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
     const [isDragOver, setIsDragOver] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
@@ -34,11 +37,26 @@ export function PrescriptionUpload({
     const [errors, setErrors] = useState<string[]>([]);
     const [isCameraOpen, setIsCameraOpen] = useState(false);
     const [isDebugMode, setIsDebugMode] = useState(false);
+    const [step, setStep] = useState<'upload' | 'success'>('upload');
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { locale } = useLanguage();
-    const { t } = useTranslation(locale);
+    const { t, isLoading: translationsLoading } = useTranslation(locale);
     const { user } = useAuth();
+
+    // Create formData object with user info when available
+    const formData = {
+        patientName: user?.name || '',
+        patientAge: '',
+        patientGender: 'male' as 'male' | 'female',
+        doctorName: '',
+        doctorSpecialty: '',
+        hospitalClinic: '',
+        prescriptionDate: '',
+        deliveryAddress: '',
+        notes: '',
+        urgency: 'normal' as 'urgent' | 'normal' | 'routine',
+    };
 
     const formatFileSize = (bytes: number): string => {
         if (bytes === 0) return '0 Bytes';
@@ -150,13 +168,80 @@ export function PrescriptionUpload({
         setUploadedFiles((prev) => prev.filter((file) => file.id !== fileId));
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if (uploadedFiles.length === 0) {
             setErrors(['Please upload at least one prescription file']);
             return;
         }
 
-        onUploadComplete?.(uploadedFiles, {});
+        // Clear previous errors
+        setErrors([]);
+        setIsUploading(true);
+
+        try {
+            // Prepare the prescription data
+            const prescriptionData = {
+                patientName: formData.patientName || '',
+                patientAge: formData.patientAge ? parseInt(formData.patientAge) : undefined,
+                patientGender: formData.patientGender as 'male' | 'female' | undefined,
+                doctorName: formData.doctorName || '',
+                doctorSpecialty: formData.doctorSpecialty || '',
+                hospitalClinic: formData.hospitalClinic || '',
+                prescriptionDate: formData.prescriptionDate || '',
+                urgency: formData.urgency as 'urgent' | 'normal' | 'routine',
+                notes: formData.notes || '',
+                deliveryAddress: formData.deliveryAddress || ''
+            };
+
+            // Extract the actual File objects from uploadedFiles
+            const fileObjects: File[] = uploadedFiles.map(uploadedFile => uploadedFile.file);
+
+            console.log('Files being sent to API:', fileObjects.map(f => ({ name: f.name, size: f.size, type: f.type })));
+
+            // Create prescription via API
+            const response = await prescriptionAPIService.createPrescription(prescriptionData, fileObjects);
+
+            if (response.success && response.data) {
+                setIsUploading(false);
+                setStep('success');
+
+                // Call the completion callback with the uploaded files (not API response files)
+                onUploadComplete?.(uploadedFiles, {
+                    ...formData,
+                    prescriptionId: response.data._id,
+                    prescriptionNumber: response.data.prescriptionNumber,
+                    currentStatus: response.data.currentStatus,
+                    estimatedCompletion: response.data.estimatedCompletion
+                });
+
+                // Redirect to prescription status page with the new prescription ID
+                setTimeout(() => {
+                    router.push(`/prescription/status`);
+                }, 2000);
+            } else {
+                // Handle API error response
+                throw new Error(response.error || 'Failed to create prescription');
+            }
+        } catch (error) {
+            console.error('Error creating prescription:', error);
+            setIsUploading(false);
+
+            // Display error message to user
+            const errorMessage = error instanceof Error
+                ? error.message
+                : 'Failed to submit prescription. Please try again.';
+
+            setErrors([errorMessage]);
+
+            // Optionally show more specific error messages based on error type
+            if (error instanceof Error && error.message.includes('network')) {
+                setErrors(['Network error. Please check your internet connection and try again.']);
+            } else if (error instanceof Error && error.message.includes('401')) {
+                setErrors(['Authentication failed. Please login and try again.']);
+            } else if (error instanceof Error && error.message.includes('413')) {
+                setErrors(['Files are too large. Please reduce file size and try again.']);
+            }
+        }
     };
 
     const handleCameraCapture = useCallback(

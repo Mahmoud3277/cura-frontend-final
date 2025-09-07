@@ -857,10 +857,10 @@ const Page = memo(function Page() {
                                 </div>
                                 <div className="overflow-x-auto scrollbar-hide">
                                     <div className="flex space-x-4 pb-2">
-                                        {categorizedProducts.painRelievers.map(product => (
+                                        {categorizedProducts.painRelievers.map((product: any) => (
                                             <Link
                                             key={product._id}
-                                            href={`/products/${product._id}`}
+                                            href={`/product/${product._id}`}
                                             className="group flex-shrink-0 w-40"
                                             data-oid="skin-care-item"
                                         >
@@ -869,15 +869,25 @@ const Page = memo(function Page() {
                                                 data-oid="skin-care-card"
                                             >
                                                 <div
-                                                    className={`h-28 ${product.color} flex items-center justify-center relative flex-shrink-0`}
+                                                    className={`h-28 ${getProductColor(product)} flex items-center justify-center relative flex-shrink-0`}
                                                     data-oid="skin-care-image"
                                                 >
-                                                    <span
-                                                        className="text-3xl opacity-80"
-                                                        data-oid="skin-care-emoji"
-                                                    >
-                                                        {product.images?.[0]?.url || '/placeholder-medicine.png'}
-                                                    </span>
+                                                    {(() => {
+                                                        const imageResult = getProductImage(product);
+                                                        const isImageUrl = typeof imageResult === 'string' && (
+                                                            imageResult.startsWith('/') || 
+                                                            imageResult.startsWith('http://') || 
+                                                            imageResult.startsWith('https://')
+                                                        );
+                                                        
+                                                        return isImageUrl ? (
+                                                            <img src={imageResult} alt={product.name} className="w-full h-full object-contain" />
+                                                        ) : (
+                                                            <span className="text-3xl opacity-80">
+                                                                {imageResult}
+                                                            </span>
+                                                        );
+                                                    })()}
                                                     {product.originalPrice && (
                                                         <div
                                                             className="absolute top-2 left-2 bg-cura-primary text-white text-xs font-bold px-2 py-1 rounded-md shadow-sm"
@@ -905,14 +915,14 @@ const Page = memo(function Page() {
                                                             className="text-base font-bold text-cura-primary"
                                                             data-oid="kusw13d"
                                                         >
-                                                            {product.price}
+                                                            {formatPrice(product?.priceReference || product.overallAveragePrice)}
                                                         </span>
                                                         {product.originalPrice && (
                                                             <span
                                                                 className="text-sm text-gray-500 line-through"
                                                                 data-oid="o06piw3"
                                                             >
-                                                                {product.originalPrice}
+                                                                {formatPrice(product.originalPrice)}
                                                             </span>
                                                         )}
                                                     </div>
@@ -946,10 +956,10 @@ const Page = memo(function Page() {
                                 </div>
                                 <div className="overflow-x-auto scrollbar-hide">
                                     <div className="flex space-x-4 pb-2">
-                                        {categorizedProducts.supplements.map(product => (
+                                        {categorizedProducts.supplements.map((product: any) => (
                                             <Link
-                                            key={product.id}
-                                            href={`/products`}
+                                            key={product._id}
+                                            href={`/product/${product._id}`}
                                             className="group flex-shrink-0 w-40"
                                             data-oid="skin-care-item"
                                         >
@@ -958,15 +968,25 @@ const Page = memo(function Page() {
                                                 data-oid="skin-care-card"
                                             >
                                                 <div
-                                                    className={`h-28 ${product.color} flex items-center justify-center relative flex-shrink-0`}
+                                                    className={`h-28 ${getProductColor(product)} flex items-center justify-center relative flex-shrink-0`}
                                                     data-oid="skin-care-image"
                                                 >
-                                                    <span
-                                                        className="text-3xl opacity-80"
-                                                        data-oid="skin-care-emoji"
-                                                    >
-                                                        {product.images?.[0]?.url || '/placeholder-medicine.png'}
-                                                    </span>
+                                                    {(() => {
+                                                        const imageResult = getProductImage(product);
+                                                        const isImageUrl = typeof imageResult === 'string' && (
+                                                            imageResult.startsWith('/') || 
+                                                            imageResult.startsWith('http://') || 
+                                                            imageResult.startsWith('https://')
+                                                        );
+                                                        
+                                                        return isImageUrl ? (
+                                                            <img src={imageResult} alt={product.name} className="w-full h-full object-contain" />
+                                                        ) : (
+                                                            <span className="text-3xl opacity-80">
+                                                                {imageResult}
+                                                            </span>
+                                                        );
+                                                    })()}
                                                     {product.originalPrice && (
                                                         <div
                                                             className="absolute top-2 left-2 bg-cura-primary text-white text-xs font-bold px-2 py-1 rounded-md shadow-sm"
@@ -994,14 +1014,14 @@ const Page = memo(function Page() {
                                                             className="text-base font-bold text-cura-primary"
                                                             data-oid="kusw13d"
                                                         >
-                                                            {product.price}
+                                                            {formatPrice(product?.priceReference || product.overallAveragePrice)}
                                                         </span>
                                                         {product.originalPrice && (
                                                             <span
                                                                 className="text-sm text-gray-500 line-through"
                                                                 data-oid="o06piw3"
                                                             >
-                                                                {product.originalPrice}
+                                                                {formatPrice(product.originalPrice)}
                                                             </span>
                                                         )}
                                                     </div>
@@ -1035,10 +1055,10 @@ const Page = memo(function Page() {
                                 </div>
                                 <div className="overflow-x-auto scrollbar-hide">
                                     <div className="flex space-x-4 pb-2">
-                                        {categorizedProducts.babyEssentials.map(product => (
+                                        {categorizedProducts.babyEssentials.map((product: any) => (
                                             <Link
-                                            key={product.id}
-                                            href={`product/`}
+                                            key={product._id}
+                                            href={`/product/${product._id}`}
                                             className="group flex-shrink-0 w-40"
                                             data-oid="skin-care-item"
                                         >
@@ -1047,15 +1067,25 @@ const Page = memo(function Page() {
                                                 data-oid="skin-care-card"
                                             >
                                                 <div
-                                                    className={`h-28 ${product.color} flex items-center justify-center relative flex-shrink-0`}
+                                                    className={`h-28 ${getProductColor(product)} flex items-center justify-center relative flex-shrink-0`}
                                                     data-oid="skin-care-image"
                                                 >
-                                                    <span
-                                                        className="text-3xl opacity-80"
-                                                        data-oid="skin-care-emoji"
-                                                    >
-                                                        {product.images?.[0]?.url || '/placeholder-medicine.png'}
-                                                    </span>
+                                                    {(() => {
+                                                        const imageResult = getProductImage(product);
+                                                        const isImageUrl = typeof imageResult === 'string' && (
+                                                            imageResult.startsWith('/') || 
+                                                            imageResult.startsWith('http://') || 
+                                                            imageResult.startsWith('https://')
+                                                        );
+                                                        
+                                                        return isImageUrl ? (
+                                                            <img src={imageResult} alt={product.name} className="w-full h-full object-contain" />
+                                                        ) : (
+                                                            <span className="text-3xl opacity-80">
+                                                                {imageResult}
+                                                            </span>
+                                                        );
+                                                    })()}
                                                     {product.originalPrice && (
                                                         <div
                                                             className="absolute top-2 left-2 bg-cura-primary text-white text-xs font-bold px-2 py-1 rounded-md shadow-sm"
@@ -1083,14 +1113,14 @@ const Page = memo(function Page() {
                                                             className="text-base font-bold text-cura-primary"
                                                             data-oid="kusw13d"
                                                         >
-                                                            {product.price}
+                                                            {formatPrice(product?.priceReference || product.overallAveragePrice)}
                                                         </span>
                                                         {product.originalPrice && (
                                                             <span
                                                                 className="text-sm text-gray-500 line-through"
                                                                 data-oid="o06piw3"
                                                             >
-                                                                {product.originalPrice}
+                                                                {formatPrice(product.originalPrice)}
                                                             </span>
                                                         )}
                                                     </div>
@@ -1124,10 +1154,10 @@ const Page = memo(function Page() {
                                 </div>
                                 <div className="overflow-x-auto scrollbar-hide">
                                     <div className="flex space-x-4 pb-2">
-                                        {categorizedProducts.skinCare.map(product => (
+                                        {categorizedProducts.skinCare.map((product: any) => (
                                             <Link
-                                            key={product.id}
-                                            href={`product/`}
+                                            key={product._id}
+                                            href={`/product/${product._id}`}
                                             className="group flex-shrink-0 w-40"
                                             data-oid="skin-care-item"
                                         >
@@ -1136,15 +1166,25 @@ const Page = memo(function Page() {
                                                 data-oid="skin-care-card"
                                             >
                                                 <div
-                                                    className={`h-28 ${product.color} flex items-center justify-center relative flex-shrink-0`}
+                                                    className={`h-28 ${getProductColor(product)} flex items-center justify-center relative flex-shrink-0`}
                                                     data-oid="skin-care-image"
                                                 >
-                                                    <span
-                                                        className="text-3xl opacity-80"
-                                                        data-oid="skin-care-emoji"
-                                                    >
-                                                        {product.images?.[0]?.url || '/placeholder-medicine.png'}
-                                                    </span>
+                                                    {(() => {
+                                                        const imageResult = getProductImage(product);
+                                                        const isImageUrl = typeof imageResult === 'string' && (
+                                                            imageResult.startsWith('/') || 
+                                                            imageResult.startsWith('http://') || 
+                                                            imageResult.startsWith('https://')
+                                                        );
+                                                        
+                                                        return isImageUrl ? (
+                                                            <img src={imageResult} alt={product.name} className="w-full h-full object-contain" />
+                                                        ) : (
+                                                            <span className="text-3xl opacity-80">
+                                                                {imageResult}
+                                                            </span>
+                                                        );
+                                                    })()}
                                                     {product.originalPrice && (
                                                         <div
                                                             className="absolute top-2 left-2 bg-cura-primary text-white text-xs font-bold px-2 py-1 rounded-md shadow-sm"
@@ -1172,14 +1212,14 @@ const Page = memo(function Page() {
                                                             className="text-base font-bold text-cura-primary"
                                                             data-oid="kusw13d"
                                                         >
-                                                            {product.price}
+                                                            {formatPrice(product?.priceReference || product.overallAveragePrice)}
                                                         </span>
                                                         {product.originalPrice && (
                                                             <span
                                                                 className="text-sm text-gray-500 line-through"
                                                                 data-oid="o06piw3"
                                                             >
-                                                                {product.originalPrice}
+                                                                {formatPrice(product.originalPrice)}
                                                             </span>
                                                         )}
                                                     </div>

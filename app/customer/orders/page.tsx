@@ -50,6 +50,14 @@ export default function CustomerOrdersPage() {
     const {user} = useAuth()
     const router = useRouter();
 
+    // Helper function to get image source with fallback
+    const getImageSource = (imageUrl: string | undefined) => {
+        if (!imageUrl || imageUrl.trim() === '') {
+            return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0yNCAyNEg0MFY0MEgyNFYyNFoiIGZpbGw9IiM5Q0EzQUYiLz4KPHBhdGggZD0iTTI4IDI4SDM2VjM2SDI4VjI4WiIgZmlsbD0iIzZCNzI4MCIvPgo8L3N2Zz4K';
+        }
+        return imageUrl;
+    };
+
     useEffect(() => {
         const fetchOrders = async () => {
             setLoading(true);
@@ -57,8 +65,23 @@ export default function CustomerOrdersPage() {
             
             const result = await getCustomerOrders(user);
             if (result.success) {
-                // Assuming the API returns a list of orders. You might need to adjust the date and total to match the Order interface.
-                console.log(result)
+                // Log the raw response to see what we're getting
+                console.log('📦 Raw orders response:', result);
+                console.log('📋 Orders array:', result.orders);
+                console.log('📊 Orders length:', result.orders?.length);
+
+                // Log image URLs for debugging
+                result.orders?.forEach((order, orderIndex) => {
+                    console.log(`🛒 Order ${orderIndex} (${order._id}):`);
+                    console.log(`   📝 Items:`, order.items);
+                    order.items?.forEach((item, itemIndex) => {
+                        console.log(`   🖼️  Item ${itemIndex} (${item.productName}):`);
+                        console.log(`      Image URL: "${item.image}"`);
+                        console.log(`      Image type:`, typeof item.image);
+                        console.log(`      Image is empty?`, !item.image || item.image.trim() === '');
+                    });
+                });
+
                 setOrders(
                     result.orders.map((order: any) => ({
                         ...order,
@@ -320,7 +343,7 @@ export default function CustomerOrdersPage() {
                                                         data-oid="mobile-item-image"
                                                     >
                                                         <img
-                                                            src={item.image}
+                                                            src={getImageSource(item.image)}
                                                             alt={item.productName}
                                                             className="w-full h-full object-cover"
                                                             onError={(e) => {
@@ -631,7 +654,7 @@ export default function CustomerOrdersPage() {
                                                                 data-oid="3.az:ee"
                                                             >
                                                                 <img
-                                                                    src={item.image}
+                                                                    src={getImageSource(item.image)}
                                                                     alt={item.productName}
                                                                     className="w-full h-full object-cover"
                                                                     onError={(e) => {

@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { ResponsiveHeader } from '@/components/layout/ResponsiveHeader';
 import { Footer } from '@/components/layout/Footer';
 import { CategoriesBar } from '@/components/layout/CategoriesBar';
@@ -7,154 +7,336 @@ import { ClientOnly } from '@/components/common/ClientOnly';
 import { ProductGrid } from '@/components/product/ProductGrid';
 import { ProductFilters } from '@/components/product/ProductFilters';
 import { LocationPrompt } from '@/components/common/LocationPrompt';
+import { FloatingNavigation } from '@/components/FloatingNavigation';
 import { useLanguage } from '@/lib/contexts/LanguageContext';
 import { useTranslation } from '@/lib/hooks/useTranslation';
 import { useCity } from '@/lib/contexts/CityContext';
+import { useIsMobile } from '@/hooks/use-mobile';
 import {
-    products,
-    filterProducts,
-    sortProducts,
-    Product,
-    getProductsInEnabledCities,
+    getPharmaciesInEnabledCities,
+    getPharmaciesByCity,
+    Pharmacy,
+} from '@/lib/data/pharmacies';
+import {
     getProductsByCity,
-    getProductsByPharmacy,
-    getInStockProductsByPharmacy,
+    filterProducts,
+    Product,
 } from '@/lib/data/products';
-import { getPharmaciesInEnabledCities, getPharmaciesByCity, Pharmacy } from '@/lib/data/pharmacies';
+
+interface FilterOptions {
+    categories: Array<{ id: string; name: string; count: number }>;
+    priceRange: { min: number; max: number };
+    sortBy: string;
+    inStockOnly: boolean;
+    prescriptionOnly: boolean;
+    minRating: number;
+    selectedCities: string[];
+    selectedPharmacies: string[];
+}
+
+interface ProductFilters {
+    page?: number;
+    limit?: number;
+    sortBy?: string;
+    cityId?: string;
+    search?: string;
+    category?: string;
+    inStockOnly?: boolean;
+    prescriptionOnly?: boolean;
+    minPrice?: number;
+    maxPrice?: number;
+    minRating?: number;
+    pharmacyId?: string;
+}
+
+const ITEMS_PER_PAGE = 20;
 
 export default function ShopPage() {
     const { locale } = useLanguage();
     const { t } = useTranslation(locale);
     const { selectedCity, availableCities, adminSettings } = useCity();
-    const [selectedCategory, setSelectedCategory] = useState('all');
-    const [searchQuery, setSearchQuery] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [filters, setFilters] = useState({
-        categories: [
-            { id: 'all', name: 'All Products', count: 1200 },
-            { id: 'medications', name: 'Medications', count: 500 },
-            { id: 'haircare', name: 'Hair Care', count: 200 },
-            { id: 'skincare', name: 'Skin Care', count: 300 },
-            { id: 'daily-essentials', name: 'Daily Essentials', count: 250 },
-            { id: 'baby-essentials', name: 'Baby Essentials', count: 150 },
-            { id: 'vitamins', name: 'Vitamins', count: 180 },
-            { id: 'sexual-wellness', name: 'Sexual Wellness', count: 120 },
-            { id: 'otc', name: 'OTC', count: 300 },
-        ],
+    const isMobile = useIsMobile();
 
+    // Refs for preventing unnecessary re-renders
+    const searchTimeoutRef = useRef<NodeJS.Timeout>();
+    const lastFetchParamsRef = useRef<string>('');
+
+    // State management
+    const [searchQuery, setSearchQuery] = useState('');
+    const [loading, setLoading] = useState(true);
+    const [products, setProducts] = useState<Product[]>([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalCount, setTotalCount] = useState(0);
+    const [selectedCategory, setSelectedCategory] = useState('all');
+    const [error, setError] = useState<string | null>(null);
+    const [categories, setCategories] = useState<string[]>([]);
+    const [availablePharmacies, setAvailablePharmacies] = useState<string[]>([]);
+
+    // Filter state - memoized to prevent unnecessary re-renders
+    const [filters, setFilters] = useState<FilterOptions>(() => ({
+        categories: [],
         priceRange: { min: 0, max: 1000 },
         sortBy: 'name',
         inStockOnly: false,
         prescriptionOnly: false,
         minRating: 0,
-        selectedCities: [] as string[],
-        selectedPharmacies: [] as string[],
-    });
+        selectedCities: [],
+        selectedPharmacies: [],
+    }));
 
-    // Get available pharmacies based on customer's selected location - ONLY show pharmacies with in-stock products
-    const availablePharmacies: Array<{
-        id: string;
-        name: string;
-        cityName: string;
-        count: number;
-    }> = React.useMemo(() => {
-        let pharmacies: Pharmacy[] = [];
-        if (selectedCity) {
-            // If a city is selected, show only pharmacies from that specific city
-            pharmacies = getPharmaciesByCity(selectedCity.id);
-        } else {
-            // If no city selected, don't show any pharmacies (customer must select location)
-            pharmacies = [];
+    // Memoized pharmacies to prevent recalculation
+    const pharmacies: Pharmacy[] = useMemo(() => {
+        // For now, return empty array - we'll handle async loading in useEffect
+        return [];
+    }, [selectedCity?.nameEn, availableCities]);
+
+    // Load pharmacies asynchronously
+    const [pharmaciesState, setPharmaciesState] = useState<Pharmacy[]>([]);
+
+    useEffect(() => {
+        const loadPharmacies = async () => {
+            if (!selectedCity) {
+                const pharmacies = await getPharmaciesInEnabledCities(availableCities);
+                setPharmaciesState(pharmacies);
+                return;
+            }
+
+            const pharmacies = await getPharmaciesByCity(selectedCity.nameEn);
+            setPharmaciesState(pharmacies);
+        };
+
+        loadPharmacies();
+    }, [selectedCity?.nameEn, availableCities]);
+
+    // Memoized product filters to prevent unnecessary API calls
+    const productFilters = useMemo(() => {
+        if (!selectedCity) return null;
+
+        const apiFilters: ProductFilters = {
+            page: currentPage,
+            limit: ITEMS_PER_PAGE,
+            sortBy: filters.sortBy,
+            cityId: selectedCity.id,
+        };
+
+        // Only add non-empty values
+        if (searchQuery?.trim()) apiFilters.search = searchQuery.trim();
+        if (selectedCategory !== 'all') apiFilters.category = selectedCategory;
+        if (filters.inStockOnly) apiFilters.inStockOnly = true;
+        if (filters.prescriptionOnly) apiFilters.prescriptionOnly = true;
+        if (filters.minRating > 0) apiFilters.minRating = filters.minRating;
+        if (filters.priceRange.min > 0) apiFilters.minPrice = filters.priceRange.min;
+        if (filters.priceRange.max < 1000) apiFilters.maxPrice = filters.priceRange.max;
+        if (filters.selectedPharmacies.length > 0) apiFilters.pharmacyId = filters.selectedPharmacies[0];
+
+        return apiFilters;
+    }, [
+        selectedCity?.id,
+        currentPage,
+        searchQuery,
+        selectedCategory,
+        filters.sortBy,
+        filters.inStockOnly,
+        filters.prescriptionOnly,
+        filters.minRating,
+        filters.priceRange.min,
+        filters.priceRange.max,
+        filters.selectedPharmacies,
+    ]);
+
+    // Load metadata only once per city change
+    useEffect(() => {
+        if (!selectedCity) return;
+
+        let mounted = true;
+
+        const loadMetadata = async () => {
+            try {
+                // Get categories from existing products in the city
+                const cityProducts = await getProductsByCity(selectedCity.id, { limit: 1000 });
+                const uniqueCategories = Array.from(new Set(cityProducts.products.map(p => p.category)));
+                const pharmacyIds = Array.from(new Set(cityProducts.products.map(p => p.pharmacyId)));
+
+                if (!mounted) return;
+
+                setCategories(uniqueCategories);
+                setAvailablePharmacies(pharmacyIds);
+
+                // Update filters only if they've changed
+                setFilters(prev => {
+                    const categoryOptions = [
+                        { id: 'all', name: 'All Products', count: cityProducts.total },
+                        ...uniqueCategories.map(cat => ({
+                            id: cat,
+                            name: cat.charAt(0).toUpperCase() + cat.slice(1),
+                            count: cityProducts.products.filter(p => p.category === cat).length,
+                        }))
+                    ];
+
+                    // Only update if different to prevent re-render
+                    if (JSON.stringify(prev.categories) !== JSON.stringify(categoryOptions)) {
+                        return {
+                            ...prev,
+                            categories: categoryOptions,
+                        };
+                    }
+                    return prev;
+                });
+
+            } catch (error) {
+                if (mounted) {
+                    console.error('Error loading metadata:', error);
+                }
+            }
+        };
+
+        loadMetadata();
+
+        return () => {
+            mounted = false;
+        };
+    }, [selectedCity?.id]);
+
+    // Optimized product loading with debouncing and deduplication
+    const loadProducts = useCallback(async (force = false) => {
+        if (!productFilters) return;
+
+        // Create unique key for current fetch parameters
+        const fetchKey = JSON.stringify(productFilters);
+
+        // Skip if same parameters and not forced
+        if (!force && fetchKey === lastFetchParamsRef.current) {
+            return;
         }
 
-        // Only include pharmacies that have at least one in-stock product for the customer's location
-        return pharmacies
-            .map((pharmacy) => {
-                const inStockProducts = getInStockProductsByPharmacy(pharmacy.id);
-                return {
-                    id: pharmacy.id,
-                    name: pharmacy.name,
-                    cityName: pharmacy.cityName,
-                    count: inStockProducts.length,
-                };
-            })
-            .filter((pharmacy) => pharmacy.count > 0); // Only show pharmacies with in-stock products
-    }, [selectedCity]);
+        lastFetchParamsRef.current = fetchKey;
+        setLoading(true);
+        setError(null);
 
-    // Get products based on customer's selected location - STRICT FILTERING
-    const allProducts: Product[] = React.useMemo(() => {
-        if (selectedCity) {
-            // If city is selected, only show products from that specific city
-            return getProductsByCity(selectedCity.id);
-        } else {
-            // If no city selected, show empty array (customer must select location first)
-            return [];
+        try {
+            const result = await filterProducts(productFilters);
+
+            if (result.products) {
+                setProducts(result.products);
+                setTotalPages(result.totalPages || 1);
+                setTotalCount(result.total || 0);
+            } else {
+                setProducts([]);
+                setTotalPages(1);
+                setTotalCount(0);
+                setError('Failed to fetch products. Please check your connection and try again.');
+            }
+        } catch (err) {
+            console.error('Error fetching products:', err);
+            setError('An unexpected error occurred. Please try again later.');
+            setProducts([]);
+            setTotalPages(1);
+            setTotalCount(0);
+        } finally {
+            setLoading(false);
         }
-    }, [selectedCity]);
+    }, [productFilters]);
 
-    // Apply all filters - STRICT CITY-BASED FILTERING
-    const filteredProducts = React.useMemo(() => {
-        // If no city selected, return empty array
-        if (!selectedCity) {
-            return [];
+    // Load products with debouncing for search
+    useEffect(() => {
+        if (!productFilters) return;
+
+        // Clear existing timeout
+        if (searchTimeoutRef.current) {
+            clearTimeout(searchTimeoutRef.current);
         }
 
-        return filterProducts({
-            cityIds: [selectedCity.id], // ONLY products from selected city
-            categories: selectedCategory === 'all' ? undefined : [selectedCategory],
-            priceRange: filters.priceRange,
-            inStockOnly: filters.inStockOnly,
-            prescriptionOnly: filters.prescriptionOnly,
-            minRating: filters.minRating,
-            pharmacyIds:
-                filters.selectedPharmacies.length > 0 ? filters.selectedPharmacies : undefined,
-        })
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [allProducts, selectedCategory, searchQuery, filters, selectedCity]);
+        // Debounce search queries, load immediately for other changes
+        const delay = searchQuery ? 500 : 100;
 
-    // Sort products
-    const sortedProducts = React.useMemo(() => {
-        return sortProducts(filteredProducts, filters.sortBy);
-    }, [filteredProducts, filters.sortBy]);
+        searchTimeoutRef.current = setTimeout(() => {
+            loadProducts();
+        }, delay);
 
-    const handleFiltersChange = (newFilters: Partial<typeof filters>) => {
-        setFilters((prev) => ({ ...prev, ...newFilters }));
-    };
+        return () => {
+            if (searchTimeoutRef.current) {
+                clearTimeout(searchTimeoutRef.current);
+            }
+        };
+    }, [loadProducts, searchQuery]);
 
-    const handleAddToCart = (productId: number) => {
-        // Simulate adding to cart
-        console.log('Added product to cart:', productId);
-        // Here you would typically update cart state or make an API call
-    };
+    // Reset page when key filters change (but not when page changes)
+    useEffect(() => {
+        if (currentPage !== 1) {
+            setCurrentPage(1);
+        }
+    }, [searchQuery, selectedCategory, filters.sortBy, filters.inStockOnly, filters.prescriptionOnly]);
 
-    const handleResetFilters = () => {
-        // Reset all filters to default values
-        setSelectedCategory('all');
+    // Optimized event handlers with useCallback
+    const handleSearchChange = useCallback((value: string) => {
+        setSearchQuery(value);
+    }, []);
+
+    const handleFiltersChange = useCallback((newFilters: Partial<FilterOptions>) => {
+        setFilters(prev => {
+            const updated = { ...prev, ...newFilters };
+            return JSON.stringify(prev) !== JSON.stringify(updated) ? updated : prev;
+        });
+    }, []);
+
+    const handlePaginationChange = useCallback((newPage: number) => {
+        if (newPage > 0 && newPage <= totalPages && newPage !== currentPage) {
+            setCurrentPage(newPage);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }, [currentPage, totalPages]);
+
+    const handleClearFilters = useCallback(() => {
         setSearchQuery('');
-        setFilters({
-            categories: [
-                { id: 'all', name: 'All Products', count: 1200 },
-                { id: 'medications', name: 'Medications', count: 500 },
-                { id: 'haircare', name: 'Hair Care', count: 200 },
-                { id: 'skincare', name: 'Skin Care', count: 300 },
-                { id: 'daily-essentials', name: 'Daily Essentials', count: 250 },
-                { id: 'baby-essentials', name: 'Baby Essentials', count: 150 },
-                { id: 'vitamins', name: 'Vitamins', count: 180 },
-                { id: 'sexual-wellness', name: 'Sexual Wellness', count: 120 },
-                { id: 'otc', name: 'OTC', count: 300 },
-            ],
-
+        setSelectedCategory('all');
+        setCurrentPage(1);
+        setFilters(prev => ({
+            ...prev,
             priceRange: { min: 0, max: 1000 },
             sortBy: 'name',
             inStockOnly: false,
             prescriptionOnly: false,
             minRating: 0,
-            selectedCities: [] as string[],
-            selectedPharmacies: [] as string[],
-        });
+            selectedCities: [],
+            selectedPharmacies: [],
+        }));
+    }, []);
+
+    const handleRetry = useCallback(() => {
+        setError(null);
+        loadProducts(true);
+    }, [loadProducts]);
+
+    const handleAddToCart = (productId: number) => {
+        console.log('Added product to cart:', productId);
     };
 
-    const displayedProducts = sortedProducts;
+    const handleResetFilters = () => {
+        handleClearFilters();
+    };
+
+    // Active filters check - memoized to prevent re-renders
+    const hasActiveFilters = useMemo(() => (
+        searchQuery ||
+        selectedCategory !== 'all' ||
+        filters.inStockOnly ||
+        filters.prescriptionOnly ||
+        filters.selectedPharmacies.length > 0 ||
+        filters.priceRange.min > 0 ||
+        filters.priceRange.max < 1000 ||
+        filters.minRating > 0
+    ), [searchQuery, selectedCategory, filters]);
+
+    // Show location prompt if no city is selected
+    if (!selectedCity) {
+        return <LocationPrompt availableCities={availableCities} />;
+    }
+
+    const displayedProducts = products;
+
+    console.log('Shop Page Products:', displayedProducts);
+    console.log('First product:', displayedProducts[0]);
 
     return (
         <div
@@ -162,16 +344,6 @@ export default function ShopPage() {
             data-oid="un0c5eg"
         >
             <ResponsiveHeader data-oid="mw0zxdr" />
-
-            {/* Desktop Categories Bar - Only show on desktop */}
-            <div className="hidden md:block" data-oid="byhrycd">
-                <ClientOnly
-                    fallback={<div style={{ height: '60px' }} data-oid="s:wnzl3" />}
-                    data-oid="qz77bxp"
-                >
-                    <CategoriesBar data-oid="8q5floq" />
-                </ClientOnly>
-            </div>
 
             {/* Mobile Layout */}
             <div className="md:hidden" data-oid="i676980">
@@ -288,61 +460,71 @@ export default function ShopPage() {
 
                         {/* Mobile Product Grid - 2 columns, smaller cards */}
                         <div className="grid grid-cols-2 gap-3" data-oid="mobile-products-grid">
-                            {displayedProducts.map((product) => (
+                            {displayedProducts.map((product: Product) => (
                                 <div
-                                    key={product.id}
+                                    key={product._id}
                                     onClick={() =>
-                                        (window.location.href = `/product/${product.id}`)
+                                        (window.location.href = `/product/${product._id}`)
                                     }
                                     className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden cursor-pointer hover:shadow-md transition-all duration-200 flex flex-col h-full"
                                     data-oid="mobile-product-card"
                                 >
                                     {/* Product Image */}
-                                    <div
-                                        className="aspect-square bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center relative flex-shrink-0"
-                                        data-oid="mobile-product-image"
-                                    >
                                         <div
-                                            className="text-sm font-semibold text-gray-500 bg-gray-200 rounded-lg px-3 py-2"
-                                            data-oid="mobile-product-icon"
+                                            className="aspect-square bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center relative flex-shrink-0"
+                                            data-oid="mobile-product-image"
                                         >
-                                            {product.category === 'medications'
-                                                ? 'MED'
-                                                : product.category === 'haircare'
-                                                  ? 'HAIR'
-                                                  : product.category === 'skincare'
-                                                    ? 'SKIN'
-                                                    : product.category === 'daily-essentials'
-                                                      ? 'DAILY'
-                                                      : product.category === 'baby-essentials'
-                                                        ? 'BABY'
-                                                        : product.category === 'vitamins'
-                                                          ? 'VIT'
-                                                          : product.category === 'sexual-wellness'
-                                                            ? 'WELLNESS'
-                                                            : product.category === 'otc'
-                                                              ? 'OTC'
-                                                              : 'PROD'}
-                                        </div>
+                                            {/* Show actual product image if available */}
+                                            {product.images && product.images.length > 0 ? (
+                                                <img
+                                                    src={product.images[0].url}
+                                                    alt={product.name}
+                                                    className="w-full h-full object-contain"
+                                                    data-oid="mobile-product-image"
+                                                />
+                                            ) : (
+                                                <div
+                                                    className="text-sm font-semibold text-gray-500 bg-gray-200 rounded-lg px-3 py-2"
+                                                    data-oid="mobile-product-icon"
+                                                >
+                                                    {product.category === 'medications'
+                                                        ? 'MED'
+                                                        : product.category === 'haircare'
+                                                          ? 'HAIR'
+                                                          : product.category === 'skincare'
+                                                            ? 'SKIN'
+                                                            : product.category === 'daily-essentials'
+                                                              ? 'DAILY'
+                                                              : product.category === 'baby-essentials'
+                                                                ? 'BABY'
+                                                                : product.category === 'vitamins'
+                                                                  ? 'VIT'
+                                                                  : product.category === 'sexual-wellness'
+                                                                    ? 'WELLNESS'
+                                                                    : product.category === 'otc'
+                                                                      ? 'OTC'
+                                                                      : 'PROD'}
+                                                </div>
+                                            )}
 
-                                        {/* Badges */}
-                                        {product.prescription && (
-                                            <div
-                                                className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full font-semibold"
-                                                data-oid="cnut210"
-                                            >
-                                                Rx
-                                            </div>
-                                        )}
-                                        {!product.availability.inStock && (
-                                            <div
-                                                className="absolute top-2 right-2 bg-gray-500 text-white text-xs px-2 py-1 rounded-full font-semibold"
-                                                data-oid="_x5-sq3"
-                                            >
-                                                Out
-                                            </div>
-                                        )}
-                                    </div>
+                                            {/* Badges */}
+                                            {product.prescription && (
+                                                <div
+                                                    className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full font-semibold"
+                                                    data-oid="cnut210"
+                                                >
+                                                    Rx
+                                                </div>
+                                            )}
+                                            {!product.availability.inStock && (
+                                                <div
+                                                    className="absolute top-2 right-2 bg-gray-500 text-white text-xs px-2 py-1 rounded-full font-semibold"
+                                                    data-oid="_x5-sq3"
+                                                >
+                                                    Out
+                                                </div>
+                                            )}
+                                        </div>
 
                                     {/* Product Info - Flexible container */}
                                     <div
@@ -378,9 +560,9 @@ export default function ShopPage() {
                                                     className="text-base font-bold text-[#1F1F6F]"
                                                     data-oid="uyt2edc"
                                                 >
-                                                    {product.price} EGP
+                                                    {product.price || 0} EGP
                                                 </span>
-                                                {product.originalPrice && (
+                                                {product.originalPrice && product.originalPrice > product.price && (
                                                     <span
                                                         className="text-xs text-gray-500 line-through"
                                                         data-oid="ehobjla"
@@ -395,7 +577,7 @@ export default function ShopPage() {
                                         <button
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                window.location.href = `/product/${product.id}`;
+                                                window.location.href = `/product/${product._id}`;
                                             }}
                                             disabled={!product.availability.inStock}
                                             className={`w-full py-2.5 rounded-lg text-xs font-semibold transition-all duration-300 mt-auto ${
@@ -507,7 +689,7 @@ export default function ShopPage() {
                                             data-oid="desktop-results-description"
                                         >
                                             {t('shop.results.showing')} {displayedProducts.length}{' '}
-                                            {t('shop.results.of')} {sortedProducts.length}{' '}
+                                            {t('shop.results.of')} {totalCount}{' '}
                                             {t('shop.results.products')}
                                             {selectedCity && (
                                                 <span

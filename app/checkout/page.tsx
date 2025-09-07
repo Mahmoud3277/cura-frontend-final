@@ -39,6 +39,14 @@ interface OrderSummary {
     paymentMethod: string;
 }
 
+interface Governorate {
+    id: string;
+    name: string;
+    nameAr: string;
+}
+
+import { getAllGovernorates } from '@/lib/data/governorates';
+
 export default function CheckoutPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -101,6 +109,46 @@ export default function CheckoutPage() {
         callBeforeDelivery: true,
     });
 
+    // Governorate state
+    const [governorates, setGovernorates] = useState<Governorate[]>([]);
+    const [governoratesLoading, setGovernoratesLoading] = useState(false);
+
+    // Governorate loading function
+    const loadGovernorates = async () => {
+        console.log('🔄 Starting to load governorates in checkout page...');
+        try {
+            console.log('📡 Calling getAllGovernorates() from checkout...');
+            setGovernoratesLoading(true);
+            const data = await getAllGovernorates();
+            console.log('📦 Raw data received from getAllGovernorates() in checkout:', data);
+            console.log('📊 Data type:', typeof data);
+            console.log('📋 Data is Array?', Array.isArray(data));
+
+            if (data) {
+                console.log('✅ Data exists, setting governorates state in checkout...');
+                console.log('📝 Data length:', data.length);
+                if (data.length > 0) {
+                    console.log('📝 First governorate sample:', data[0]);
+                    console.log('📝 Governorate properties:', Object.keys(data[0]));
+                }
+                setGovernorates(data);
+                console.log('🎯 Governorates state has been set successfully in checkout');
+            } else {
+                console.log('❌ No data received from getAllGovernorates() in checkout');
+            }
+        } catch (error: unknown) {
+            console.error('🚨 Error in loadGovernorates (checkout):', error);
+            console.error('🚨 Error details:', {
+                message: error instanceof Error ? error.message : String(error),
+                stack: error instanceof Error ? error.stack : 'No stack trace',
+                name: error instanceof Error ? error.name : 'Unknown error type'
+            });
+        } finally {
+            setGovernoratesLoading(false);
+            console.log('🏁 Finished loading governorates in checkout page');
+        }
+    };
+
     // Redirect if cart is empty
     useEffect(() => {
         setTimeout(() => {
@@ -134,6 +182,11 @@ export default function CheckoutPage() {
             }
         }
     }, [isAuthenticated, user]);
+
+    // Load governorates on mount
+    useEffect(() => {
+        loadGovernorates();
+    }, []);
 
     // Redirect if not authenticated
     useEffect(() => {
@@ -974,20 +1027,17 @@ export default function CheckoutPage() {
                                                     data-oid="78cgj6u"
                                                 >
                                                     <option value="" data-oid="22qugh8">
-                                                        Select Governorate
+                                                        {governoratesLoading ? 'Loading...' : 'Select Governorate'}
                                                     </option>
-                                                    <option value="Ismailia" data-oid="np60zes">
-                                                        Ismailia
-                                                    </option>
-                                                    <option value="Cairo" data-oid="erzqdt.">
-                                                        Cairo
-                                                    </option>
-                                                    <option value="Alexandria" data-oid="5wli.nq">
-                                                        Alexandria
-                                                    </option>
-                                                    <option value="Giza" data-oid="3g81ne0">
-                                                        Giza
-                                                    </option>
+                                                    {governorates.map((governorate) => (
+                                                        <option
+                                                            key={governorate._id}
+                                                            value={governorate.nameEn}
+                                                            data-oid={`governorate-${governorate._id}`}
+                                                        >
+                                                            {governorate.nameEn}
+                                                        </option>
+                                                    ))}
                                                 </select>
                                             </div>
                                             <div data-oid="tokmuxq">

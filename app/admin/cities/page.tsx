@@ -389,13 +389,31 @@ export default function AdminCitiesPage() {
         window.URL.revokeObjectURL(url);
     };
     const loadGovernorate = async()=>{
+        console.log('🔄 Starting to load governorates...');
         try {
+            console.log('📡 Calling getAllGovernorates()...');
             const data = await getAllGovernorates();
+            console.log('📦 Raw data received from getAllGovernorates():', data);
+            console.log('📊 Data type:', typeof data);
+            console.log('📋 Data is Array?', Array.isArray(data));
+
             if(data){
-                setgovernorates(data)
+                console.log('✅ Data exists, setting governorates state...');
+                console.log('📝 Data length:', data.length);
+                console.log('📝 First governorate sample:', data[0]);
+                console.log('📝 Governorate properties:', data.length > 0 ? Object.keys(data[0]) : 'No governorates');
+                setgovernorates(data);
+                console.log('🎯 Governorates state has been set successfully');
+            } else {
+                console.log('❌ No data received from getAllGovernorates()');
             }
         } catch (error) {
-            console.log(error)
+            console.error('🚨 Error in loadGovernorate:', error);
+            console.error('🚨 Error details:', {
+                message: error.message,
+                stack: error.stack,
+                name: error.name
+            });
         }
     }
     useEffect(() => {

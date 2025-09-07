@@ -76,7 +76,7 @@ export class MedicineSelectionCheckoutService {
                     nameAr: medicine.nameAr || medicine.id.nameAr || medicine.name,
                     price: packagePrice,
                     originalPrice: packagePrice,
-                    quantity: selection.packagingQuantity, // Use packaging quantity, not total units
+                    quantity: selection.selectedQuantity, // Use total calculated quantity, not just packaging quantity
                     pharmacy: pharmacy.pharmacyName,
                     pharmacyId: pharmacy.pharmacyId,
                     pharmacyName: pharmacy.pharmacyName, // Add explicit pharmacyName

@@ -245,7 +245,7 @@ const calculateTotals = (selections: Record<string, MedicineSelection>) => {
             // Calculate medicine cost based on pharmacy-specific packaging prices
             const packagingPrice = selection.selectedPharmacy.packagingPrices[selection.selectedPackaging];
             if (packagingPrice) {
-                totalPrice += packagingPrice * selection.packagingQuantity;
+                totalPrice += packagingPrice * selection.selectedQuantity;
             }
 
             // Track unique pharmacies for delivery fee calculation

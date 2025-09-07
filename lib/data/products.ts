@@ -457,7 +457,7 @@ export async function filterProducts(filters: {
     try {
         const queryParams = buildQueryParams({
             cityName: filters.cityIds,
-            categories: filters.categories,
+            category: filters.categories,
             minPrice: filters.priceRange?.min,
             maxPrice: filters.priceRange?.max,
             inStockOnly: filters.inStockOnly ? 'true' : undefined,
@@ -471,9 +471,75 @@ export async function filterProducts(filters: {
 
         const response = await fetch(`${PRODUCTS_ENDPOINT}?${queryParams}`);
         const data = await handleApiResponse(response);
-        console.log(data)
+        console.log('API Response Data:', data);
+        console.log('First product:', data.data?.[0]);
         return {
-            products: data.data,
+            products: data.data.map((product: any) => {
+                // Ensure images is an array
+                const images = Array.isArray(product.images) ? product.images : [];
+
+                // Determine stock status properly
+                const availability = product.availability || {};
+                const isInStock = product.inStock !== undefined ? product.inStock : (availability.inStock ?? true);
+
+                return {
+                    ...product,
+                    id: product._id || product.id,
+                    _id: product._id || product.id,
+                    name: product.name || product.nameEn || '',
+                    nameAr: product.nameAr || product.name || '',
+                    category: product.category || 'general',
+                    price: product.price || product.priceReference || 0,
+                    originalPrice: product.originalPrice || product.priceReference,
+                    images: images,
+                    pharmacyId: product.pharmacyId || '',
+                    pharmacy: product.pharmacy || product.pharmacyAr || '',
+                    pharmacyAr: product.pharmacyAr || product.pharmacy || '',
+                    cityId: product.cityId || '',
+                    cityName: product.cityName || '',
+                    governorateId: product.governorateId || '',
+                    rating: product.rating || 0,
+                    reviews: product.reviews || 0,
+                    inStock: isInStock,
+                    prescription: product.prescription || false,
+                    requiresPrescription: product.prescription || product.requiresPrescription || false,
+                    description: product.description || product.descriptionAr || '',
+                    descriptionAr: product.descriptionAr || product.description || '',
+                    manufacturer: product.manufacturer || '',
+                    manufacturerAr: product.manufacturerAr || '',
+                    activeIngredient: product.activeIngredient || '',
+                    activeIngredientAr: product.activeIngredientAr || '',
+                    packSize: product.packSize || '',
+                    packSizeAr: product.packSizeAr || '',
+                    expiryDate: product.expiryDate || '',
+                    batchNumber: product.batchNumber || '',
+                    barcode: product.barcode || '',
+                    tags: Array.isArray(product.tags) ? product.tags : [],
+                    availability: {
+                        inStock: isInStock,
+                        quantity: availability.quantity || (isInStock ? 10 : 0),
+                        lowStockThreshold: availability.lowStockThreshold || 5,
+                        estimatedRestockDate: availability.estimatedRestockDate
+                    },
+                    delivery: product.delivery || {
+                        availableForDelivery: true,
+                        estimatedDeliveryTime: '1-2 days',
+                        deliveryFee: 0
+                    },
+                    // Medicine-specific properties for ProductCard compatibility
+                    pharmacyStocks: [{
+                        pharmacyId: product.pharmacyId || '',
+                        pharmacy: product.pharmacy || product.pharmacyAr || '',
+                        price: product.price || product.priceReference || 0,
+                        inStock: isInStock,
+                        stockQuantity: availability.quantity || (isInStock ? 10 : 0),
+                    }],
+                    overallAveragePrice: product.price || product.priceReference || 0,
+                    priceReference: product.priceReference || product.price || 0,
+                    reviewCount: product.reviews || 0,
+                    discount: product.discount || 0,
+                };
+            }),
             total: data.total,
             totalPages: data.totalPages
         };
