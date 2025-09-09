@@ -5,7 +5,7 @@ import Cookies from 'js-cookie';
 
 import { providerOrderService } from '@/lib/services/vendorManagementService';
 interface VendorOrder {
-    _id: string;
+    id: string;
     orderNumber: string;
     customerName: string;
     customerPhone: string;
@@ -24,7 +24,7 @@ interface VendorOrder {
         manufacturer?: string;
     }>;
     totalAmount: number;
-    status: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'out-for-delivery' | 'delivered';
+    status: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'out-for-delivery' | 'delivered' | 'return-requested' | 'approved' | 'refunded' | 'rejected';
     createdAt: string;
     paymentMethod: string;
     vendorNotes?: string;
@@ -64,7 +64,7 @@ export default function VendorOrdersPage() {
             if(vendorId){
                 const allOrders =await  providerOrderService.getAllOrders({},vendorId);
                 console.log(allOrders.data)
-            setOrders(allOrders.data);
+            setOrders(allOrders.data as VendorOrder[]);
             setLoading(false);
             }
             
@@ -83,8 +83,8 @@ export default function VendorOrdersPage() {
     useEffect(() => {
         let filtered = [...orders];
 
-        // Exclude delivered orders (they should only appear in dashboard)
-        filtered = filtered.filter((order) => order.status !== 'delivered');
+        // Exclude delivered and return-requested orders (they should only appear in dashboard/returns)
+        filtered = filtered.filter((order) => order.status !== 'delivered' && order.status !== 'return-requested');
 
         // Apply search
         if (searchQuery.trim()) {
@@ -102,15 +102,15 @@ export default function VendorOrdersPage() {
 
     const handleUpdateStatus = async (orderId: string, newStatus: string) => {
         try {
-            const order = orders.find((o) => o._id === orderId);
+            const order = orders.find((o) => o.id === orderId);
             if (!order) {
                 alert('Order not found');
                 return;
             }
             if (newStatus === 'confirmed') {
                 // Check if order can be accepted
-                if (!providerOrderService.canAcceptOrder(order)) {
-                    if (providerOrderService.requiresPrescription(order)) {
+                if (!providerOrderService.canAcceptOrder(order as any)) {
+                    if (providerOrderService.requiresPrescription(order as any)) {
                         alert(
                             '⚠️ Prescription Verification Required\n\nThis order contains prescription medicines that must be verified before acceptance. Please review the prescription first by clicking the "Review Prescription" button.',
                         );
@@ -270,7 +270,6 @@ export default function VendorOrdersPage() {
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     placeholder="Search orders..."
                                     className="pl-10 pr-4 py-2 w-80 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                                    style={{ focusRingColor: BRAND_COLORS.primary }}
                                     data-oid="66kd_1c"
                                 />
                             </div>

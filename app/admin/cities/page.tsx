@@ -91,7 +91,7 @@ export default function AdminCitiesPage() {
 
     useEffect(() => {
         loadCities();
-        // loadStats();
+        loadGovernorate();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [filters, searchTerm]);
     const loadCities = async () => {
@@ -416,12 +416,6 @@ export default function AdminCitiesPage() {
             });
         }
     }
-    useEffect(() => {
-        // loadStats()
-        loadCities()
-        loadGovernorate()
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
     if (isLoading) {
         return (
             <div className="space-y-6">

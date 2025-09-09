@@ -196,7 +196,7 @@ class OrderReturnService {
 
     async processReturn(
         returnId: string,
-        action: 'approve' | 'reject',
+        action: 'approved' | 'reject',
         adminNotes?: string,
     ): Promise<{ success: boolean; error?: string }> {
         try {

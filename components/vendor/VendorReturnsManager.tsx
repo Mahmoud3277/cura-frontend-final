@@ -12,12 +12,21 @@ interface VendorReturnsManagerProps {
 }
 
 // Enhanced return interface with product details
-interface EnhancedReturn extends OrderReturn {
+interface EnhancedReturn {
+    id: string;
+    orderId: string;
+    customerId: string;
+    customerPhone: string;
     productName: string;
     productImage: string;
     manufacturer: string;
-    customerPhone: string;
     quantity: number;
+    reason: string;
+    status: string;
+    refundAmount: number;
+    requestedAt: string;
+    processedAt?: string | null;
+    notes?: string;
 }
 
 export function VendorReturnsManager({ vendorId }: VendorReturnsManagerProps) {
@@ -45,7 +54,7 @@ export function VendorReturnsManager({ vendorId }: VendorReturnsManagerProps) {
                     manufacturer: 'Sony',
                     quantity: 1,
                     reason: 'Product damaged/defective',
-                    status: 'requested',
+                    status: 'return-requested',
                     refundAmount: 125.5,
                     requestedAt: '2024-01-07T10:30:00Z',
                     processedAt: null,
@@ -101,6 +110,23 @@ export function VendorReturnsManager({ vendorId }: VendorReturnsManagerProps) {
                     requestedAt: '2024-01-04T12:00:00Z',
                     processedAt: '2024-01-05T10:20:00Z',
                     notes: 'Return request submitted after 30-day return window',
+                },
+                {
+                    id: 'return-005',
+                    orderId: 'ORD-2024-005',
+                    customerId: '5',
+                    customerPhone: '+20 15 999 0000',
+                    productName: 'Gaming Laptop',
+                    productImage:
+                        'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&h=400&fit=crop&crop=center',
+                    manufacturer: 'Dell',
+                    quantity: 1,
+                    reason: 'Changed mind',
+                    status: 'refunded',
+                    refundAmount: 1500.0,
+                    requestedAt: '2024-01-03T09:00:00Z',
+                    processedAt: '2024-01-04T14:30:00Z',
+                    notes: 'Customer refunded via wallet credit',
                 },
             ];
 
@@ -162,13 +188,32 @@ export function VendorReturnsManager({ vendorId }: VendorReturnsManagerProps) {
             case 'requested':
                 return 'bg-yellow-100 text-yellow-800 border-yellow-200';
             case 'approved':
-                return 'bg-cura-primary/10 text-cura-primary border-cura-primary/20';
+                return 'bg-blue-100 text-blue-800 border-blue-200';
             case 'completed':
                 return 'bg-green-100 text-green-800 border-green-200';
             case 'rejected':
                 return 'bg-red-100 text-red-800 border-red-200';
+            case 'return-requested':
+                return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+            case 'refunded':
+                return 'bg-green-100 text-green-800 border-green-200';
             default:
                 return 'bg-gray-100 text-gray-800 border-gray-200';
+        }
+    };
+
+    const getStatusLabel = (status: string) => {
+        switch (status) {
+            case 'approved':
+                return 'approved-refunded';
+            case 'return-requested':
+                return 'return-requested';
+            case 'refunded':
+                return 'refunded';
+            case 'rejected':
+                return 'rejected';
+            default:
+                return status.charAt(0).toUpperCase() + status.slice(1).replace('-', ' ');
         }
     };
 
@@ -268,7 +313,7 @@ export function VendorReturnsManager({ vendorId }: VendorReturnsManagerProps) {
                                             className={`${getStatusColor(returnItem.status)} uppercase text-xs font-medium px-3 py-1 border`}
                                             data-oid="return-status-badge"
                                         >
-                                            {returnItem.status}
+                                            {getStatusLabel(returnItem.status)}
                                         </Badge>
                                         <span
                                             className="text-lg font-bold text-cura-secondary"

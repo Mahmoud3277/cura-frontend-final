@@ -145,6 +145,8 @@ export default function AdminOrdersPage() {
     const [activeSection, setActiveSection] = useState<OrderSection>('live');
     const [orderType, setOrderType] = useState<OrderType>('all');
     const [pharmacy, setpharmacy] = useState([{name:"HealthCare Pharmacy"}]);
+    const [isViewingState, setIsViewingState] = useState(false);
+
     const [isPrescriptionViewerOpen, setIsPrescriptionViewerOpen] = useState(false);
     const [selectedPrescription, setSelectedPrescription] = useState<any>(null);
 
@@ -157,6 +159,9 @@ export default function AdminOrdersPage() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [filters, activeSection, orderType]);
 
+    useEffect(() => {
+        console.log(selectedOrder)
+    }, [selectedOrder]);
     const loadData = async () => {
         setIsLoading(true);
     
@@ -238,6 +243,8 @@ export default function AdminOrdersPage() {
                 const updatedOrder = await orderMonitoringService.getOrderById(orderId);
                 if(updatedOrder){
                     setSelectedOrder(updatedOrder);
+                    // Keep the viewing state active so modal stays open
+                    setIsViewingState(true);
                 }
             }
         }
@@ -840,9 +847,10 @@ export default function AdminOrdersPage() {
                                                                     variant="ghost"
                                                                     size="sm"
                                                                     className="text-xs px-2 py-1 h-8 min-w-[60px]"
-                                                                    onClick={() =>
-                                                                        setSelectedOrder(order)
-                                                                    }
+                                                                    onClick={() => {
+                                                                        setSelectedOrder(order);
+                                                                        setIsViewingState(true);
+                                                                    }}
                                                                     data-oid="if6.x9g"
                                                                 >
                                                                     <Eye
@@ -895,10 +903,13 @@ export default function AdminOrdersPage() {
             </div>
 
             {/* Order Details Modal */}
-            {selectedOrder && (
+            {selectedOrder && isViewingState && (
                 <Dialog
-                    open={!!selectedOrder}
-                    onOpenChange={() => setSelectedOrder(null)}
+                    open={isViewingState && !!selectedOrder}
+                    onOpenChange={() => {
+                        setIsViewingState(false);
+                        setSelectedOrder(null);
+                    }}
                     data-oid="xxe:3ly"
                 >
                     <DialogContent
@@ -919,20 +930,20 @@ export default function AdminOrdersPage() {
                                     </div>
                                     <div data-oid="rg.nwx:">
                                         <h2 className="text-xl font-bold" data-oid="qu62b5b">
-                                            Order Details - {selectedOrder.orderNumber}
+                                            Order Details - {selectedOrder?.orderNumber}
                                         </h2>
                                         <p className="text-sm text-gray-600" data-oid="pyn6y24">
                                             {getOrderTypeLabel(selectedOrder)} • Created on{' '}
-                                            {new Date(selectedOrder.createdAt).toLocaleDateString()}
+                                            {new Date(selectedOrder?.createdAt).toLocaleDateString()}
                                         </p>
                                     </div>
                                 </div>
                                 <div className="flex items-center space-x-2" data-oid=":po.5z:">
                                     <Badge
-                                        className={getStatusColor(selectedOrder.status)}
+                                        className={getStatusColor(selectedOrder?.status)}
                                         data-oid="1-4r7b3"
                                     >
-                                        {formatStatus(selectedOrder.status)}
+                                        {formatStatus(selectedOrder?.status)}
                                     </Badge>
                                 </div>
                             </DialogTitle>
@@ -965,10 +976,10 @@ export default function AdminOrdersPage() {
                                                 Status:
                                             </span>
                                             <Badge
-                                                className={getStatusColor(selectedOrder.status)}
+                                                className={getStatusColor(selectedOrder?.status)}
                                                 data-oid="8fewyix"
                                             >
-                                                {formatStatus(selectedOrder.status)}
+                                                {formatStatus(selectedOrder?.status)}
                                             </Badge>
                                         </div>
 
@@ -977,7 +988,7 @@ export default function AdminOrdersPage() {
                                                 Total Amount:
                                             </span>
                                             <span className="font-medium" data-oid="3dci2y_">
-                                                EGP {selectedOrder.totalAmount.toFixed(2)}
+                                                EGP {selectedOrder?.totalAmount.toFixed(2)}
                                             </span>
                                         </div>
                                         <div className="flex justify-between" data-oid=":xyys9t">
@@ -985,7 +996,7 @@ export default function AdminOrdersPage() {
                                                 Payment Status:
                                             </span>
                                             <span className="font-medium" data-oid="1so-jy7">
-                                                {selectedOrder.paymentStatus}
+                                                {selectedOrder?.paymentStatus}
                                             </span>
                                         </div>
                                         <div className="flex justify-between" data-oid="xn2.4zi">
@@ -993,10 +1004,10 @@ export default function AdminOrdersPage() {
                                                 Created:
                                             </span>
                                             <span data-oid="5vwwfs3">
-                                                {new Date(selectedOrder.createdAt).toLocaleString()}
+                                                {new Date(selectedOrder?.createdAt).toLocaleString()}
                                             </span>
                                         </div>
-                                        {selectedOrder.prescriptionId && (
+                                        {selectedOrder?.prescriptionId && (
                                             <div
                                                 className="flex justify-between"
                                                 data-oid="qys2hoh"
@@ -1009,7 +1020,7 @@ export default function AdminOrdersPage() {
                                                     size="sm"
                                                     onClick={() =>
                                                         handleViewPrescription(
-                                                            selectedOrder.prescriptionId!,
+                                                            selectedOrder?.prescriptionId!,
                                                         )
                                                     }
                                                     data-oid="_v2vzp9"
@@ -1042,7 +1053,7 @@ export default function AdminOrdersPage() {
                                                 Name:
                                             </span>
                                             <span className="font-medium" data-oid="tl19qke">
-                                                {selectedOrder.customerName}
+                                                {selectedOrder?.customerName}
                                             </span>
                                         </div>
                                         <div className="flex justify-between" data-oid="e1s_-1h">
@@ -1054,14 +1065,14 @@ export default function AdminOrdersPage() {
                                                 data-oid="q4:50-x"
                                             >
                                                 <span className="font-medium" data-oid="3lz1h3y">
-                                                    {selectedOrder.customerPhone}
+                                                    {selectedOrder?.customerPhone}
                                                 </span>
                                                 <Button
                                                     variant="ghost"
                                                     size="sm"
                                                     onClick={() =>
                                                         navigator.clipboard.writeText(
-                                                            selectedOrder.customerPhone,
+                                                            selectedOrder?.customerPhone,
                                                         )
                                                     }
                                                     data-oid="mxmmkb1"
@@ -1075,7 +1086,7 @@ export default function AdminOrdersPage() {
                                                 Email:
                                             </span>
                                             <span className="font-medium" data-oid="kqhx0rh">
-                                                {selectedOrder.customerEmail}
+                                                {selectedOrder?.customerEmail}
                                             </span>
                                         </div>
                                     </CardContent>
@@ -1100,7 +1111,7 @@ export default function AdminOrdersPage() {
                                                 Name:
                                             </span>
                                             <span className="font-medium" data-oid="-gh732:">
-                                                {selectedorder.pharmacy?.name}
+                                                {selectedOrder?.pharmacy?.name}
                                             </span>
                                         </div>
                                         <div className="flex justify-between" data-oid="u5opw2w">
@@ -1108,7 +1119,7 @@ export default function AdminOrdersPage() {
                                                 Phone:
                                             </span>
                                             <span className="font-medium" data-oid="r9-3svx">
-                                                {selectedorder.pharmacy?.phone}
+                                                {selectedOrder?.pharmacy?.phone}
                                             </span>
                                         </div>
                                         <div className="flex justify-between" data-oid="ccc0id0">
@@ -1116,7 +1127,7 @@ export default function AdminOrdersPage() {
                                                 City:
                                             </span>
                                             <span className="font-medium" data-oid="xgk1ecj">
-                                                {selectedorder.pharmacy?.city}
+                                                {selectedOrder?.pharmacy?.city}
                                             </span>
                                         </div>
                                     </CardContent>
@@ -1136,21 +1147,21 @@ export default function AdminOrdersPage() {
                                     <CardContent data-oid="nr_6mi8">
                                         <div className="text-sm" data-oid="c939oi2">
                                             <p data-oid="st-h.sl">
-                                                {selectedOrder.deliveryAddress.street}
+                                                {selectedOrder?.deliveryAddress.street}
                                             </p>
                                             <p data-oid="ci86a4h">
-                                                {selectedOrder.deliveryAddress.city},{' '}
-                                                {selectedOrder.deliveryAddress.governorate}
+                                                {selectedOrder?.deliveryAddress.city},{' '}
+                                                {selectedOrder?.deliveryAddress.governorate}
                                             </p>
                                             <p data-oid="n.9k7hk">
-                                                Phone: {selectedOrder.deliveryAddress.phone}
+                                                Phone: {selectedOrder?.deliveryAddress.phone}
                                             </p>
-                                            {selectedOrder.deliveryAddress.notes && (
+                                            {selectedOrder?.deliveryAddress.notes && (
                                                 <p
                                                     className="mt-2 text-gray-600"
                                                     data-oid="v:z1jbx"
                                                 >
-                                                    Notes: {selectedOrder.deliveryAddress.notes}
+                                                    Notes: {selectedOrder?.deliveryAddress.notes}
                                                 </p>
                                             )}
                                         </div>
@@ -1173,17 +1184,34 @@ export default function AdminOrdersPage() {
                                     </CardHeader>
                                     <CardContent data-oid="6ki_v7z">
                                         <div className="space-y-3" data-oid="rco4o_1">
-                                            {selectedOrder.items.map((item, index) => (
+                                            {selectedOrder?.items.map((item, index) => (
                                                 <div
                                                     key={item.id || index}
                                                     className="flex items-center space-x-3 p-3 bg-gray-50 rounded border"
                                                     data-oid="6djvmkf"
                                                 >
                                                     <img
-                                                        src={item.image}
+                                                        src={
+                                                            item?.productId?.images[index]?.url ||
+                                                            (() => {
+                                                                try {
+                                                                    const imageData = typeof item.image === 'string'
+                                                                        ? JSON.parse(item.image)
+                                                                        : item.image;
+                                                                    return imageData?.url || '/images/cura-logo.png';
+                                                                } catch (error) {
+                                                                    return typeof item.image === 'string' && item.image.startsWith('http')
+                                                                        ? item.image
+                                                                        : '/images/cura-logo.png';
+                                                                }
+                                                            })()
+                                                        }
                                                         alt={item.productName}
                                                         className="w-12 h-12 object-cover rounded"
                                                         data-oid="b4:x2j-"
+                                                        onError={(e) => {
+                                                            e.target.src = '/images/cura-logo.png';
+                                                        }}
                                                     />
 
                                                     <div className="flex-1" data-oid="6vmrj:k">
@@ -1207,6 +1235,29 @@ export default function AdminOrdersPage() {
                                                             {item.unit || 'units'} × EGP{' '}
                                                             {item.unitPrice.toFixed(2)}
                                                         </p>
+
+                                                        {/* Display Prescription Files if they exist */}
+                                                        {item.prescription && item.prescription.length > 0 && (
+                                                            <div className="mt-2">
+                                                                <p className="text-xs text-gray-500 mb-1">Prescription Files:</p>
+                                                                <div className="flex flex-wrap gap-2">
+                                                                    {item.prescription.map((prescriptionItem, prescriptionIndex) => (
+                                                                        <div key={prescriptionIndex} className="flex flex-col items-center">
+                                                                            {prescriptionItem.prescription?.files && prescriptionItem.prescription.files.map((file, fileIndex) => (
+                                                                                <div key={fileIndex} className="flex items-center space-x-1">
+                                                                                    <img
+                                                                                        src={file.url}
+                                                                                        alt={file.filename}
+                                                                                        className="w-8 h-8 object-cover rounded border"
+                                                                                    />
+                                                                                    <span className="text-xs text-gray-600">{file.filename}</span>
+                                                                                </div>
+                                                                            ))}
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                     <div className="text-right" data-oid="y1ksk2.">
                                                         <p
@@ -1244,7 +1295,7 @@ export default function AdminOrdersPage() {
                                     </CardHeader>
                                     <CardContent data-oid="u64._:7">
                                         <div className="space-y-3" data-oid="gmhib-z">
-                                            {selectedOrder.statusHistory.map((history, index) => (
+                                            {selectedOrder?.statusHistory.map((history, index) => (
                                                 <div
                                                     key={index}
                                                     className="flex items-start space-x-3"
@@ -1296,15 +1347,21 @@ export default function AdminOrdersPage() {
             )}
 
             {/* Prescription Viewer */}
-            <PrescriptionImageViewer
-                prescription={selectedPrescription}
-                isOpen={isPrescriptionViewerOpen}
-                onClose={() => {
-                    setIsPrescriptionViewerOpen(false);
-                    setSelectedPrescription(null);
-                }}
-                data-oid="0evg347"
-            />
+            {isPrescriptionViewerOpen && selectedPrescription && (
+                <PrescriptionImageViewer
+                    files={selectedPrescription?.files || []}
+                    selectedIndex={0}
+                    onClose={() => {
+                        setIsPrescriptionViewerOpen(false);
+                        setSelectedPrescription(null);
+                    }}
+                    onIndexChange={(index) => {
+                        // Handle index change if needed
+                        console.log('Index changed to:', index);
+                    }}
+                    data-oid="0evg347"
+                />
+            )}
         </div>
     );
 }

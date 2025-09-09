@@ -142,7 +142,7 @@ const apiCall = async (endpoint: string, options: RequestInit = {}) => {
             data: data
         });
 
-        if (!response) {
+        if (!response.ok) {
             // Handle specific authentication errors
             if (response.status === 401) {
                 console.log('API Call: Authentication failed (401), clearing auth data');
@@ -303,19 +303,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, []);
 
     // update the user information
-    const updateProfile = useCallback(async (profileData: Partial<User>): Promise<{ success: boolean; error?: string }> => {
+    const updateProfile = useCallback(async (profileData: Partial<User>): Promise<{ success: boolean; error?: string; updatedUser?: User }> => {
         try {
-            const response = await apiCall('/users/profile', {
+            const response = await apiCall('/auth/edit', {
                 method: 'PUT',
                 body: JSON.stringify(profileData),
             });
 
             // Update user data in state and local storage
-            const updatedUser = { ...state.user, ...profileData, ...response.user };
+            const updatedUser = { ...state.user, ...profileData, ...response.data.user };
             localStorage.setItem('cura_user', JSON.stringify(updatedUser));
             dispatch({ type: 'LOAD_USER_SUCCESS', payload: updatedUser as User });
-            
-            return { success: true };
+
+            return { success: true, updatedUser: updatedUser as User };
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Profile update failed';
             console.error('Failed to update profile:', errorMessage);
@@ -461,7 +461,7 @@ export function getDashboardRoute(role: UserRole): string {
 export const authAPI = {
     // Update user profile
     updateProfile: async (profileData: Partial<User>) => {
-        return await apiCall('/users/profile', {
+        return await apiCall('/auth/edit', {
             method: 'PUT',
             body: JSON.stringify(profileData),
         });

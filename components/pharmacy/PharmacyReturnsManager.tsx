@@ -6,162 +6,148 @@ import { orderReturnService } from '@/lib/services/orderReturnService';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Check, X, Eye } from 'lucide-react';
+import Cookies from 'js-cookie';
 
 interface PharmacyReturnsManagerProps {
     pharmacyId: string;
 }
 
-// Enhanced return interface with product details
-interface EnhancedReturn extends OrderReturn {
-    productName: string;
-    productImage: string;
-    manufacturer: string;
-    customerPhone: string;
-    quantity: number;
-    quantityUnit: 'blister' | 'box' | 'normal';
-    isMedicine: boolean;
+// Enhanced return interface matching the actual API response
+interface EnhancedReturn {
+    _id: string;
+    returnId: string;
+    status: string;
+    refundAmount: number;
+    requestedAt: string;
+    orderId: {
+        id: string;
+        orderNumber: string;
+        customerPhone: string;
+        customerName: string;
+        items: Array<{
+            productName: string;
+            image: string;
+            manufacturer: string;
+            quantity: number;
+            category: string;
+        }>;
+        returnInfo?: {
+            id: string;
+            reason: string;
+            notes?: string;
+            processedAt?: string;
+        };
+    };
 }
 
 export function PharmacyReturnsManager({ pharmacyId }: PharmacyReturnsManagerProps) {
     const [returns, setReturns] = useState<EnhancedReturn[]>([]);
     const [loading, setLoading] = useState(true);
     const [processingId, setProcessingId] = useState<string | null>(null);
+    const [summary, setSummary] = useState({
+        total: 0,
+        pending: 0,
+        approved: 0,
+        rejected: 0,
+        totalRefundAmount: 0,
+    });
+    const [pagination, setPagination] = useState({
+        current: 1,
+        total: 1,
+        count: 0,
+        totalRecords: 0,
+    });
+    const [statusFilter, setStatusFilter] = useState<string>('');
 
     useEffect(() => {
         loadReturns();
-    }, []);
+    }, [statusFilter]);
 
     const loadReturns = async () => {
         setLoading(true);
         try {
-            // Mock enhanced returns data with product details for pharmacy
-            const mockReturns: EnhancedReturn[] = [
-                {
-                    id: 'return-001',
-                    orderId: 'ORD-2024-001',
-                    customerId: '1',
-                    customerPhone: '+20 11 690 7244',
-                    productName: 'Panadol Extra',
-                    productImage:
-                        'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&h=400&fit=crop&crop=center',
-                    manufacturer: 'GSK',
-                    quantity: 2,
-                    quantityUnit: 'blister',
-                    isMedicine: true,
-                    reason: 'Product damaged/defective',
-                    status: 'requested',
-                    refundAmount: 125.5,
-                    requestedAt: '2024-01-07T10:30:00Z',
-                    processedAt: null,
-                    notes: 'Customer reported that the medicine packaging was damaged during delivery',
-                },
-                {
-                    id: 'return-002',
-                    orderId: 'ORD-2024-002',
-                    customerId: '2',
-                    customerPhone: '+20 12 731 7479',
-                    productName: 'Vitamin D3',
-                    productImage:
-                        'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=400&fit=crop&crop=center',
-                    manufacturer: 'Pfizer',
-                    quantity: 1,
-                    quantityUnit: 'normal',
-                    isMedicine: true,
-                    reason: 'Wrong item received',
-                    status: 'approved',
-                    refundAmount: 67.25,
-                    requestedAt: '2024-01-06T14:20:00Z',
-                    processedAt: '2024-01-07T09:15:00Z',
-                    notes: 'Customer ordered Vitamin D3 1000IU but received 400IU',
-                },
-                {
-                    id: 'return-003',
-                    orderId: 'ORD-2024-003',
-                    customerId: '3',
-                    customerPhone: '+20 10 555 1234',
-                    productName: 'Omega 3 Capsules',
-                    productImage:
-                        'https://images.unsplash.com/photo-1550572017-edd951aa8f72?w=400&h=400&fit=crop&crop=center',
-                    manufacturer: 'Nature Made',
-                    quantity: 3,
-                    quantityUnit: 'box',
-                    isMedicine: true,
-                    reason: 'No longer needed',
-                    status: 'completed',
-                    refundAmount: 89.75,
-                    requestedAt: '2024-01-05T16:45:00Z',
-                    processedAt: '2024-01-07T11:30:00Z',
-                    notes: 'Customer changed mind about purchase',
-                },
-                {
-                    id: 'return-004',
-                    orderId: 'ORD-2024-004',
-                    customerId: '4',
-                    customerPhone: '+20 11 777 8888',
-                    productName: 'Insulin Pen',
-                    productImage:
-                        'https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=400&h=400&fit=crop&crop=center',
-                    manufacturer: 'Novo Nordisk',
-                    quantity: 1,
-                    quantityUnit: 'normal',
-                    isMedicine: true,
-                    reason: 'Product expired',
-                    status: 'rejected',
-                    refundAmount: 0.0,
-                    requestedAt: '2024-01-04T12:00:00Z',
-                    processedAt: '2024-01-05T10:20:00Z',
-                    notes: 'Return request submitted after 30-day return window',
-                },
-            ];
+            // Build query parameters
+            const params = new URLSearchParams({
+                page: '1',
+                limit: '10', // Default limit
+            });
 
-            setReturns(mockReturns);
+            if (statusFilter) {
+                params.append('status', statusFilter);
+            }
+
+            // Make API call to fetch returned orders
+            const response = await fetch(`http://localhost:5000/api/pharmacies/${pharmacyId}/returned-orders?${params}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    // Use cookies for token like the rest of the app
+                    ...(Cookies.get('authToken') && { Authorization: `Bearer ${Cookies.get('authToken')}` }),
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to fetch returned orders: ${response.status}`);
+            }
+
+            const apiResponse = await response.json();
+            console.log(apiResponse, 'api response')
+            // Update summary and pagination state
+            setSummary(apiResponse.data.summary);
+            setPagination(apiResponse.data.pagination);
+
+            // Just use the API response data directly
+            setReturns(apiResponse.data.returnedOrders);
         } catch (error) {
             console.error('Error loading returns:', error);
+            // Set empty array on error to prevent crashes
+            setReturns([]);
         } finally {
             setLoading(false);
         }
     };
 
-    const handleApproveReturn = async (returnId: string) => {
+    const handleUpdateStatus = async (returnId: string, newStatus: string) => {
         setProcessingId(returnId);
         try {
-            // Simulate API call
-            await new Promise((resolve) => setTimeout(resolve, 1000));
+            console.log('new status', newStatus)
+            // Use the order return service to update status
+            if (newStatus === 'approved') {
+                console.log('approved')
+                await orderReturnService.processReturn(returnId, 'approved');
+            } else if (newStatus === 'rejected') {
+                await orderReturnService.processReturn(returnId, 'reject');
+            } else if (newStatus === 'refund-approved') {
+                // TODO: Implement refund approval - for now using processReturn
+                console.log('Refund approval for:', returnId);
+                // await orderReturnService.processRefund(returnId, 'approve');
+            } else if (newStatus === 'refunded') {
+                // Process refund for approved returns
+                const refundResponse = await fetch(`http://localhost:5000/api/orders/return/${returnId}/refund`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${Cookies.get('authToken')}`,
+                    },
+                    body: JSON.stringify({
+                        refundNotes: 'Refund processed from pharmacy dashboard'
+                    }),
+                });
 
-            setReturns((prev) =>
-                prev.map((ret) =>
-                    ret.id === returnId
-                        ? { ...ret, status: 'approved', processedAt: new Date().toISOString() }
-                        : ret,
-                ),
-            );
+                if (!refundResponse.ok) {
+                    const errorData = await refundResponse.json();
+                    throw new Error(errorData.error || 'Failed to process refund');
+                }
+
+                const refundData = await refundResponse.json();
+                console.log('Refund processed successfully:', refundData);
+            }
+
+            // Refresh data after status update
+            loadReturns();
         } catch (error) {
-            console.error('Error approving return:', error);
-        } finally {
-            setProcessingId(null);
-        }
-    };
-
-    const handleRejectReturn = async (returnId: string) => {
-        setProcessingId(returnId);
-        try {
-            // Simulate API call
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-
-            setReturns((prev) =>
-                prev.map((ret) =>
-                    ret.id === returnId
-                        ? {
-                              ...ret,
-                              status: 'rejected',
-                              processedAt: new Date().toISOString(),
-                              refundAmount: 0,
-                          }
-                        : ret,
-                ),
-            );
-        } catch (error) {
-            console.error('Error rejecting return:', error);
+            console.error('Error updating return status:', error);
+            alert(`Failed to update return status to ${newStatus}. Please try again.`);
         } finally {
             setProcessingId(null);
         }
@@ -169,11 +155,13 @@ export function PharmacyReturnsManager({ pharmacyId }: PharmacyReturnsManagerPro
 
     const getStatusColor = (status: string) => {
         switch (status) {
-            case 'requested':
+            case 'return-requested':
                 return 'bg-yellow-100 text-yellow-800 border-yellow-200';
             case 'approved':
                 return 'bg-cura-primary/10 text-cura-primary border-cura-primary/20';
-            case 'completed':
+            case 'approved':
+                return 'bg-blue-100 text-blue-800 border-blue-200';
+            case 'refunded':
                 return 'bg-green-100 text-green-800 border-green-200';
             case 'rejected':
                 return 'bg-red-100 text-red-800 border-red-200';
@@ -182,18 +170,25 @@ export function PharmacyReturnsManager({ pharmacyId }: PharmacyReturnsManagerPro
         }
     };
 
-    const formatQuantity = (quantity: number, unit: string, isMedicine: boolean) => {
-        if (!isMedicine || unit === 'normal') {
+    const formatQuantity = (quantity: number, category: string) => {
+        if (category === 'medical_supplies') {
             return `Qty: ${quantity}`;
         }
-
-        // Only show unit for 'blister' or 'box'
-        if (unit === 'blister' || unit === 'box') {
-            const unitText = quantity === 1 ? unit : `${unit}s`;
-            return `Qty: ${quantity} ${unitText}`;
-        }
-
         return `Qty: ${quantity}`;
+    };
+
+    // Helper function to parse product image
+    const getProductImage = (imageString: string) => {
+        try {
+            // The image field appears to be a string representation of an object
+            const imageMatch = imageString.match(/url:\s*'([^']+)'/);
+            if (imageMatch) {
+                return imageMatch[1];
+            }
+            return '/placeholder-product.png'; // fallback image
+        } catch (error) {
+            return '/placeholder-product.png';
+        }
     };
 
     if (loading) {
@@ -242,270 +237,298 @@ export function PharmacyReturnsManager({ pharmacyId }: PharmacyReturnsManagerPro
                         </p>
                     </div>
                 ) : (
-                    returns.map((returnItem) => (
-                        <div
-                            key={returnItem.id}
-                            className="bg-white border border-gray-200 rounded-lg hover:shadow-md transition-all duration-200 overflow-hidden"
-                            data-oid="enhanced-return-card"
-                        >
-                            <div className="p-6" data-oid="return-card-content">
-                                {/* Header with Order ID and Status */}
-                                <div
-                                    className="flex items-center justify-between mb-4"
-                                    data-oid="return-header"
-                                >
+                    returns.map((returnItem) => {
+                        // Get the first item from the order for display
+                        const firstItem = returnItem.orderId.items[0];
+                        const productImage = getProductImage(firstItem.image);
+
+                        return (
+                            <div
+                                key={returnItem._id}
+                                className="bg-white border border-gray-200 rounded-lg hover:shadow-md transition-all duration-200 overflow-hidden"
+                                data-oid="enhanced-return-card"
+                            >
+                                <div className="p-6" data-oid="return-card-content">
+                                    {/* Header with Order ID and Status */}
                                     <div
-                                        className="flex items-center space-x-3"
-                                        data-oid="return-order-info"
+                                        className="flex items-center justify-between mb-4"
+                                        data-oid="return-header"
                                     >
                                         <div
-                                            className="w-10 h-10 bg-cura-primary rounded-lg flex items-center justify-center"
-                                            data-oid="return-order-icon"
+                                            className="flex items-center space-x-3"
+                                            data-oid="return-order-info"
                                         >
-                                            <span
-                                                className="text-white font-bold text-sm"
-                                                data-oid="return-order-number"
+                                            <div
+                                                className="w-10 h-10 bg-cura-primary rounded-lg flex items-center justify-center"
+                                                data-oid="return-order-icon"
                                             >
-                                                {returnItem.orderId.split('-')[2]}
+                                                <span
+                                                    className="text-white font-bold text-sm"
+                                                    data-oid="return-order-number"
+                                                >
+                                                    {returnItem.orderId.orderNumber?.split('-')[2] || 'ORD'}
+                                                </span>
+                                            </div>
+                                            <div data-oid="return-order-details">
+                                                <h4
+                                                    className="font-semibold text-gray-900"
+                                                    data-oid="return-order-id"
+                                                >
+                                                    {returnItem.orderId.orderNumber || returnItem.orderId.id}
+                                                </h4>
+                                                <p
+                                                    className="text-sm text-cura-light"
+                                                    data-oid="return-customer-phone"
+                                                >
+                                                    {returnItem.orderId.customerPhone} • {returnItem.orderId.customerName}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div
+                                            className="flex items-center space-x-3"
+                                            data-oid="return-status-amount"
+                                        >
+                                            <Badge
+                                                className={`${getStatusColor(returnItem.status)} uppercase text-xs font-medium px-3 py-1 border`}
+                                                data-oid="return-status-badge"
+                                            >
+                                                {returnItem.status}
+                                            </Badge>
+                                            <span
+                                                className="text-lg font-bold text-cura-secondary"
+                                                data-oid="return-amount"
+                                            >
+                                                EGP {(returnItem.refundAmount)}
                                             </span>
                                         </div>
-                                        <div data-oid="return-order-details">
-                                            <h4
-                                                className="font-semibold text-gray-900"
-                                                data-oid="return-order-id"
+                                    </div>
+
+                                    {/* Product Information with Image */}
+                                    <div className="mb-4" data-oid="return-product-section">
+                                        <h5
+                                            className="font-medium text-gray-900 mb-3"
+                                            data-oid="return-product-title"
+                                        >
+                                            Returned Product{returnItem.orderId.items.length > 1 ? 's' : ''}
+                                        </h5>
+                                        <div
+                                            className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg"
+                                            data-oid="return-product-info"
+                                        >
+                                            <div
+                                                className="w-16 h-16 rounded-lg overflow-hidden border border-cura-light/20"
+                                                data-oid="return-product-image-container"
                                             >
-                                                {returnItem.orderId}
-                                            </h4>
-                                            <p
-                                                className="text-sm text-cura-light"
-                                                data-oid="return-customer-phone"
-                                            >
-                                                {returnItem.customerPhone}
-                                            </p>
+                                                <img
+                                                    src={productImage}
+                                                    alt={firstItem.productName}
+                                                    className="w-full h-full object-cover"
+                                                    data-oid="return-product-image"
+                                                    onError={(e) => {
+                                                        const target = e.target as HTMLImageElement;
+                                                        target.src = '/placeholder-product.png';
+                                                    }}
+                                                />
+                                            </div>
+                                            <div className="flex-1" data-oid="return-product-details">
+                                                <div
+                                                    className="flex items-center justify-between"
+                                                    data-oid="return-product-info-row"
+                                                >
+                                                    <div data-oid="return-product-name-manufacturer">
+                                                        <h6
+                                                            className="font-medium text-gray-900"
+                                                            data-oid="return-product-name"
+                                                        >
+                                                            {firstItem.productName}
+                                                            {returnItem.orderId.items.length > 1 && (
+                                                                <span className="text-sm text-cura-light ml-2">
+                                                                    +{returnItem.orderId.items.length - 1} more
+                                                                </span>
+                                                            )}
+                                                        </h6>
+                                                        <p
+                                                            className="text-sm text-cura-light"
+                                                            data-oid="return-product-manufacturer"
+                                                        >
+                                                            {firstItem.manufacturer}
+                                                        </p>
+                                                    </div>
+                                                    <div
+                                                        className="text-right"
+                                                        data-oid="return-product-quantity"
+                                                    >
+                                                        <p
+                                                            className="text-sm font-medium text-cura-secondary"
+                                                            data-oid="return-quantity-label"
+                                                        >
+                                                            {formatQuantity(firstItem.quantity, firstItem.category)}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div
-                                        className="flex items-center space-x-3"
-                                        data-oid="return-status-amount"
-                                    >
-                                        <Badge
-                                            className={`${getStatusColor(returnItem.status)} uppercase text-xs font-medium px-3 py-1 border`}
-                                            data-oid="return-status-badge"
-                                        >
-                                            {returnItem.status}
-                                        </Badge>
-                                        <span
-                                            className="text-lg font-bold text-cura-secondary"
-                                            data-oid="return-amount"
-                                        >
-                                            EGP {returnItem.refundAmount.toFixed(2)}
-                                        </span>
-                                    </div>
-                                </div>
 
-                                {/* Product Information with Image */}
-                                <div className="mb-4" data-oid="return-product-section">
-                                    <h5
-                                        className="font-medium text-gray-900 mb-3"
-                                        data-oid="return-product-title"
-                                    >
-                                        Returned Product
-                                    </h5>
+                                    {/* Return Reason */}
+                                    {returnItem.orderId.returnInfo && (
+                                        <div
+                                            className="mb-4 p-4 bg-cura-primary/5 rounded-lg"
+                                            data-oid="return-reason-section"
+                                        >
+                                            <div
+                                                className="flex items-start space-x-2"
+                                                data-oid="return-reason-content"
+                                            >
+                                                <svg
+                                                    className="w-5 h-5 text-cura-primary mt-0.5"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                    data-oid="return-reason-icon"
+                                                >
+                                                    <path
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                        strokeWidth={2}
+                                                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                                        data-oid="return-reason-path"
+                                                    />
+                                                </svg>
+                                                <div className="flex-1" data-oid="return-reason-text">
+                                                    <h6
+                                                        className="font-medium text-cura-secondary mb-1"
+                                                        data-oid="return-reason-title"
+                                                    >
+                                                        Return Reason: {returnItem.orderId.returnInfo.reason}
+                                                    </h6>
+                                                    {returnItem.orderId.returnInfo.notes && (
+                                                        <p
+                                                            className="text-sm text-cura-accent"
+                                                            data-oid="return-reason-notes"
+                                                        >
+                                                            {returnItem.orderId.returnInfo.notes}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Footer with Actions */}
                                     <div
-                                        className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg"
-                                        data-oid="return-product-info"
+                                        className="flex items-center justify-between pt-4 border-t border-gray-200"
+                                        data-oid="return-footer"
                                     >
                                         <div
-                                            className="w-16 h-16 rounded-lg overflow-hidden border border-cura-light/20"
-                                            data-oid="return-product-image-container"
+                                            className="flex items-center space-x-2 text-sm text-cura-light"
+                                            data-oid="return-timestamp"
                                         >
-                                            <img
-                                                src={returnItem.productImage}
-                                                alt={returnItem.productName}
-                                                className="w-full h-full object-cover"
-                                                data-oid="return-product-image"
-                                            />
-                                        </div>
-                                        <div className="flex-1" data-oid="return-product-details">
-                                            <div
-                                                className="flex items-center justify-between"
-                                                data-oid="return-product-info-row"
+                                            <svg
+                                                className="w-4 h-4"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                                data-oid="return-clock-icon"
                                             >
-                                                <div data-oid="return-product-name-manufacturer">
-                                                    <h6
-                                                        className="font-medium text-gray-900"
-                                                        data-oid="return-product-name"
-                                                    >
-                                                        {returnItem.productName}
-                                                    </h6>
-                                                    <p
-                                                        className="text-sm text-cura-light"
-                                                        data-oid="return-product-manufacturer"
-                                                    >
-                                                        {returnItem.manufacturer}
-                                                    </p>
-                                                </div>
-                                                <div
-                                                    className="text-right"
-                                                    data-oid="return-product-quantity"
-                                                >
-                                                    <p
-                                                        className="text-sm font-medium text-cura-secondary"
-                                                        data-oid="return-quantity-label"
-                                                    >
-                                                        {formatQuantity(
-                                                            returnItem.quantity || 1,
-                                                            returnItem.quantityUnit,
-                                                            returnItem.isMedicine,
-                                                        )}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Return Reason */}
-                                <div
-                                    className="mb-4 p-4 bg-cura-primary/5 rounded-lg"
-                                    data-oid="return-reason-section"
-                                >
-                                    <div
-                                        className="flex items-start space-x-2"
-                                        data-oid="return-reason-content"
-                                    >
-                                        <svg
-                                            className="w-5 h-5 text-cura-primary mt-0.5"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            viewBox="0 0 24 24"
-                                            data-oid="return-reason-icon"
-                                        >
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                                                data-oid="return-reason-path"
-                                            />
-                                        </svg>
-                                        <div className="flex-1" data-oid="return-reason-text">
-                                            <h6
-                                                className="font-medium text-cura-secondary mb-1"
-                                                data-oid="return-reason-title"
-                                            >
-                                                Return Reason: {returnItem.reason}
-                                            </h6>
-                                            {returnItem.notes && (
-                                                <p
-                                                    className="text-sm text-cura-accent"
-                                                    data-oid="return-reason-notes"
-                                                >
-                                                    {returnItem.notes}
-                                                </p>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Footer with Actions */}
-                                <div
-                                    className="flex items-center justify-between pt-4 border-t border-gray-200"
-                                    data-oid="return-footer"
-                                >
-                                    <div
-                                        className="flex items-center space-x-2 text-sm text-cura-light"
-                                        data-oid="return-timestamp"
-                                    >
-                                        <svg
-                                            className="w-4 h-4"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            viewBox="0 0 24 24"
-                                            data-oid="return-clock-icon"
-                                        >
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                                                data-oid="return-clock-path"
-                                            />
-                                        </svg>
-                                        <span data-oid="return-date">
-                                            {new Date(returnItem.requestedAt).toLocaleDateString(
-                                                'en-GB',
-                                            )}{' '}
-                                            •{' '}
-                                            {new Date(returnItem.requestedAt).toLocaleTimeString(
-                                                'en-GB',
-                                                { hour12: false },
-                                            )}
-                                        </span>
-                                    </div>
-
-                                    <div
-                                        className="flex items-center space-x-2"
-                                        data-oid="return-actions"
-                                    >
-                                        {returnItem.status === 'requested' && (
-                                            <>
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    className="text-red-600 border-red-200 hover:bg-red-50"
-                                                    onClick={() =>
-                                                        handleRejectReturn(returnItem.id)
-                                                    }
-                                                    disabled={processingId === returnItem.id}
-                                                    data-oid="reject-return-btn"
-                                                >
-                                                    <X
-                                                        className="w-4 h-4 mr-1"
-                                                        data-oid="0j0v80u"
-                                                    />
-                                                    Reject
-                                                </Button>
-                                                <Button
-                                                    size="sm"
-                                                    className="bg-cura-primary text-white hover:bg-cura-secondary"
-                                                    onClick={() =>
-                                                        handleApproveReturn(returnItem.id)
-                                                    }
-                                                    disabled={processingId === returnItem.id}
-                                                    data-oid="approve-return-btn"
-                                                >
-                                                    <Check
-                                                        className="w-4 h-4 mr-1"
-                                                        data-oid="pmmcten"
-                                                    />
-
-                                                    {processingId === returnItem.id
-                                                        ? 'Processing...'
-                                                        : 'Approve'}
-                                                </Button>
-                                            </>
-                                        )}
-                                        {returnItem.status !== 'requested' && (
-                                            <div
-                                                className="text-sm text-cura-light"
-                                                data-oid="return-processed-info"
-                                            >
-                                                {returnItem.processedAt && (
-                                                    <>
-                                                        Processed on{' '}
-                                                        {new Date(
-                                                            returnItem.processedAt,
-                                                        ).toLocaleDateString('en-GB')}
-                                                    </>
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth={2}
+                                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                                                    data-oid="return-clock-path"
+                                                />
+                                            </svg>
+                                            <span data-oid="return-date">
+                                                {new Date(returnItem.requestedAt).toLocaleDateString(
+                                                    'en-GB',
+                                                )}{' '}
+                                                •{' '}
+                                                {new Date(returnItem.requestedAt).toLocaleTimeString(
+                                                    'en-GB',
+                                                    { hour12: false },
                                                 )}
-                                            </div>
-                                        )}
+                                            </span>
+                                        </div>
+
+                                        <div
+                                            className="flex items-center space-x-2"
+                                            data-oid="return-actions"
+                                        >
+                                            {returnItem.status === 'return-requested' && (
+                                                <>
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="text-red-600 border-red-200 hover:bg-red-50"
+                                                        onClick={() =>
+                                                            handleUpdateStatus(returnItem.returnId, 'rejected')
+                                                        }
+                                                        disabled={processingId === returnItem.returnId}
+                                                        data-oid="reject-return-btn"
+                                                    >
+                                                        <X
+                                                            className="w-4 h-4 mr-1"
+                                                            data-oid="0j0v80u"
+                                                        />
+                                                        Reject
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        className="bg-cura-primary text-white hover:bg-cura-secondary"
+                                                        onClick={() =>
+                                                            handleUpdateStatus(returnItem.returnId, 'approved')
+                                                        }
+                                                        disabled={processingId === returnItem.returnId}
+                                                        data-oid="approve-return-btn"
+                                                    >
+                                                        <Check
+                                                            className="w-4 h-4 mr-1"
+                                                            data-oid="pmmcten"
+                                                        />
+
+                                                        {processingId === returnItem.returnId
+                                                            ? 'Processing...'
+                                                            : 'Approve Return'}
+                                                    </Button>
+                                                </>
+                                            )}
+                                            {returnItem.status === 'approved' && (
+                                                <Button
+                                                    size="sm"
+                                                    className="bg-green-600 text-white hover:bg-green-700"
+                                                    onClick={() =>
+                                                        handleUpdateStatus(returnItem.returnId, 'refunded')
+                                                    }
+                                                    disabled={processingId === returnItem.returnId}
+                                                    data-oid="complete-refund-btn"
+                                                >
+                                                    {processingId === returnItem.returnId
+                                                        ? 'Processing...'
+                                                        : 'Complete Refund'}
+                                                </Button>
+                                            )}
+                                            {returnItem.status !== 'return-requested' && returnItem.status !== 'approved' && returnItem.status !== 'approved' && (
+                                                <div
+                                                    className="text-sm text-cura-light"
+                                                    data-oid="return-processed-info"
+                                                >
+                                                    {returnItem.orderId.returnInfo?.processedAt && (
+                                                        <>
+                                                            Processed on{' '}
+                                                            {new Date(
+                                                                returnItem.orderId.returnInfo.processedAt,
+                                                            ).toLocaleDateString('en-GB')}
+                                                        </>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    ))
+                        );
+                    })
                 )}
             </div>
         </div>

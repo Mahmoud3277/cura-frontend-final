@@ -72,6 +72,7 @@ export default function PharmacyLayout({ children }: PharmacyLayoutProps) {
         }
     };
     const [totalOrders, settotalOrders] = useState(0);
+    const [totalReturnOrders, settotalReturnOrders] = useState(0);
     const getUser = async():Promise<any>=>{
         const token = getAuthToken();
         if(token){
@@ -94,9 +95,24 @@ export default function PharmacyLayout({ children }: PharmacyLayoutProps) {
             const data = await providerOrderService.getAllOrders({}, id.id)
             if(data){
                 console.log(data)
-                // Filter orders that are not delivered and count them
-                const nonDeliveredOrders = data.data.filter((order: any) => order.status !== "delivered")
-                settotalOrders(nonDeliveredOrders.length)
+                // Filter orders that are not delivered and not in return process
+                const activeOrders = data.data.filter((order: any) =>
+                    order.status !== "delivered" &&
+                    order.status !== "approved" &&
+                    order.status !== "rejected" &&
+                    order.status !== "refunded" &&
+                    order.status !== "return-requested"
+                )
+                settotalOrders(activeOrders.length)
+
+                // Count return-related orders
+                const returnOrders = data.data.filter((order: any) =>
+                    order.status === "approved" ||
+                    order.status === "rejected" ||
+                    order.status === "refunded" ||
+                    order.status === "return-requested"
+                )
+                settotalReturnOrders(returnOrders.length)
             }
         }
     }

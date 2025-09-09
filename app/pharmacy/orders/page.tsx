@@ -90,12 +90,12 @@ export default function PharmacyOrdersPage() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user]);
 
-    // Apply filters based on search and exclude delivered orders
+    // Apply filters based on search (exclude delivered orders they should only appear in dashboard)
     useEffect(() => {
         let filtered = [...orders];
         console.log('orders, ', orders)
-        // Exclude delivered orders (they should only appear in dashboard)
-        filtered = filtered.filter((order) => order.status !== 'delivered');
+        // Exclude delivered and return-requested orders (they should only appear in dashboard/returns)
+        filtered = filtered.filter((order) => order.status !== 'delivered' && order.status !== 'return-requested');
 
         // Apply search
         if (searchQuery.trim()) {
@@ -118,6 +118,7 @@ export default function PharmacyOrdersPage() {
                 alert('Order not found');
                 return;
             }
+            console.log('order', order, newStatus, 'newStatus')
             if (newStatus === 'confirmed') {
                 // Check if order can be accepted
                 if (!providerOrderService.canAcceptOrder(order)) {
@@ -136,8 +137,11 @@ export default function PharmacyOrdersPage() {
                 loadData()
                 // Removed success alert - order acceptance works silently
             } else {
-                await providerOrderService.updateOrderStatus(orderId, newStatus as any);
-                loadData()
+                console.log('updating status')
+                const response = await providerOrderService.updateOrderStatus(orderId, newStatus as any);
+                if(response){
+                    loadData()
+                }
             }
         } catch (error) {
             console.error('Error updating order status:', error);
@@ -191,11 +195,33 @@ export default function PharmacyOrdersPage() {
                 return 'bg-emerald-100 text-emerald-800 border-emerald-200';
             case 'cancelled':
                 return 'bg-red-100 text-red-800 border-red-200';
+            case 'return-requested':
+                return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+            case 'approved':
+                return 'bg-blue-100 text-blue-800 border-blue-200';
+            case 'refunded':
+                return 'bg-green-100 text-green-800 border-green-200';
+            case 'rejected':
+                return 'bg-red-100 text-red-800 border-red-200';
             default:
                 return 'bg-gray-100 text-gray-800 border-gray-200';
         }
     };
 
+    const getStatusLabel = (status: string) => {
+        switch (status) {
+            case 'approved':
+                return 'approved-refunded';
+            case 'return-requested':
+                return 'return-requested';
+            case 'refunded':
+                return 'refunded';
+            case 'rejected':
+                return 'rejected';
+            default:
+                return status.charAt(0).toUpperCase() + status.slice(1).replace('-', ' ');
+        }
+    };
     const getNextStatus = (currentStatus: string) => {
         switch (currentStatus) {
             case 'pending':
@@ -459,8 +485,7 @@ export default function PharmacyOrdersPage() {
                                                     className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(order.status)}`}
                                                     data-oid="h6ttrle"
                                                 >
-                                                    {order.status.charAt(0).toUpperCase() +
-                                                        order.status.slice(1).replace('-', ' ')}
+                                                    {getStatusLabel(order.status)}
                                                 </span>
                                                 <span
                                                     className="text-lg font-bold text-gray-900"
@@ -991,7 +1016,7 @@ export default function PharmacyOrdersPage() {
                                                         >
                                                             <img
                                                                 src={
-                                                                    item.image ||
+                                                                    item.productId?.images?.[0]?.url ||
                                                                     `https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=50&h=50&fit=crop&crop=center`
                                                                 }
                                                                 alt={item.productName}

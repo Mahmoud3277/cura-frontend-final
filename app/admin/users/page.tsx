@@ -286,30 +286,29 @@ export default function UserAccountManagementPage() {
         const token = getAuthToken();
         // Example PUT request
         // await axios.put(`http://localhost:5000/users/${editingUser._id}`, editingUser);
-        const updatingUser = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/edit`,{
+        const updatingUser = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/users/${editingUser._id}`,{
             method:"PUT",
             headers:{
                 "Content-Type":"application/json",
                 ...(token && { Authorization: `Bearer ${token}` }),
             },
-            body:JSON.stringify(editingUser)
+            body:JSON.stringify(editingUser)  // Send user data directly
         })
         const data = await updatingUser.json()
-        if(data){
-            console.log('Updating user:', editingUser);
-            loadUserData()
+
+        if(data.success){
+            console.log('User updated successfully:', data);
+            loadUserData(); // Refresh the user list
+            setShowEditModal(false);
+        } else {
+            console.error('Failed to update user:', data.error);
+            alert(`Failed to update user: ${data.error}`);
         }
+
         // setUsers logic remains the same for optimistic UI updates
         setUsers((prevUsers) =>
-          prevUsers.map((user) => (user._id == editingUser._id ? editingUser : user))
+          prevUsers.map((user) => (user._id === editingUser._id ? editingUser : user))
         );
-  
-        // Close modal and reset
-        setShowEditModal(false);
-        setEditingUser(null);
-        setSelectedUser(null);
-  
-        alert('User updated successfully!');
       } catch (error) {
         console.error('Error updating user:', error);
         alert('Error updating user. Please try again.');

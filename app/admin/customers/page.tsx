@@ -3381,10 +3381,10 @@ ${orderTiming.monthlyDistribution
 
                                                             <span
                                                                 className="max-w-[250px] break-words"
-                                                                title={customer.addresses[0].city}
+                                                                title={customer.addresses[0]?.city}
                                                                 data-oid="_-7stz_"
                                                             >
-                                                                {customer.addresses[0].street} { customer.addresses[0].city}
+                                                                {customer.addresses[0]?.street} { customer.addresses[0]?.city}
                                                             </span>
                                                         </div>
                                                         <div
@@ -3541,25 +3541,25 @@ ${orderTiming.monthlyDistribution
                                                     <div className="space-y-2" data-oid="7uef3xr">
                                                         <Badge
                                                             variant={
-                                                                customer.status === 'active'
+                                                                customer.currentStatus === 'active'
                                                                     ? 'default'
-                                                                    : customer.status === 'inactive'
+                                                                    : customer.currentStatus === 'inactive'
                                                                       ? 'secondary'
                                                                       : 'destructive'
                                                             }
                                                             className={
-                                                                customer.status === 'active'
+                                                                customer.currentStatus === 'active'
                                                                     ? 'bg-green-100 text-green-800 border-green-200'
-                                                                    : customer.status === 'inactive'
+                                                                    : customer.currentStatus === 'inactive'
                                                                       ? 'bg-yellow-100 text-yellow-800 border-yellow-200'
                                                                       : 'bg-red-100 text-red-800 border-red-200'
                                                             }
                                                             data-oid="tq0ites"
                                                         >
-                                                            {customer.status
+                                                            {customer.currentStatus
                                                                 .charAt(0)
                                                                 .toUpperCase() +
-                                                                customer.status.slice(1)}
+                                                                customer.currentStatus.slice(1)}
                                                         </Badge>
                                                         <div
                                                             className="text-xs text-gray-500"

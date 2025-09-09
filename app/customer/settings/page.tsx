@@ -1,12 +1,14 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { ResponsiveHeader } from '@/components/layout/ResponsiveHeader';
 import { CustomerMobileSideNavigation } from '@/components/mobile/CustomerMobileSideNavigation';
 import { useAuth } from '@/lib/contexts/AuthContext';
 
 export default function CustomerSettingsPage() {
-    const { user, updateProfile} = useAuth();
+    const { user, updateProfile, loadUser } = useAuth();
+    const router = useRouter();
     const [activeTab, setActiveTab] = useState('account');
     const [loading, setLoading] = useState(false);
     const [successMessage, setSuccessMessage] = useState('');
@@ -17,7 +19,9 @@ export default function CustomerSettingsPage() {
         email: '',
         phone: '',
         language: 'en',
-        address: '123 Medical Street, Ismailia, Egypt',
+        street: '',
+        city: '',
+        governorate: '',
     });
 
     const [privacy, setPrivacy] = useState({
@@ -29,10 +33,23 @@ export default function CustomerSettingsPage() {
     // Update account data when user context is available
     useEffect(() => {
         if (user) {
+            // Parse address if it exists
+            let street = '', city = '', governorate = '';
+            if (user.addresses && user.addresses.length > 0) {
+                const address = user.addresses[0];
+                street = address.street || '';
+                city = address.city || '';
+                governorate = address.governorate || address.state || '';
+            }
+
             setAccountData((prev) => ({
                 ...prev,
                 displayName: user.name || '',
                 email: user.email || '',
+                phone: user.phone || '',
+                street,
+                city,
+                governorate,
             }));
         }
     }, [user]);
@@ -51,17 +68,37 @@ export default function CustomerSettingsPage() {
         setSuccessMessage('');
 
         try {
-            const { success, error } = await updateProfile(accountData); // Call updateProfile
+            // Prepare data in the format expected by backend
+            const updateData = {
+                name: accountData.displayName,
+                phone: accountData.phone,
+                addresses: accountData.street || accountData.city || accountData.governorate ? [{
+                    street: accountData.street,
+                    city: accountData.city,
+                    governorate: accountData.governorate,
+                    country: 'Egypt'
+                }] : []
+            };
+
+            console.log('Sending update data:', updateData);
+
+            const { success, error } = await updateProfile(updateData);
             if (success) {
                 setSuccessMessage('Account settings saved successfully!');
+
+                // Hard reload the page to refresh with updated data
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+
                 setTimeout(() => setSuccessMessage(''), 3000);
             } else {
-                // Handle the error returned from the updateProfile function
                 console.error('Error saving account settings:', error);
-                // You can also set an error state here to show an error message to the user
+                alert(`Failed to save changes: ${error}`);
             }
         } catch (error) {
             console.error('An unexpected error occurred:', error);
+            alert('An unexpected error occurred while saving changes');
         } finally {
             setLoading(false);
         }
@@ -158,10 +195,10 @@ export default function CustomerSettingsPage() {
                                                     data-oid="wf2kgj0"
                                                 />
                                             </div>
-                                            <div data-oid="80io54j">
+                                            <div data-oid="qpsv48w">
                                                 <label
                                                     className="block text-sm font-medium text-gray-700 mb-2"
-                                                    data-oid="ydo1-jo"
+                                                    data-oid="767y7va"
                                                 >
                                                     Phone Number
                                                 </label>
@@ -207,24 +244,71 @@ export default function CustomerSettingsPage() {
                                             </div>
                                         </div>
                                         <div data-oid="s94oiqx">
-                                            <label
-                                                className="block text-sm font-medium text-gray-700 mb-2"
-                                                data-oid="mzpjt-_"
-                                            >
-                                                Address
-                                            </label>
-                                            <textarea
-                                                rows={3}
-                                                value={accountData.address}
-                                                onChange={(e) =>
-                                                    handleAccountDataChange(
-                                                        'address',
-                                                        e.target.value,
-                                                    )
-                                                }
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1F1F6F] focus:border-[#1F1F6F]"
-                                                data-oid="e-3qtxt"
-                                            />
+                                            <div className="grid grid-cols-1 gap-4">
+                                                <div>
+                                                    <label
+                                                        className="block text-sm font-medium text-gray-700 mb-2"
+                                                        data-oid="street-label-mobile"
+                                                    >
+                                                        Street Address
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        value={accountData.street}
+                                                        onChange={(e) =>
+                                                            handleAccountDataChange(
+                                                                'street',
+                                                                e.target.value,
+                                                            )
+                                                        }
+                                                        placeholder="Enter street address"
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1F1F6F] focus:border-[#1F1F6F]"
+                                                        data-oid="street-input-mobile"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label
+                                                        className="block text-sm font-medium text-gray-700 mb-2"
+                                                        data-oid="city-label-mobile"
+                                                    >
+                                                        City
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        value={accountData.city}
+                                                        onChange={(e) =>
+                                                            handleAccountDataChange(
+                                                                'city',
+                                                                e.target.value,
+                                                            )
+                                                        }
+                                                        placeholder="Enter city"
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1F1F6F] focus:border-[#1F1F6F]"
+                                                        data-oid="city-input-mobile"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label
+                                                        className="block text-sm font-medium text-gray-700 mb-2"
+                                                        data-oid="governorate-label-mobile"
+                                                    >
+                                                        Governorate
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        value={accountData.governorate}
+                                                        onChange={(e) =>
+                                                            handleAccountDataChange(
+                                                                'governorate',
+                                                                e.target.value,
+                                                            )
+                                                        }
+                                                        placeholder="Enter governorate"
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1F1F6F] focus:border-[#1F1F6F]"
+                                                        data-oid="governorate-input-mobile"
+                                                    />
+                                                </div>
+                                            </div>
                                         </div>
                                         <div className="flex justify-end" data-oid="d3os91e">
                                             <button
@@ -508,25 +592,70 @@ export default function CustomerSettingsPage() {
                                                 </select>
                                             </div>
                                         </div>
-                                        <div data-oid="6i622fp">
-                                            <label
-                                                className="block text-sm font-medium text-gray-700 mb-2"
-                                                data-oid="4s0.l6x"
-                                            >
-                                                Address
-                                            </label>
-                                            <textarea
-                                                rows={3}
-                                                value={accountData.address}
-                                                onChange={(e) =>
-                                                    handleAccountDataChange(
-                                                        'address',
-                                                        e.target.value,
-                                                    )
-                                                }
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1F1F6F] focus:border-[#1F1F6F]"
-                                                data-oid="c4.m-.3"
-                                            />
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                            <div data-oid="street-field-desktop">
+                                                <label
+                                                    className="block text-sm font-medium text-gray-700 mb-2"
+                                                    data-oid="street-label-desktop"
+                                                >
+                                                    Street Address
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={accountData.street}
+                                                    onChange={(e) =>
+                                                        handleAccountDataChange(
+                                                            'street',
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                    placeholder="Enter street address"
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1F1F6F] focus:border-[#1F1F6F]"
+                                                    data-oid="street-input-desktop"
+                                                />
+                                            </div>
+                                            <div data-oid="city-field-desktop">
+                                                <label
+                                                    className="block text-sm font-medium text-gray-700 mb-2"
+                                                    data-oid="city-label-desktop"
+                                                >
+                                                    City
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={accountData.city}
+                                                    onChange={(e) =>
+                                                        handleAccountDataChange(
+                                                            'city',
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                    placeholder="Enter city"
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1F1F6F] focus:border-[#1F1F6F]"
+                                                    data-oid="city-input-desktop"
+                                                />
+                                            </div>
+                                            <div data-oid="governorate-field-desktop">
+                                                <label
+                                                    className="block text-sm font-medium text-gray-700 mb-2"
+                                                    data-oid="governorate-label-desktop"
+                                                >
+                                                    Governorate
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={accountData.governorate}
+                                                    onChange={(e) =>
+                                                        handleAccountDataChange(
+                                                            'governorate',
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                    placeholder="Enter governorate"
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1F1F6F] focus:border-[#1F1F6F]"
+                                                    data-oid="governorate-input-desktop"
+                                                />
+                                            </div>
                                         </div>
                                         <div className="flex justify-end" data-oid="tzyrbbe">
                                             <button

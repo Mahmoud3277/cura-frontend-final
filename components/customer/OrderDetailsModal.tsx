@@ -39,6 +39,74 @@ export function OrderDetailsModal({
     const { locale } = useLanguage();
     const { t: tCustomer } = useTranslation(locale, 'customer');
     const [activeTab, setActiveTab] = useState<'details' | 'prescription' | 'tracking'>('details');
+
+    // Helper function to normalize image field (convert string to object if needed)
+    const normalizeImage = (image: any): string => {
+        if (typeof image === 'string') {
+            // Check if the string looks like a JSON object (starts with '{' and contains 'url')
+            if (image.trim().startsWith('{') && image.includes('url')) {
+                // First, try regex extraction as it's more reliable for malformed JSON
+                const urlMatch = image.match(/url:\s*['"]([^'"]+)['"]/);
+                if (urlMatch) {
+                    return urlMatch[1];
+                }
+
+                // If regex fails, try to fix and parse JSON
+                try {
+                    // Handle malformed JSON (single quotes, no quotes around keys, etc.)
+                    let jsonString = image.trim();
+
+                    // Replace single quotes with double quotes for property values
+                    jsonString = jsonString.replace(/'([^']*)'/g, '"$1"');
+
+                    // Add double quotes around property names
+                    jsonString = jsonString.replace(/(\w+):/g, '"$1":');
+
+                    // Handle ObjectId format
+                    jsonString = jsonString.replace(/"_id":\s*new ObjectId\("([^"]+)"\)/g, '"_id": "$1"');
+
+                    // Handle date format
+                    jsonString = jsonString.replace(/(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z)/g, '"$1"');
+
+                    console.log('Attempting to parse JSON:', jsonString);
+
+                    // Try to parse the corrected JSON string
+                    const parsedImage = JSON.parse(jsonString);
+                    if (parsedImage && parsedImage.url) {
+                        return parsedImage.url;
+                    }
+                } catch (error) {
+                    console.warn('Failed to parse image JSON string:', error, 'Original:', image);
+                }
+            }
+            // If it's not JSON or parsing failed, return as is (regular URL string)
+            return image;
+        } else if (typeof image === 'object' && image !== null) {
+            // If it's an object, try to extract the URL
+            if (image.url) {
+                return image.url;
+            } else if (image.src) {
+                return image.src;
+            } else if (Array.isArray(image) && image.length > 0) {
+                // If it's an array, take the first item
+                if (typeof image[0] === 'string') {
+                    return image[0];
+                } else if (image[0] && image[0].url) {
+                    return image[0].url;
+                }
+            }
+        }
+        // Fallback to empty string if we can't extract a URL
+        return '';
+    };
+
+    // Helper function to get image source with fallback
+    const getImageSource = (imageUrl: string | undefined) => {
+        if (!imageUrl || imageUrl.trim() === '') {
+            return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0yNCAyNEg0MFY0MEgyNFYyNFoiIGZpbGw9IiM5Q0EzQUYiLz4KPHBhdGggZD0iTTI4IDI4SDM2VjM2SDI4VjI4WiIgZmlsbD0iIzZCNzI4MCIvPgo8L3N2Zz4K';
+        }
+        return imageUrl;
+    };
     if (!isOpen || !order) return null;
     const handleBackdropClick = (e: React.MouseEvent) => {
         if (e.target === e.currentTarget) {
@@ -311,7 +379,7 @@ export function OrderDetailsModal({
                                                 data-oid="l6hcgf-"
                                             >
                                                 <img
-                                                    src={item.image}
+                                                    src={getImageSource(normalizeImage(item.image))}
                                                     alt={item.name}
                                                     className="w-full h-full object-cover"
                                                     onError={(e) => {

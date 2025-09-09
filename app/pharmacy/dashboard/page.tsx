@@ -23,10 +23,12 @@ export default function PharmacyDashboardPage() {
     const [selectedOrder, setSelectedOrder] = useState<PharmacyOrder | null>(null);
     const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
     const [productData, setproductData] = useState([]);
+    const [pharmacyId, setPharmacyId] = useState<string>('');
     // Mock data for demonstration
     const loadProducts = async()=>{
         try {  
             const productData = await filterProducts({})
+            console.log(productData)
             setproductData(productData)
         } catch (error) {
             console.log(error)
@@ -65,7 +67,9 @@ export default function PharmacyDashboardPage() {
             })
             const data = await user.json()
             console.log(data)
-            return data.data.pharmacy.id;
+            const pharmacyId = data.data.pharmacy.id;
+            setPharmacyId(pharmacyId); // Store pharmacy ID in state
+            return pharmacyId;
         }
     }
     useEffect(() => {
@@ -338,7 +342,7 @@ export default function PharmacyDashboardPage() {
                                                                             >
                                                                                 <img
                                                                                     src={
-                                                                                        item.image ||
+                                                                                        item.productId.images[itemIndex].url ||
                                                                                         `https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=50&h=50&fit=crop&crop=center`
                                                                                     }
                                                                                     alt={
@@ -775,7 +779,7 @@ export default function PharmacyDashboardPage() {
 
                     <TabsContent value="returns" data-oid="6jq3p9j">
                         <PharmacyReturnsManager
-                            pharmacyId="healthplus-ismailia"
+                            pharmacyId={pharmacyId}
                             data-oid="d5u4nq1"
                         />
                     </TabsContent>

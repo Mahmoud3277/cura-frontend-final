@@ -190,7 +190,7 @@ export function ReturnOrderModal({
         );
 
         const returnRequest: ReturnRequest = {
-            orderId: order._id,
+            orderId: order.id,
             customerId: getCustomerInfo(order).id,
             reason: returnReason,
             description: returnDescription,

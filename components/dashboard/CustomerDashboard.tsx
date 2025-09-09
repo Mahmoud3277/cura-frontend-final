@@ -203,7 +203,10 @@ export function CustomerDashboard() {
                             className="text-sm md:text-base text-gray-900 bg-gray-50 px-2 md:px-3 py-1.5 md:py-2 rounded-lg"
                             data-oid="gko_3q3"
                         >
-                            123 Medical Street, Ismailia, Egypt
+                            {user?.addresses && user.addresses.length > 0
+                                ? `${user.addresses[0].street || ''}, ${user.addresses[0].city || ''}, ${user.addresses[0].governorate || ''}, Egypt`.replace(/^,?\s*,?\s*,?\s*,?\s*/, '').replace(/,\s*,/g, ', ')
+                                : 'No address provided'
+                            }
                         </div>
                     </div>
                 </div>

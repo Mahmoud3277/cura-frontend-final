@@ -58,6 +58,77 @@ export default function CustomerOrdersPage() {
         return imageUrl;
     };
 
+    // Helper function to normalize image field (convert string to object if needed)
+    const normalizeImage = (image: any, itemIndex: number = 0): string => {
+        if (typeof image === 'string') {
+            // Check if the string looks like a JSON object (starts with '{' and contains 'url')
+            if (image.trim().startsWith('{') && image.includes('url')) {
+                // First, try regex extraction as it's more reliable for malformed JSON
+                const urlMatch = image.match(/url:\s*['"]([^'"]+)['"]/);
+                if (urlMatch) {
+                    return urlMatch[1];
+                }
+
+                // If regex fails, try to fix and parse JSON
+                try {
+                    // Handle malformed JSON (single quotes, no quotes around keys, etc.)
+                    let jsonString = image.trim();
+
+                    // Replace single quotes with double quotes for property values
+                    jsonString = jsonString.replace(/'([^']*)'/g, '"$1"');
+
+                    // Add double quotes around property names
+                    jsonString = jsonString.replace(/(\w+):/g, '"$1":');
+
+                    // Handle ObjectId format
+                    jsonString = jsonString.replace(/"_id":\s*new ObjectId\("([^"]+)"\)/g, '"_id": "$1"');
+
+                    // Handle date format
+                    jsonString = jsonString.replace(/(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z)/g, '"$1"');
+
+                    console.log('Attempting to parse JSON:', jsonString);
+
+                    // Try to parse the corrected JSON string
+                    const parsedImage = JSON.parse(jsonString);
+                    if (parsedImage && parsedImage.url) {
+                        return parsedImage.url;
+                    }
+                } catch (error) {
+                    console.warn('Failed to parse image JSON string:', error, 'Original:', image);
+                }
+            }
+            // If it's not JSON or parsing failed, return as is (regular URL string)
+            return image;
+        } else if (Array.isArray(image)) {
+            // If it's an array, get the image for the current item index
+            if (image.length > itemIndex) {
+                const itemImage = image[itemIndex];
+                // Recursively process the array item
+                return normalizeImage(itemImage, 0);
+            } else if (image.length > 0) {
+                // If we don't have enough items, use the first one
+                const itemImage = image[0];
+                return normalizeImage(itemImage, 0);
+            }
+        } else if (typeof image === 'object' && image !== null) {
+            // If it's an object, try to extract the URL
+            if (image.url) {
+                return image.url;
+            } else if (image.src) {
+                return image.src;
+            } else if (Array.isArray(image) && image.length > 0) {
+                // If it's an array, take the first item
+                if (typeof image[0] === 'string') {
+                    return image[0];
+                } else if (image[0] && image[0].url) {
+                    return image[0].url;
+                }
+            }
+        }
+        // Fallback to empty string if we can't extract a URL
+        return '';
+    };
+
     useEffect(() => {
         const fetchOrders = async () => {
             setLoading(true);
@@ -134,8 +205,31 @@ export default function CustomerOrdersPage() {
                 return 'bg-blue-100 text-blue-800';
             case 'cancelled':
                 return 'bg-red-100 text-red-800';
+            case 'return-requested':
+                return 'bg-yellow-100 text-yellow-800';
+            case 'approved':
+                return 'bg-blue-100 text-blue-800';
+            case 'refunded':
+                return 'bg-green-100 text-green-800';
+            case 'rejected':
+                return 'bg-red-100 text-red-800';
             default:
                 return 'bg-gray-100 text-gray-800';
+        }
+    };
+
+    const getStatusLabel = (status: string) => {
+        switch (status) {
+            case 'approved':
+                return 'approved-refunded';
+            case 'return-requested':
+                return 'return-requested';
+            case 'refunded':
+                return 'refunded';
+            case 'rejected':
+                return 'rejected';
+            default:
+                return status.charAt(0).toUpperCase() + status.slice(1).replace('-', ' ');
         }
     };
 
@@ -287,27 +381,28 @@ export default function CustomerOrdersPage() {
                                             className="flex flex-col items-end space-y-1"
                                             data-oid="mobile-order-status"
                                         >
-                                            <span
-                                                className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}
-                                                data-oid="mobile-status-badge"
-                                            >
-                                                {tCustomer(`orders.statuses.${order.status}`)}
-                                            </span>
-                                            {order.returnInfo && (
+                                            {/* Show return status if exists, otherwise show main status */}
+                                            {order.returnInfo ? (
                                                 <span
                                                     className={`px-2 py-1 rounded-full text-xs font-medium ${
                                                         order.returnInfo.status === 'completed'
                                                             ? 'bg-green-100 text-green-800'
                                                             : order.returnInfo.status === 'approved'
                                                               ? 'bg-blue-100 text-blue-800'
-                                                              : order.returnInfo.status ===
-                                                                  'rejected'
+                                                              : order.returnInfo.status === 'rejected'
                                                                 ? 'bg-red-100 text-red-800'
                                                                 : 'bg-yellow-100 text-yellow-800'
                                                     }`}
-                                                    data-oid="mobile-return-badge"
+                                                    data-oid="mobile-return-status-badge"
                                                 >
-                                                    Return: {order.returnInfo.status}
+                                                    Return: {getStatusLabel(order.returnInfo.status)}
+                                                </span>
+                                            ) : (
+                                                <span
+                                                    className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}
+                                                    data-oid="mobile-status-badge"
+                                                >
+                                                    {getStatusLabel(order.status)}
                                                 </span>
                                             )}
                                         </div>
@@ -343,7 +438,7 @@ export default function CustomerOrdersPage() {
                                                         data-oid="mobile-item-image"
                                                     >
                                                         <img
-                                                            src={getImageSource(item.image)}
+                                                            src={getImageSource(normalizeImage(item.image))}
                                                             alt={item.productName}
                                                             className="w-full h-full object-cover"
                                                             onError={(e) => {
@@ -600,38 +695,30 @@ export default function CustomerOrdersPage() {
                                                     className="flex items-center space-x-3"
                                                     data-oid="v1772wl"
                                                 >
-                                                    <span
-                                                        className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
-                                                            order.status,
-                                                        )}`}
-                                                        data-oid="-zqd_s2"
-                                                    >
-                                                        {tCustomer(
-                                                            `orders.statuses.${order.status}`,
-                                                        )}
-                                                    </span>
-                                                    {order.returnInfo && (
+                                                    {/* Show return status if exists, otherwise show main status */}
+                                                    {order.returnInfo ? (
                                                         <span
                                                             className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                                                order.returnInfo.status ===
-                                                                'completed'
+                                                                order.returnInfo.status === 'completed'
                                                                     ? 'bg-green-100 text-green-800'
-                                                                    : order.returnInfo.status ===
-                                                                        'approved'
+                                                                    : order.returnInfo.status === 'approved'
                                                                       ? 'bg-blue-100 text-blue-800'
-                                                                      : order.returnInfo.status ===
-                                                                          'rejected'
+                                                                      : order.returnInfo.status === 'rejected'
                                                                         ? 'bg-red-100 text-red-800'
                                                                         : 'bg-yellow-100 text-yellow-800'
                                                             }`}
-                                                            data-oid="r69ddog"
+                                                            data-oid="desktop-return-status-badge"
                                                         >
-                                                            {tCustomer(
-                                                                'orders.labels.returnStatus',
-                                                                {
-                                                                    status: order.returnInfo.status,
-                                                                },
-                                                            )}
+                                                            Return: {getStatusLabel(order.returnInfo.status)}
+                                                        </span>
+                                                    ) : (
+                                                        <span
+                                                            className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
+                                                                order.status,
+                                                            )}`}
+                                                            data-oid="-zqd_s2"
+                                                        >
+                                                            {getStatusLabel(order.status)}
                                                         </span>
                                                     )}
                                                 </div>
@@ -654,7 +741,7 @@ export default function CustomerOrdersPage() {
                                                                 data-oid="3.az:ee"
                                                             >
                                                                 <img
-                                                                    src={getImageSource(item.image)}
+                                                                    src={getImageSource(normalizeImage(item.image))}
                                                                     alt={item.productName}
                                                                     className="w-full h-full object-cover"
                                                                     onError={(e) => {

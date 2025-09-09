@@ -1,38 +1,127 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Wallet, ArrowUpRight, ArrowDownLeft, RefreshCw } from 'lucide-react';
+import { Wallet, ArrowUpRight, ArrowDownLeft, RefreshCw, Package, CreditCard } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { walletService } from '@/lib/services/walletService';
 import { WalletBalance, WalletTransaction } from '@/lib/types';
 import { ResponsiveHeader } from '@/components/layout/ResponsiveHeader';
 import { ClientOnly } from '@/components/common/ClientOnly';
 import { CustomerMobileSideNavigation } from '@/components/mobile/CustomerMobileSideNavigation';
+import { useAuth } from '@/lib/contexts/AuthContext';
+import Cookies from 'js-cookie';
+
+interface CustomerOrder {
+    _id: string;
+    orderNumber: string;
+    totalAmount: number;
+    status: string;
+    createdAt: string;
+    pharmacyName?: string;
+    items?: Array<{
+        productName: string;
+        quantity: number;
+    }>;
+}
 
 export default function CustomerWalletPage() {
     const [walletBalance, setWalletBalance] = useState<WalletBalance | null>(null);
     const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
+    const [orders, setOrders] = useState<CustomerOrder[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isOrdersLoading, setIsOrdersLoading] = useState(true);
+    const { user } = useAuth();
 
     useEffect(() => {
-        loadWalletData();
-    }, []);
+        if (user) {
+            loadWalletData();
+            loadCustomerOrders();
+        }
+    }, [user]);
 
     const loadWalletData = async () => {
         setIsLoading(true);
         try {
-            // Mock customer ID - in real app, get from auth context
-            const customerId = '1';
+            // Fetch user data from /auth/me endpoint
+            const token = Cookies.get('authToken');
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/auth/me`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token && { Authorization: `Bearer ${token}` }),
+                },
+            });
 
-            const balance = await walletService.getWalletBalance(customerId);
-            const transactionHistory = await walletService.getTransactionHistory(customerId);
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success) {
+                    const userData = data.data.user;
+                    const creditAmount = userData.credit || 0;
 
-            setWalletBalance(balance);
-            setTransactions(transactionHistory);
+                    // Set wallet balance from user credit
+                    const walletBalanceData: WalletBalance = {
+                        available: creditAmount,
+                        pending: 0, // Set to 0 since we don't use pending
+                        total: creditAmount,
+                        currency: 'EGP'
+                    };
+
+                    setWalletBalance(walletBalanceData);
+                } else {
+                    console.error('Failed to fetch user data:', data.error);
+                }
+            } else {
+                console.error('Failed to fetch user data:', response.statusText);
+            }
+
+            // Load transaction history using wallet service
+            const customerId = user?._id;
+            if (customerId) {
+                const transactionHistory = await walletService.getTransactionHistory(customerId);
+                setTransactions(transactionHistory);
+            }
         } catch (error) {
             console.error('Error loading wallet data:', error);
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const loadCustomerOrders = async () => {
+        setIsOrdersLoading(true);
+        try {
+            const token = Cookies.get('authToken');
+            const customerId = user?._id;
+
+            if (!customerId) {
+                console.error('No authenticated user found for orders');
+                return;
+            }
+
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/orders`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token && { Authorization: `Bearer ${token}` }),
+                },
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success) {
+                    console.log('All orders data:', data.data); // Debug: see all orders
+                    // Filter to show only confirmed, delivered and refunded orders
+                    const filteredOrders = data.data.filter((order: any) =>
+                        order.status === 'confirmed' || order.status === 'delivered' || order.status === 'refunded'
+                    );
+                    console.log('Filtered orders:', filteredOrders); // Debug: see filtered orders
+                    setOrders(filteredOrders);
+                }
+            } else {
+                console.error('Failed to fetch orders:', response.statusText);
+            }
+        } catch (error) {
+            console.error('Error loading customer orders:', error);
+        } finally {
+            setIsOrdersLoading(false);
         }
     };
 
@@ -86,10 +175,10 @@ export default function CustomerWalletPage() {
                 </div>
             </DashboardLayout>
         );
-    }
+    };
 
     return (
-        <>
+        <div>
             {/* Mobile Layout */}
             <div className="block md:hidden min-h-screen bg-gray-50" data-oid="mobile-layout">
                 <ResponsiveHeader data-oid="mobile-header" />
@@ -327,10 +416,134 @@ export default function CustomerWalletPage() {
                             )}
                         </div>
                     </div>
-                </div>
 
-                {/* Mobile Bottom Padding - reduced since no floating nav */}
-                <div className="h-4 md:hidden" data-oid="mobile-bottom-padding"></div>
+                    {/* Orders History - Mobile */}
+                    <div
+                        className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mt-6"
+                        data-oid="mobile-orders-history"
+                    >
+                        <div
+                            className="p-4 border-b border-gray-100"
+                            data-oid="mobile-orders-header"
+                        >
+                            <h3
+                                className="text-lg font-semibold text-gray-900"
+                                data-oid="mobile-orders-title"
+                            >
+                                Order History
+                            </h3>
+                            <p
+                                className="text-sm text-gray-600"
+                                data-oid="mobile-orders-subtitle"
+                            >
+                                Your confirmed and refunded orders
+                            </p>
+                        </div>
+
+                        <div
+                            className="divide-y divide-gray-100"
+                            data-oid="mobile-orders-list"
+                        >
+                            {isOrdersLoading ? (
+                                <div className="p-8 text-center" data-oid="mobile-loading-orders">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#1F1F6F] mx-auto mb-4"></div>
+                                    <p className="text-gray-600">Loading orders...</p>
+                                </div>
+                            ) : orders.length === 0 ? (
+                                <div className="p-8 text-center" data-oid="mobile-no-orders">
+                                    <Package
+                                        className="w-12 h-12 text-gray-300 mx-auto mb-4"
+                                        data-oid="mobile-no-orders-icon"
+                                    />
+                                    <h3
+                                        className="text-lg font-semibold text-gray-900 mb-2"
+                                        data-oid="mobile-no-orders-title"
+                                    >
+                                        No orders found
+                                    </h3>
+                                    <p
+                                        className="text-gray-600"
+                                        data-oid="mobile-no-orders-text"
+                                    >
+                                        Your confirmed and refunded orders will appear here
+                                    </p>
+                                </div>
+                            ) : (
+                                orders.map((order) => (
+                                    <div
+                                        key={order._id}
+                                        className="p-4 hover:bg-gray-50 transition-colors"
+                                        data-oid="mobile-order-item"
+                                    >
+                                        <div
+                                            className="flex items-center justify-between"
+                                            data-oid="mobile-order-content"
+                                        >
+                                            <div
+                                                className="flex items-center space-x-3"
+                                                data-oid="mobile-order-info"
+                                            >
+                                                <div
+                                                    className="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center"
+                                                    data-oid="mobile-order-icon-container"
+                                                >
+                                                    <Package className="w-4 h-4 text-[#1F1F6F]" />
+                                                </div>
+                                                <div data-oid="mobile-order-details">
+                                                    <h4
+                                                        className="font-medium text-gray-900 text-sm"
+                                                        data-oid="mobile-order-number"
+                                                    >
+                                                        {order.orderNumber}
+                                                    </h4>
+                                                    <div
+                                                        className="flex items-center space-x-2 text-xs text-gray-600"
+                                                        data-oid="mobile-order-meta"
+                                                    >
+                                                        <span data-oid="mobile-order-date">
+                                                            {formatDate(new Date(order.createdAt))}
+                                                        </span>
+                                                        {order.pharmacyName && (
+                                                            <>
+                                                                <span>•</span>
+                                                                <span data-oid="mobile-order-pharmacy">
+                                                                    {order.pharmacyName}
+                                                                </span>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div
+                                                className="text-right"
+                                                data-oid="mobile-order-amount"
+                                            >
+                                                <p
+                                                    className="font-semibold text-sm text-[#1F1F6F]"
+                                                    data-oid="mobile-order-amount-value"
+                                                >
+                                                    {order.subtotal} EGP
+                                                </p>
+                                                <span
+                                                    className={`inline-block px-2 py-1 rounded-full text-xs font-medium mt-1 ${
+                                                        order.status === 'confirmed'
+                                                            ? 'bg-green-100 text-green-800'
+                                                            : order.status === 'refunded'
+                                                            ? 'bg-blue-100 text-blue-800'
+                                                            : 'bg-gray-100 text-gray-800'
+                                                    }`}
+                                                    data-oid="mobile-order-status"
+                                                >
+                                                    {order.status === 'confirmed' ? 'Confirmed' : order.status === 'refunded' ? 'Refunded' : order.status}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {/* Desktop Layout */}
@@ -592,10 +805,143 @@ export default function CustomerWalletPage() {
                                     )}
                                 </div>
                             </div>
+
+                            {/* Orders History - Desktop */}
+                            <div
+                                className="bg-white rounded-xl shadow-sm border border-gray-100 mt-8"
+                                data-oid="desktop-orders-history"
+                            >
+                                <div
+                                    className="p-6 border-b border-gray-100"
+                                    data-oid="desktop-orders-header"
+                                >
+                                    <h3
+                                        className="text-lg font-semibold text-gray-900"
+                                        data-oid="desktop-orders-title"
+                                    >
+                                        Order History
+                                    </h3>
+                                    <p
+                                        className="text-sm text-gray-600"
+                                        data-oid="desktop-orders-subtitle"
+                                    >
+                                        Your confirmed and refunded orders
+                                    </p>
+                                </div>
+
+                                <div
+                                    className="divide-y divide-gray-100"
+                                    data-oid="desktop-orders-list"
+                                >
+                                    {isOrdersLoading ? (
+                                        <div
+                                            className="p-12 text-center"
+                                            data-oid="desktop-loading-orders"
+                                        >
+                                            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#1F1F6F] mx-auto mb-4"></div>
+                                            <p className="text-gray-600">Loading orders...</p>
+                                        </div>
+                                    ) : orders.length === 0 ? (
+                                        <div
+                                            className="p-12 text-center"
+                                            data-oid="desktop-no-orders"
+                                        >
+                                            <Package
+                                                className="w-16 h-16 text-gray-300 mx-auto mb-4"
+                                                data-oid="desktop-no-orders-icon"
+                                            />
+                                            <h3
+                                                className="text-lg font-semibold text-gray-900 mb-2"
+                                                data-oid="desktop-no-orders-title"
+                                            >
+                                                No orders found
+                                            </h3>
+                                            <p
+                                                className="text-gray-600"
+                                                data-oid="desktop-no-orders-text"
+                                            >
+                                                Your confirmed and refunded orders will appear here
+                                            </p>
+                                        </div>
+                                    ) : (
+                                        orders.map((order) => (
+                                            <div
+                                                key={order._id}
+                                                className="p-6 hover:bg-gray-50 transition-colors"
+                                                data-oid="desktop-order-item"
+                                            >
+                                                <div
+                                                    className="flex items-center justify-between"
+                                                    data-oid="desktop-order-content"
+                                                >
+                                                    <div
+                                                        className="flex items-center space-x-4"
+                                                        data-oid="desktop-order-info"
+                                                    >
+                                                        <div
+                                                            className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center"
+                                                            data-oid="desktop-order-icon-container"
+                                                        >
+                                                            <Package className="w-5 h-5 text-[#1F1F6F]" />
+                                                        </div>
+                                                        <div data-oid="desktop-order-details">
+                                                            <h4
+                                                                className="font-medium text-gray-900"
+                                                                data-oid="desktop-order-number"
+                                                            >
+                                                                {order.orderNumber}
+                                                            </h4>
+                                                            <div
+                                                                className="flex items-center space-x-2 text-sm text-gray-600"
+                                                                data-oid="desktop-order-meta"
+                                                            >
+                                                                <span data-oid="desktop-order-date">
+                                                                    {formatDate(new Date(order.createdAt))}
+                                                                </span>
+                                                                {order.pharmacyName && (
+                                                                    <>
+                                                                        <span>•</span>
+                                                                        <span data-oid="desktop-order-pharmacy">
+                                                                            {order.pharmacyName}
+                                                                        </span>
+                                                                    </>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div
+                                                        className="text-right"
+                                                        data-oid="desktop-order-amount"
+                                                    >
+                                                        <p
+                                                            className="font-semibold text-[#1F1F6F]"
+                                                            data-oid="desktop-order-amount-value"
+                                                        >
+                                                            {order.totalAmount.toFixed(2)} EGP
+                                                        </p>
+                                                        <span
+                                                            className={`inline-block px-2 py-1 rounded-full text-xs font-medium mt-1 ${
+                                                                order.status === 'confirmed'
+                                                                    ? 'bg-green-100 text-green-800'
+                                                                    : order.status === 'refunded'
+                                                                    ? 'bg-blue-100 text-blue-800'
+                                                                    : 'bg-gray-100 text-gray-800'
+                                                            }`}
+                                                            data-oid="desktop-order-status"
+                                                        >
+                                                            {order.status === 'confirmed' ? 'Confirmed' : order.status === 'refunded' ? 'Refunded' : order.status}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </DashboardLayout>
             </div>
-        </>
+        </div>
     );
 }
