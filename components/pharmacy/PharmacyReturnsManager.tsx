@@ -77,7 +77,7 @@ export function PharmacyReturnsManager({ pharmacyId }: PharmacyReturnsManagerPro
             }
 
             // Make API call to fetch returned orders
-            const response = await fetch(`http://localhost:5000/api/pharmacies/${pharmacyId}/returned-orders?${params}`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/pharmacies/${pharmacyId}/returned-orders?${params}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -123,7 +123,7 @@ export function PharmacyReturnsManager({ pharmacyId }: PharmacyReturnsManagerPro
                 // await orderReturnService.processRefund(returnId, 'approve');
             } else if (newStatus === 'refunded') {
                 // Process refund for approved returns
-                const refundResponse = await fetch(`http://localhost:5000/api/orders/return/${returnId}/refund`, {
+                const refundResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/orders/return/${returnId}/refund`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',

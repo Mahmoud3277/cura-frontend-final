@@ -6,178 +6,148 @@ import { orderReturnService } from '@/lib/services/orderReturnService';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Check, X, Eye } from 'lucide-react';
+import Cookies from 'js-cookie';
 
 interface VendorReturnsManagerProps {
     vendorId: string;
 }
 
-// Enhanced return interface with product details
+// Enhanced return interface matching the actual API response
 interface EnhancedReturn {
-    id: string;
-    orderId: string;
-    customerId: string;
-    customerPhone: string;
-    productName: string;
-    productImage: string;
-    manufacturer: string;
-    quantity: number;
-    reason: string;
+    _id: string;
+    returnId: string;
     status: string;
     refundAmount: number;
     requestedAt: string;
-    processedAt?: string | null;
-    notes?: string;
+    orderId: {
+        id: string;
+        orderNumber: string;
+        customerPhone: string;
+        customerName: string;
+        items: Array<{
+            productName: string;
+            image: string;
+            manufacturer: string;
+            quantity: number;
+            category: string;
+        }>;
+        returnInfo?: {
+            id: string;
+            reason: string;
+            notes?: string;
+            processedAt?: string;
+        };
+    };
 }
 
 export function VendorReturnsManager({ vendorId }: VendorReturnsManagerProps) {
     const [returns, setReturns] = useState<EnhancedReturn[]>([]);
     const [loading, setLoading] = useState(true);
     const [processingId, setProcessingId] = useState<string | null>(null);
+    const [summary, setSummary] = useState({
+        total: 0,
+        pending: 0,
+        approved: 0,
+        rejected: 0,
+        totalRefundAmount: 0,
+    });
+    const [pagination, setPagination] = useState({
+        current: 1,
+        total: 1,
+        count: 0,
+        totalRecords: 0,
+    });
+    const [statusFilter, setStatusFilter] = useState<string>('');
 
     useEffect(() => {
         loadReturns();
-    }, []);
+    }, [statusFilter]);
 
     const loadReturns = async () => {
         setLoading(true);
         try {
-            // Mock enhanced returns data with product details
-            const mockReturns: EnhancedReturn[] = [
-                {
-                    id: 'return-001',
-                    orderId: 'ORD-2024-001',
-                    customerId: '1',
-                    customerPhone: '+20 11 690 7244',
-                    productName: 'Wireless Headphones',
-                    productImage:
-                        'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop&crop=center',
-                    manufacturer: 'Sony',
-                    quantity: 1,
-                    reason: 'Product damaged/defective',
-                    status: 'return-requested',
-                    refundAmount: 125.5,
-                    requestedAt: '2024-01-07T10:30:00Z',
-                    processedAt: null,
-                    notes: 'Customer reported that the headphones arrived with a cracked headband',
-                },
-                {
-                    id: 'return-002',
-                    orderId: 'ORD-2024-002',
-                    customerId: '2',
-                    customerPhone: '+20 12 731 7479',
-                    productName: 'Phone Case',
-                    productImage:
-                        'https://images.unsplash.com/photo-1601593346740-925612772716?w=400&h=400&fit=crop&crop=center',
-                    manufacturer: 'Apple',
-                    quantity: 2,
-                    reason: 'Wrong item received',
-                    status: 'approved',
-                    refundAmount: 67.25,
-                    requestedAt: '2024-01-06T14:20:00Z',
-                    processedAt: '2024-01-07T09:15:00Z',
-                    notes: 'Customer ordered iPhone 14 case but received iPhone 13 case',
-                },
-                {
-                    id: 'return-003',
-                    orderId: 'ORD-2024-003',
-                    customerId: '3',
-                    customerPhone: '+20 10 555 1234',
-                    productName: 'Bluetooth Speaker',
-                    productImage:
-                        'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400&h=400&fit=crop&crop=center',
-                    manufacturer: 'JBL',
-                    quantity: 1,
-                    reason: 'No longer needed',
-                    status: 'completed',
-                    refundAmount: 89.75,
-                    requestedAt: '2024-01-05T16:45:00Z',
-                    processedAt: '2024-01-07T11:30:00Z',
-                    notes: 'Customer changed mind about purchase',
-                },
-                {
-                    id: 'return-004',
-                    orderId: 'ORD-2024-004',
-                    customerId: '4',
-                    customerPhone: '+20 11 777 8888',
-                    productName: 'Gaming Mouse',
-                    productImage:
-                        'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=400&h=400&fit=crop&crop=center',
-                    manufacturer: 'Logitech',
-                    quantity: 3,
-                    reason: 'Product expired',
-                    status: 'rejected',
-                    refundAmount: 0.0,
-                    requestedAt: '2024-01-04T12:00:00Z',
-                    processedAt: '2024-01-05T10:20:00Z',
-                    notes: 'Return request submitted after 30-day return window',
-                },
-                {
-                    id: 'return-005',
-                    orderId: 'ORD-2024-005',
-                    customerId: '5',
-                    customerPhone: '+20 15 999 0000',
-                    productName: 'Gaming Laptop',
-                    productImage:
-                        'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&h=400&fit=crop&crop=center',
-                    manufacturer: 'Dell',
-                    quantity: 1,
-                    reason: 'Changed mind',
-                    status: 'refunded',
-                    refundAmount: 1500.0,
-                    requestedAt: '2024-01-03T09:00:00Z',
-                    processedAt: '2024-01-04T14:30:00Z',
-                    notes: 'Customer refunded via wallet credit',
-                },
-            ];
+            // Build query parameters
+            const params = new URLSearchParams({
+                page: '1',
+                limit: '10', // Default limit
+            });
 
-            setReturns(mockReturns);
+            if (statusFilter) {
+                params.append('status', statusFilter);
+            }
+
+            // Make API call to fetch returned orders for vendor
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/vendors/${vendorId}/returned-orders?${params}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    // Use cookies for token like the rest of the app
+                    ...(Cookies.get('authToken') && { Authorization: `Bearer ${Cookies.get('authToken')}` }),
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to fetch returned orders: ${response.status}`);
+            }
+
+            const apiResponse = await response.json();
+            console.log('Vendor returns API response:', apiResponse);
+            // Update summary and pagination state
+            setSummary(apiResponse.data.summary);
+            setPagination(apiResponse.data.pagination);
+
+            // Just use the API response data directly
+            setReturns(apiResponse.data.returnedOrders);
         } catch (error) {
             console.error('Error loading returns:', error);
+            // Set empty array on error to prevent crashes
+            setReturns([]);
         } finally {
             setLoading(false);
         }
     };
 
-    const handleApproveReturn = async (returnId: string) => {
+    const handleUpdateStatus = async (returnId: string, newStatus: string) => {
         setProcessingId(returnId);
         try {
-            // Simulate API call
-            await new Promise((resolve) => setTimeout(resolve, 1000));
+            console.log('New status for vendor return:', newStatus);
+            // Use the order return service to update status
+            if (newStatus === 'approved') {
+                console.log('Approving return:', returnId);
+                await orderReturnService.processReturn(returnId, 'approved');
+            } else if (newStatus === 'rejected') {
+                await orderReturnService.processReturn(returnId, 'reject');
+            } else if (newStatus === 'refund-approved') {
+                // TODO: Implement refund approval - for now using processReturn
+                console.log('Refund approval for:', returnId);
+                // await orderReturnService.processRefund(returnId, 'approve');
+            } else if (newStatus === 'refunded') {
+                // Process refund for approved returns
+                const refundResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/orders/return/${returnId}/refund`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${Cookies.get('authToken')}`,
+                    },
+                    body: JSON.stringify({
+                        refundNotes: 'Refund processed from vendor dashboard'
+                    }),
+                });
 
-            setReturns((prev) =>
-                prev.map((ret) =>
-                    ret.id === returnId
-                        ? { ...ret, status: 'approved', processedAt: new Date().toISOString() }
-                        : ret,
-                ),
-            );
+                if (!refundResponse.ok) {
+                    const errorData = await refundResponse.json();
+                    throw new Error(errorData.error || 'Failed to process refund');
+                }
+
+                const refundData = await refundResponse.json();
+                console.log('Refund processed successfully:', refundData);
+            }
+
+            // Refresh data after status update
+            loadReturns();
         } catch (error) {
-            console.error('Error approving return:', error);
-        } finally {
-            setProcessingId(null);
-        }
-    };
-
-    const handleRejectReturn = async (returnId: string) => {
-        setProcessingId(returnId);
-        try {
-            // Simulate API call
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-
-            setReturns((prev) =>
-                prev.map((ret) =>
-                    ret.id === returnId
-                        ? {
-                              ...ret,
-                              status: 'rejected',
-                              processedAt: new Date().toISOString(),
-                              refundAmount: 0,
-                          }
-                        : ret,
-                ),
-            );
-        } catch (error) {
-            console.error('Error rejecting return:', error);
+            console.error('Error updating return status:', error);
+            alert(`Failed to update return status to ${newStatus}. Please try again.`);
         } finally {
             setProcessingId(null);
         }
@@ -263,48 +233,53 @@ export function VendorReturnsManager({ vendorId }: VendorReturnsManagerProps) {
                         </p>
                     </div>
                 ) : (
-                    returns.map((returnItem) => (
-                        <div
-                            key={returnItem.id}
-                            className="bg-white border border-gray-200 rounded-lg hover:shadow-md transition-all duration-200 overflow-hidden"
-                            data-oid="enhanced-return-card"
-                        >
-                            <div className="p-6" data-oid="return-card-content">
-                                {/* Header with Order ID and Status */}
-                                <div
-                                    className="flex items-center justify-between mb-4"
-                                    data-oid="return-header"
-                                >
+                    returns.map((returnItem) => {
+                        // Get the first item from the order for display
+                        const firstItem = returnItem.orderId.items[0];
+                        const productImage = getProductImage(firstItem.image);
+
+                        return (
+                            <div
+                                key={returnItem._id}
+                                className="bg-white border border-gray-200 rounded-lg hover:shadow-md transition-all duration-200 overflow-hidden"
+                                data-oid="enhanced-return-card"
+                            >
+                                <div className="p-6" data-oid="return-card-content">
+                                    {/* Header with Order ID and Status */}
                                     <div
-                                        className="flex items-center space-x-3"
-                                        data-oid="return-order-info"
+                                        className="flex items-center justify-between mb-4"
+                                        data-oid="return-header"
                                     >
                                         <div
-                                            className="w-10 h-10 bg-cura-primary rounded-lg flex items-center justify-center"
-                                            data-oid="return-order-icon"
+                                            className="flex items-center space-x-3"
+                                            data-oid="return-order-info"
                                         >
-                                            <span
-                                                className="text-white font-bold text-sm"
-                                                data-oid="return-order-number"
+                                            <div
+                                                className="w-10 h-10 bg-cura-primary rounded-lg flex items-center justify-center"
+                                                data-oid="return-order-icon"
                                             >
-                                                {returnItem.orderId.split('-')[2]}
-                                            </span>
+                                                <span
+                                                    className="text-white font-bold text-sm"
+                                                    data-oid="return-order-number"
+                                                >
+                                                    {returnItem.orderId.orderNumber?.split('-')[2] || 'ORD'}
+                                                </span>
+                                            </div>
+                                            <div data-oid="return-order-details">
+                                                <h4
+                                                    className="font-semibold text-gray-900"
+                                                    data-oid="return-order-id"
+                                                >
+                                                    {returnItem.orderId.orderNumber || returnItem.orderId.id}
+                                                </h4>
+                                                <p
+                                                    className="text-sm text-cura-light"
+                                                    data-oid="return-customer-phone"
+                                                >
+                                                    {returnItem.orderId.customerPhone} • {returnItem.orderId.customerName}
+                                                </p>
+                                            </div>
                                         </div>
-                                        <div data-oid="return-order-details">
-                                            <h4
-                                                className="font-semibold text-gray-900"
-                                                data-oid="return-order-id"
-                                            >
-                                                {returnItem.orderId}
-                                            </h4>
-                                            <p
-                                                className="text-sm text-cura-light"
-                                                data-oid="return-customer-phone"
-                                            >
-                                                {returnItem.customerPhone}
-                                            </p>
-                                        </div>
-                                    </div>
                                     <div
                                         className="flex items-center space-x-3"
                                         data-oid="return-status-amount"
@@ -330,7 +305,7 @@ export function VendorReturnsManager({ vendorId }: VendorReturnsManagerProps) {
                                         className="font-medium text-gray-900 mb-3"
                                         data-oid="return-product-title"
                                     >
-                                        Returned Product
+                                        Returned Product{returnItem.orderId.items.length > 1 ? 's' : ''}
                                     </h5>
                                     <div
                                         className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg"
@@ -341,10 +316,14 @@ export function VendorReturnsManager({ vendorId }: VendorReturnsManagerProps) {
                                             data-oid="return-product-image-container"
                                         >
                                             <img
-                                                src={returnItem.productImage}
-                                                alt={returnItem.productName}
+                                                src={productImage}
+                                                alt={firstItem.productName}
                                                 className="w-full h-full object-cover"
                                                 data-oid="return-product-image"
+                                                onError={(e) => {
+                                                    const target = e.target as HTMLImageElement;
+                                                    target.src = '/placeholder-product.png';
+                                                }}
                                             />
                                         </div>
                                         <div className="flex-1" data-oid="return-product-details">
@@ -357,13 +336,18 @@ export function VendorReturnsManager({ vendorId }: VendorReturnsManagerProps) {
                                                         className="font-medium text-gray-900"
                                                         data-oid="return-product-name"
                                                     >
-                                                        {returnItem.productName}
+                                                        {firstItem.productName}
+                                                        {returnItem.orderId.items.length > 1 && (
+                                                            <span className="text-sm text-cura-light ml-2">
+                                                                +{returnItem.orderId.items.length - 1} more
+                                                            </span>
+                                                        )}
                                                     </h6>
                                                     <p
                                                         className="text-sm text-cura-light"
                                                         data-oid="return-product-manufacturer"
                                                     >
-                                                        {returnItem.manufacturer}
+                                                        {firstItem.manufacturer}
                                                     </p>
                                                 </div>
                                                 <div
@@ -374,7 +358,7 @@ export function VendorReturnsManager({ vendorId }: VendorReturnsManagerProps) {
                                                         className="text-sm font-medium text-cura-secondary"
                                                         data-oid="return-quantity-label"
                                                     >
-                                                        Qty: {returnItem.quantity || 1}
+                                                        {formatQuantity(firstItem.quantity, firstItem.category)}
                                                     </p>
                                                 </div>
                                             </div>
@@ -383,47 +367,49 @@ export function VendorReturnsManager({ vendorId }: VendorReturnsManagerProps) {
                                 </div>
 
                                 {/* Return Reason */}
-                                <div
-                                    className="mb-4 p-4 bg-cura-primary/5 rounded-lg"
-                                    data-oid="return-reason-section"
-                                >
+                                {returnItem.orderId.returnInfo && (
                                     <div
-                                        className="flex items-start space-x-2"
-                                        data-oid="return-reason-content"
+                                        className="mb-4 p-4 bg-cura-primary/5 rounded-lg"
+                                        data-oid="return-reason-section"
                                     >
-                                        <svg
-                                            className="w-5 h-5 text-cura-primary mt-0.5"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            viewBox="0 0 24 24"
-                                            data-oid="return-reason-icon"
+                                        <div
+                                            className="flex items-start space-x-2"
+                                            data-oid="return-reason-content"
                                         >
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                                                data-oid="return-reason-path"
-                                            />
-                                        </svg>
-                                        <div className="flex-1" data-oid="return-reason-text">
-                                            <h6
-                                                className="font-medium text-cura-secondary mb-1"
-                                                data-oid="return-reason-title"
+                                            <svg
+                                                className="w-5 h-5 text-cura-primary mt-0.5"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                                data-oid="return-reason-icon"
                                             >
-                                                Return Reason: {returnItem.reason}
-                                            </h6>
-                                            {returnItem.notes && (
-                                                <p
-                                                    className="text-sm text-cura-accent"
-                                                    data-oid="return-reason-notes"
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth={2}
+                                                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                                    data-oid="return-reason-path"
+                                                />
+                                            </svg>
+                                            <div className="flex-1" data-oid="return-reason-text">
+                                                <h6
+                                                    className="font-medium text-cura-secondary mb-1"
+                                                    data-oid="return-reason-title"
                                                 >
-                                                    {returnItem.notes}
-                                                </p>
-                                            )}
+                                                    Return Reason: {returnItem.orderId.returnInfo.reason}
+                                                </h6>
+                                                {returnItem.orderId.returnInfo.notes && (
+                                                    <p
+                                                        className="text-sm text-cura-accent"
+                                                        data-oid="return-reason-notes"
+                                                    >
+                                                        {returnItem.orderId.returnInfo.notes}
+                                                    </p>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
+                                )}
 
                                 {/* Footer with Actions */}
                                 <div
@@ -465,16 +451,16 @@ export function VendorReturnsManager({ vendorId }: VendorReturnsManagerProps) {
                                         className="flex items-center space-x-2"
                                         data-oid="return-actions"
                                     >
-                                        {returnItem.status === 'requested' && (
+                                        {returnItem.status === 'return-requested' && (
                                             <>
                                                 <Button
                                                     variant="outline"
                                                     size="sm"
                                                     className="text-red-600 border-red-200 hover:bg-red-50"
                                                     onClick={() =>
-                                                        handleRejectReturn(returnItem.id)
+                                                        handleUpdateStatus(returnItem.returnId, 'rejected')
                                                     }
-                                                    disabled={processingId === returnItem.id}
+                                                    disabled={processingId === returnItem.returnId}
                                                     data-oid="reject-return-btn"
                                                 >
                                                     <X
@@ -487,9 +473,9 @@ export function VendorReturnsManager({ vendorId }: VendorReturnsManagerProps) {
                                                     size="sm"
                                                     className="bg-cura-primary text-white hover:bg-cura-secondary"
                                                     onClick={() =>
-                                                        handleApproveReturn(returnItem.id)
+                                                        handleUpdateStatus(returnItem.returnId, 'approved')
                                                     }
-                                                    disabled={processingId === returnItem.id}
+                                                    disabled={processingId === returnItem.returnId}
                                                     data-oid="approve-return-btn"
                                                 >
                                                     <Check
@@ -497,22 +483,37 @@ export function VendorReturnsManager({ vendorId }: VendorReturnsManagerProps) {
                                                         data-oid="pmmcten"
                                                     />
 
-                                                    {processingId === returnItem.id
+                                                    {processingId === returnItem.returnId
                                                         ? 'Processing...'
-                                                        : 'Approve'}
+                                                        : 'Approve Return'}
                                                 </Button>
                                             </>
                                         )}
-                                        {returnItem.status !== 'requested' && (
+                                        {returnItem.status === 'approved' && (
+                                            <Button
+                                                size="sm"
+                                                className="bg-green-600 text-white hover:bg-green-700"
+                                                onClick={() =>
+                                                    handleUpdateStatus(returnItem.returnId, 'refunded')
+                                                }
+                                                disabled={processingId === returnItem.returnId}
+                                                data-oid="complete-refund-btn"
+                                            >
+                                                {processingId === returnItem.returnId
+                                                    ? 'Processing...'
+                                                    : 'Complete Refund'}
+                                            </Button>
+                                        )}
+                                        {returnItem.status !== 'return-requested' && returnItem.status !== 'approved' && (
                                             <div
                                                 className="text-sm text-cura-light"
                                                 data-oid="return-processed-info"
                                             >
-                                                {returnItem.processedAt && (
+                                                {returnItem.orderId.returnInfo?.processedAt && (
                                                     <>
                                                         Processed on{' '}
                                                         {new Date(
-                                                            returnItem.processedAt,
+                                                            returnItem.orderId.returnInfo.processedAt,
                                                         ).toLocaleDateString('en-GB')}
                                                     </>
                                                 )}
