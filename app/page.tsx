@@ -331,7 +331,7 @@ const Page = memo(function Page() {
     // Product card component for reusability from client.tsx.txt
     const ProductCard = useCallback(({ product, size = 'default' }) => {
         const cardWidth = size === 'mobile' ? 'w-40' : 'w-64';
-        const cardHeight = size === 'mobile' ? 'h-52' : 'h-80';
+        const cardHeight = size === 'mobile' ? 'h-60' : 'h-84';
         const imageHeight = size === 'mobile' ? 'h-28' : 'h-48';
         return (
             <Link key={product._id} href={`/product/${product._id}`} className={`group flex-shrink-0 ${cardWidth}`}>
@@ -366,7 +366,7 @@ const Page = memo(function Page() {
                     </div>
                     <div className="p-3 flex flex-col flex-grow">
                         <h3 className="font-semibold text-sm truncate">{product.name}</h3>
-                        <p className="text-gray-500 text-xs mt-1 line-clamp-2 min-h-[32px]">{product.description}</p>
+                        <p className="text-gray-500 text-xs mt-1 line-clamp-2 min-h-[20px]">{product.description}</p>
                         <div className="mt-2 flex-grow flex flex-col justify-end">
                             <div className="flex items-center space-x-2">
                                 <span className="text-cura-primary font-bold text-base">
@@ -859,76 +859,75 @@ const Page = memo(function Page() {
                                     <div className="flex space-x-4 pb-2">
                                         {categorizedProducts.painRelievers.map((product: any) => (
                                             <Link
-                                            key={product._id}
-                                            href={`/product/${product._id}`}
-                                            className="group flex-shrink-0 w-40"
-                                            data-oid="skin-care-item"
-                                        >
-                                            <div
-                                                className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden group-hover:shadow-lg transition-all duration-200 h-52 flex flex-col"
-                                                data-oid="skin-care-card"
+                                                key={product._id}
+                                                href={`/product/${product._id}`}
+                                                className="group flex-shrink-0 w-40"
+                                                data-oid="supplement-item"
                                             >
                                                 <div
-                                                    className={`h-28 ${getProductColor(product)} flex items-center justify-center relative flex-shrink-0`}
-                                                    data-oid="skin-care-image"
+                                                    className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden group-hover:shadow-lg transition-all duration-200 h-60 flex flex-col"
+                                                    data-oid="supplement-card"
                                                 >
-                                                    {(() => {
-                                                        const imageResult = getProductImage(product);
-                                                        const isImageUrl = typeof imageResult === 'string' && (
-                                                            imageResult.startsWith('/') || 
-                                                            imageResult.startsWith('http://') || 
-                                                            imageResult.startsWith('https://')
-                                                        );
-                                                        
-                                                        return isImageUrl ? (
-                                                            <img src={imageResult} alt={product.name} className="w-full h-full object-contain" />
-                                                        ) : (
-                                                            <span className="text-3xl opacity-80">
-                                                                {imageResult}
-                                                            </span>
-                                                        );
-                                                    })()}
-                                                    {product.originalPrice && (
-                                                        <div
-                                                            className="absolute top-2 left-2 bg-cura-primary text-white text-xs font-bold px-2 py-1 rounded-md shadow-sm"
-                                                            data-oid="skin-care-discount"
-                                                        >
-                                                            SALE
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <div
-                                                    className="p-3 flex flex-col flex-grow"
-                                                    data-oid="skin-care-content"
-                                                >
-                                                    <h3
-                                                        className="font-semibold text-gray-900 text-sm mb-2 line-clamp-2 h-10 flex-shrink-0"
-                                                        data-oid="skin-care-name"
-                                                    >
-                                                        {product.name}
-                                                    </h3>
                                                     <div
-                                                        className="flex items-center space-x-2 mt-auto"
-                                                        data-oid="skin-care-price"
+                                                        className={`h-28 ${getProductColor(product)} flex items-center justify-center relative flex-shrink-0`}
+                                                        data-oid="supplement-image"
                                                     >
-                                                        <span
-                                                            className="text-base font-bold text-cura-primary"
-                                                            data-oid="kusw13d"
-                                                        >
-                                                            {formatPrice(product?.priceReference || product.overallAveragePrice)}
-                                                        </span>
-                                                        {product.originalPrice && (
-                                                            <span
-                                                                className="text-sm text-gray-500 line-through"
-                                                                data-oid="o06piw3"
+                                                        {(() => {
+                                                            const imageResult = getProductImage(product);
+                                                            const isImageUrl = typeof imageResult === 'string' && (
+                                                                imageResult.startsWith('/') || 
+                                                                imageResult.startsWith('http://') || 
+                                                                imageResult.startsWith('https://')
+                                                            );
+                                                            
+                                                            return isImageUrl ? (
+                                                                <img src={imageResult} alt={product.name} className="w-full h-full object-contain" />
+                                                            ) : (
+                                                                <span
+                                                                    className="text-3xl opacity-80"
+                                                                    data-oid="supplement-emoji"
+                                                                >
+                                                                    {imageResult}
+                                                                </span>
+                                                            );
+                                                        })()}
+                                                        {product.originalPrice && product.originalPrice > (product?.priceReference || product.overallAveragePrice) && (
+                                                            <div
+                                                                className="absolute top-2 left-2 bg-cura-primary text-white text-xs font-bold px-2 py-1 rounded-md shadow-sm"
+                                                                data-oid="supplement-discount"
                                                             >
-                                                                {formatPrice(product.originalPrice)}
-                                                            </span>
+                                                                SALE
+                                                            </div>
                                                         )}
                                                     </div>
+                                                    <div
+                                                        className="p-3 flex flex-col flex-grow"
+                                                        data-oid="supplement-content"
+                                                    >
+                                                        <h3
+                                                            className="font-semibold text-gray-900 text-sm mb-2 line-clamp-2 h-8 flex-shrink-0"
+                                                            data-oid="supplement-name"
+                                                        >
+                                                            {product.name}
+                                                        </h3>
+                                                        <div className="mt-2 flex-grow flex flex-col justify-end">
+                                                            <div className="flex items-center space-x-2">
+                                                                <span className="text-cura-primary font-bold text-base">
+                                                                    {formatPrice(product?.priceReference || product.overallAveragePrice)}
+                                                                </span>
+                                                                {product.originalPrice && product.originalPrice > (product?.priceReference || product.overallAveragePrice) && (
+                                                                    <span className="text-gray-400 text-xs line-through">
+                                                                        {formatPrice(product.originalPrice)}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <div className="mt-2">
+                                                                {renderCartButton(product)}
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </Link>
+                                            </Link>
                                         ))}
                                     </div>
                                 </div>
@@ -958,76 +957,75 @@ const Page = memo(function Page() {
                                     <div className="flex space-x-4 pb-2">
                                         {categorizedProducts.supplements.map((product: any) => (
                                             <Link
-                                            key={product._id}
-                                            href={`/product/${product._id}`}
-                                            className="group flex-shrink-0 w-40"
-                                            data-oid="skin-care-item"
-                                        >
-                                            <div
-                                                className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden group-hover:shadow-lg transition-all duration-200 h-52 flex flex-col"
-                                                data-oid="skin-care-card"
+                                                key={product._id}
+                                                href={`/product/${product._id}`}
+                                                className="group flex-shrink-0 w-40"
+                                                data-oid="supplement-item"
                                             >
                                                 <div
-                                                    className={`h-28 ${getProductColor(product)} flex items-center justify-center relative flex-shrink-0`}
-                                                    data-oid="skin-care-image"
+                                                    className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden group-hover:shadow-lg transition-all duration-200 h-60 flex flex-col"
+                                                    data-oid="supplement-card"
                                                 >
-                                                    {(() => {
-                                                        const imageResult = getProductImage(product);
-                                                        const isImageUrl = typeof imageResult === 'string' && (
-                                                            imageResult.startsWith('/') || 
-                                                            imageResult.startsWith('http://') || 
-                                                            imageResult.startsWith('https://')
-                                                        );
-                                                        
-                                                        return isImageUrl ? (
-                                                            <img src={imageResult} alt={product.name} className="w-full h-full object-contain" />
-                                                        ) : (
-                                                            <span className="text-3xl opacity-80">
-                                                                {imageResult}
-                                                            </span>
-                                                        );
-                                                    })()}
-                                                    {product.originalPrice && (
-                                                        <div
-                                                            className="absolute top-2 left-2 bg-cura-primary text-white text-xs font-bold px-2 py-1 rounded-md shadow-sm"
-                                                            data-oid="skin-care-discount"
-                                                        >
-                                                            SALE
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <div
-                                                    className="p-3 flex flex-col flex-grow"
-                                                    data-oid="skin-care-content"
-                                                >
-                                                    <h3
-                                                        className="font-semibold text-gray-900 text-sm mb-2 line-clamp-2 h-10 flex-shrink-0"
-                                                        data-oid="skin-care-name"
-                                                    >
-                                                        {product.name}
-                                                    </h3>
                                                     <div
-                                                        className="flex items-center space-x-2 mt-auto"
-                                                        data-oid="skin-care-price"
+                                                        className={`h-28 ${getProductColor(product)} flex items-center justify-center relative flex-shrink-0`}
+                                                        data-oid="supplement-image"
                                                     >
-                                                        <span
-                                                            className="text-base font-bold text-cura-primary"
-                                                            data-oid="kusw13d"
-                                                        >
-                                                            {formatPrice(product?.priceReference || product.overallAveragePrice)}
-                                                        </span>
-                                                        {product.originalPrice && (
-                                                            <span
-                                                                className="text-sm text-gray-500 line-through"
-                                                                data-oid="o06piw3"
+                                                        {(() => {
+                                                            const imageResult = getProductImage(product);
+                                                            const isImageUrl = typeof imageResult === 'string' && (
+                                                                imageResult.startsWith('/') || 
+                                                                imageResult.startsWith('http://') || 
+                                                                imageResult.startsWith('https://')
+                                                            );
+                                                            
+                                                            return isImageUrl ? (
+                                                                <img src={imageResult} alt={product.name} className="w-full h-full object-contain" />
+                                                            ) : (
+                                                                <span
+                                                                    className="text-3xl opacity-80"
+                                                                    data-oid="supplement-emoji"
+                                                                >
+                                                                    {imageResult}
+                                                                </span>
+                                                            );
+                                                        })()}
+                                                        {product.originalPrice && product.originalPrice > (product?.priceReference || product.overallAveragePrice) && (
+                                                            <div
+                                                                className="absolute top-2 left-2 bg-cura-primary text-white text-xs font-bold px-2 py-1 rounded-md shadow-sm"
+                                                                data-oid="supplement-discount"
                                                             >
-                                                                {formatPrice(product.originalPrice)}
-                                                            </span>
+                                                                SALE
+                                                            </div>
                                                         )}
                                                     </div>
+                                                    <div
+                                                        className="p-3 flex flex-col flex-grow"
+                                                        data-oid="supplement-content"
+                                                    >
+                                                        <h3
+                                                            className="font-semibold text-gray-900 text-sm mb-2 line-clamp-2 h-10 flex-shrink-0"
+                                                            data-oid="supplement-name"
+                                                        >
+                                                            {product.name}
+                                                        </h3>
+                                                        <div className="mt-2 flex-grow flex flex-col justify-end">
+                                                            <div className="flex items-center space-x-2">
+                                                                <span className="text-cura-primary font-bold text-base">
+                                                                    {formatPrice(product?.priceReference || product.overallAveragePrice)}
+                                                                </span>
+                                                                {product.originalPrice && product.originalPrice > (product?.priceReference || product.overallAveragePrice) && (
+                                                                    <span className="text-gray-400 text-xs line-through">
+                                                                        {formatPrice(product.originalPrice)}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <div className="mt-2">
+                                                                {renderCartButton(product)}
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </Link>
+                                            </Link>
                                         ))}
                                     </div>
                                 </div>
@@ -1057,76 +1055,75 @@ const Page = memo(function Page() {
                                     <div className="flex space-x-4 pb-2">
                                         {categorizedProducts.babyEssentials.map((product: any) => (
                                             <Link
-                                            key={product._id}
-                                            href={`/product/${product._id}`}
-                                            className="group flex-shrink-0 w-40"
-                                            data-oid="skin-care-item"
-                                        >
-                                            <div
-                                                className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden group-hover:shadow-lg transition-all duration-200 h-52 flex flex-col"
-                                                data-oid="skin-care-card"
+                                                key={product._id}
+                                                href={`/product/${product._id}`}
+                                                className="group flex-shrink-0 w-40"
+                                                data-oid="supplement-item"
                                             >
                                                 <div
-                                                    className={`h-28 ${getProductColor(product)} flex items-center justify-center relative flex-shrink-0`}
-                                                    data-oid="skin-care-image"
+                                                    className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden group-hover:shadow-lg transition-all duration-200 h-60 flex flex-col"
+                                                    data-oid="supplement-card"
                                                 >
-                                                    {(() => {
-                                                        const imageResult = getProductImage(product);
-                                                        const isImageUrl = typeof imageResult === 'string' && (
-                                                            imageResult.startsWith('/') || 
-                                                            imageResult.startsWith('http://') || 
-                                                            imageResult.startsWith('https://')
-                                                        );
-                                                        
-                                                        return isImageUrl ? (
-                                                            <img src={imageResult} alt={product.name} className="w-full h-full object-contain" />
-                                                        ) : (
-                                                            <span className="text-3xl opacity-80">
-                                                                {imageResult}
-                                                            </span>
-                                                        );
-                                                    })()}
-                                                    {product.originalPrice && (
-                                                        <div
-                                                            className="absolute top-2 left-2 bg-cura-primary text-white text-xs font-bold px-2 py-1 rounded-md shadow-sm"
-                                                            data-oid="skin-care-discount"
-                                                        >
-                                                            SALE
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <div
-                                                    className="p-3 flex flex-col flex-grow"
-                                                    data-oid="skin-care-content"
-                                                >
-                                                    <h3
-                                                        className="font-semibold text-gray-900 text-sm mb-2 line-clamp-2 h-10 flex-shrink-0"
-                                                        data-oid="skin-care-name"
-                                                    >
-                                                        {product.name}
-                                                    </h3>
                                                     <div
-                                                        className="flex items-center space-x-2 mt-auto"
-                                                        data-oid="skin-care-price"
+                                                        className={`h-28 ${getProductColor(product)} flex items-center justify-center relative flex-shrink-0`}
+                                                        data-oid="supplement-image"
                                                     >
-                                                        <span
-                                                            className="text-base font-bold text-cura-primary"
-                                                            data-oid="kusw13d"
-                                                        >
-                                                            {formatPrice(product?.priceReference || product.overallAveragePrice)}
-                                                        </span>
-                                                        {product.originalPrice && (
-                                                            <span
-                                                                className="text-sm text-gray-500 line-through"
-                                                                data-oid="o06piw3"
+                                                        {(() => {
+                                                            const imageResult = getProductImage(product);
+                                                            const isImageUrl = typeof imageResult === 'string' && (
+                                                                imageResult.startsWith('/') || 
+                                                                imageResult.startsWith('http://') || 
+                                                                imageResult.startsWith('https://')
+                                                            );
+                                                            
+                                                            return isImageUrl ? (
+                                                                <img src={imageResult} alt={product.name} className="w-full h-full object-contain" />
+                                                            ) : (
+                                                                <span
+                                                                    className="text-3xl opacity-80"
+                                                                    data-oid="supplement-emoji"
+                                                                >
+                                                                    {imageResult}
+                                                                </span>
+                                                            );
+                                                        })()}
+                                                        {product.originalPrice && product.originalPrice > (product?.priceReference || product.overallAveragePrice) && (
+                                                            <div
+                                                                className="absolute top-2 left-2 bg-cura-primary text-white text-xs font-bold px-2 py-1 rounded-md shadow-sm"
+                                                                data-oid="supplement-discount"
                                                             >
-                                                                {formatPrice(product.originalPrice)}
-                                                            </span>
+                                                                SALE
+                                                            </div>
                                                         )}
                                                     </div>
+                                                    <div
+                                                        className="p-3 flex flex-col flex-grow"
+                                                        data-oid="supplement-content"
+                                                    >
+                                                        <h3
+                                                            className="font-semibold text-gray-900 text-sm mb-2 line-clamp-2 h-10 flex-shrink-0"
+                                                            data-oid="supplement-name"
+                                                        >
+                                                            {product.name}
+                                                        </h3>
+                                                        <div className="mt-2 flex-grow flex flex-col justify-end">
+                                                            <div className="flex items-center space-x-2">
+                                                                <span className="text-cura-primary font-bold text-base">
+                                                                    {formatPrice(product?.priceReference || product.overallAveragePrice)}
+                                                                </span>
+                                                                {product.originalPrice && product.originalPrice > (product?.priceReference || product.overallAveragePrice) && (
+                                                                    <span className="text-gray-400 text-xs line-through">
+                                                                        {formatPrice(product.originalPrice)}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <div className="mt-2">
+                                                                {renderCartButton(product)}
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </Link>
+                                            </Link>
                                         ))}
                                     </div>
                                 </div>
@@ -1156,76 +1153,75 @@ const Page = memo(function Page() {
                                     <div className="flex space-x-4 pb-2">
                                         {categorizedProducts.skinCare.map((product: any) => (
                                             <Link
-                                            key={product._id}
-                                            href={`/product/${product._id}`}
-                                            className="group flex-shrink-0 w-40"
-                                            data-oid="skin-care-item"
-                                        >
-                                            <div
-                                                className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden group-hover:shadow-lg transition-all duration-200 h-52 flex flex-col"
-                                                data-oid="skin-care-card"
+                                                key={product._id}
+                                                href={`/product/${product._id}`}
+                                                className="group flex-shrink-0 w-40"
+                                                data-oid="supplement-item"
                                             >
                                                 <div
-                                                    className={`h-28 ${getProductColor(product)} flex items-center justify-center relative flex-shrink-0`}
-                                                    data-oid="skin-care-image"
+                                                    className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden group-hover:shadow-lg transition-all duration-200 h-60 flex flex-col"
+                                                    data-oid="supplement-card"
                                                 >
-                                                    {(() => {
-                                                        const imageResult = getProductImage(product);
-                                                        const isImageUrl = typeof imageResult === 'string' && (
-                                                            imageResult.startsWith('/') || 
-                                                            imageResult.startsWith('http://') || 
-                                                            imageResult.startsWith('https://')
-                                                        );
-                                                        
-                                                        return isImageUrl ? (
-                                                            <img src={imageResult} alt={product.name} className="w-full h-full object-contain" />
-                                                        ) : (
-                                                            <span className="text-3xl opacity-80">
-                                                                {imageResult}
-                                                            </span>
-                                                        );
-                                                    })()}
-                                                    {product.originalPrice && (
-                                                        <div
-                                                            className="absolute top-2 left-2 bg-cura-primary text-white text-xs font-bold px-2 py-1 rounded-md shadow-sm"
-                                                            data-oid="skin-care-discount"
-                                                        >
-                                                            SALE
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <div
-                                                    className="p-3 flex flex-col flex-grow"
-                                                    data-oid="skin-care-content"
-                                                >
-                                                    <h3
-                                                        className="font-semibold text-gray-900 text-sm mb-2 line-clamp-2 h-10 flex-shrink-0"
-                                                        data-oid="skin-care-name"
-                                                    >
-                                                        {product.name}
-                                                    </h3>
                                                     <div
-                                                        className="flex items-center space-x-2 mt-auto"
-                                                        data-oid="skin-care-price"
+                                                        className={`h-28 ${getProductColor(product)} flex items-center justify-center relative flex-shrink-0`}
+                                                        data-oid="supplement-image"
                                                     >
-                                                        <span
-                                                            className="text-base font-bold text-cura-primary"
-                                                            data-oid="kusw13d"
-                                                        >
-                                                            {formatPrice(product?.priceReference || product.overallAveragePrice)}
-                                                        </span>
-                                                        {product.originalPrice && (
-                                                            <span
-                                                                className="text-sm text-gray-500 line-through"
-                                                                data-oid="o06piw3"
+                                                        {(() => {
+                                                            const imageResult = getProductImage(product);
+                                                            const isImageUrl = typeof imageResult === 'string' && (
+                                                                imageResult.startsWith('/') || 
+                                                                imageResult.startsWith('http://') || 
+                                                                imageResult.startsWith('https://')
+                                                            );
+                                                            
+                                                            return isImageUrl ? (
+                                                                <img src={imageResult} alt={product.name} className="w-full h-full object-contain" />
+                                                            ) : (
+                                                                <span
+                                                                    className="text-3xl opacity-80"
+                                                                    data-oid="supplement-emoji"
+                                                                >
+                                                                    {imageResult}
+                                                                </span>
+                                                            );
+                                                        })()}
+                                                        {product.originalPrice && product.originalPrice > (product?.priceReference || product.overallAveragePrice) && (
+                                                            <div
+                                                                className="absolute top-2 left-2 bg-cura-primary text-white text-xs font-bold px-2 py-1 rounded-md shadow-sm"
+                                                                data-oid="supplement-discount"
                                                             >
-                                                                {formatPrice(product.originalPrice)}
-                                                            </span>
+                                                                SALE
+                                                            </div>
                                                         )}
                                                     </div>
+                                                    <div
+                                                        className="p-3 flex flex-col "
+                                                        data-oid="supplement-content"
+                                                    >
+                                                        <h3
+                                                            className="font-semibold text-gray-900 text-sm mb-2 line-clamp-2 h-5 flex-shrink-0"
+                                                            data-oid="supplement-name"
+                                                        >
+                                                            {product.name}
+                                                        </h3>
+                                                        <div className="mt-2 flex-grow flex flex-col justify-end">
+                                                            <div className="flex items-center space-x-2">
+                                                                <span className="text-cura-primary font-bold text-base">
+                                                                    {formatPrice(product?.priceReference || product.overallAveragePrice)}
+                                                                </span>
+                                                                {product.originalPrice && product.originalPrice > (product?.priceReference || product.overallAveragePrice) && (
+                                                                    <span className="text-gray-400 text-xs line-through">
+                                                                        {formatPrice(product.originalPrice)}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <div className="mt-2">
+                                                                {renderCartButton(product)}
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </Link>
+                                            </Link>
                                         ))}
                                     </div>
                                 </div>
