@@ -23,7 +23,8 @@ export default function CartPage() {
 
     // Handle authentication redirect with proper Next.js routing
     useEffect(() => {
-        if (!isLoading && (!isAuthenticated || !user)) {
+        // Only redirect if we're not loading AND the user is definitely not authenticated
+        if (!isLoading && !isAuthenticated && !user) {
             console.log('User not authenticated, redirecting to login...');
             router.push('/auth/login');
         }
@@ -41,8 +42,8 @@ export default function CartPage() {
         );
     }
 
-    // Don't render anything while redirecting
-    if (!isAuthenticated || !user) {
+    // Don't render anything while redirecting - only if we're sure user is not authenticated
+    if (!isLoading && !isAuthenticated && !user) {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <div className="text-center">
