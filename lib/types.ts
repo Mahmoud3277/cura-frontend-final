@@ -10,7 +10,7 @@ export type UserRole =
     | 'app-services';
 
 export interface User {
-    _id: string;
+    id: string;
     email: string;
     role: UserRole;
     name: string;
@@ -111,7 +111,7 @@ export interface PharmacyProduct {
 
 // Order Types
 export interface Order {
-    _id: string;
+    id: string;
     customerId: string;
     items: OrderItem[];
     totalAmount: number;
@@ -151,44 +151,30 @@ export interface ReturnItem {
 
 export interface OrderItem {
     productId: string;
-    productName: string;
     pharmacyId: string;
     quantity: number;
     price: number;
-    unitPrice: number;
-    totalPrice: number;
     unitType: 'box' | 'strip' | 'piece';
-    image?: string;
-    prescription?: boolean;
 }
 
 // Prescription Types
 export interface Prescription {
-    _id: string;
+    id: string;
     customerId: string;
-    prescriptionNumber?: string;
-    images?: string[];
-    imageUrl?: string; // for backward compatibility
+    imageUrl: string;
     status: string;
     processedBy?: string; // prescription reader ID
-    medications?: PrescriptionMedicine[];
-    medicines?: PrescriptionMedicine[]; // for backward compatibility
-    instructions?: string;
-    totalPrice?: number;
+    medicines: PrescriptionMedicine[];
+    instructions: string;
     createdAt: Date;
     processedAt?: Date;
 }
 
 export interface PrescriptionMedicine {
-    productId?: string;
-    name: string;
+    productId: string;
     quantity: number;
-    instructions?: string;
-    duration?: string;
-    frequency?: string;
-    price?: number;
-    image?: string;
-    alternatives?: string[]; // product IDs
+    instructions: string;
+    alternatives: string[]; // product IDs
 }
 
 // Subscription Types
@@ -499,12 +485,16 @@ export interface CartState {
 }
 
 export interface PromoCode {
+    id: string;
+    name: string;
     code: string;
     discount: number; // percentage (0.1 = 10%)
     description: string;
     minOrderAmount?: number;
     maxDiscount?: number;
     validUntil?: Date;
+    status: 'active' | 'expired';
+    redemptions: number;
 }
 
 // Wallet Types

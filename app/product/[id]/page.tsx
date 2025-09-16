@@ -71,6 +71,8 @@ export default function ProductDetailPage() {
                 form: medicine.form,
                 unit: 'piece', // Default unit
                 packSize: medicine.packSize || '',
+                pricePerBlister: (medicine as any).pricePerBlister,
+                pricePerBox: (medicine as any).pricePerBox,
                 route: '',
                 frequency: '',
                 instructions: medicine.description || '',
@@ -123,6 +125,8 @@ export default function ProductDetailPage() {
                     pharmacyNameAr: provider.providerName,
                     price: provider.price,
                     originalPrice: provider.originalPrice,
+                    pricePerBlister: provider.pricePerBlister || (medicine as any).pricePerBlister,
+                    pricePerBox: provider.pricePerBox || (medicine as any).pricePerBox,
                     quantity: provider.quantity || 99,
                     inStock: provider.inStock,
                     deliveryFee: provider.deliveryFee || 15,
@@ -135,6 +139,8 @@ export default function ProductDetailPage() {
                     pharmacyNameAr: provider.providerName,
                     price: provider.price,
                     originalPrice: provider.originalPrice,
+                    pricePerBlister: provider.pricePerBlister || (medicine as any).pricePerBlister,
+                    pricePerBox: provider.pricePerBox || (medicine as any).pricePerBox,
                     quantity: provider.quantity || 99,
                     inStock: provider.inStock,
                     deliveryFee: provider.deliveryFee || 15,
@@ -159,16 +165,19 @@ export default function ProductDetailPage() {
         useEffect(() => {
             const loadCart = async () => {
                 try {
-                    await loadCartFromServer();
+                    // Only load cart from server if not already loaded to preserve promo codes
+                    if (!cartLoaded) {
+                        await loadCartFromServer();
+                    }
                     setCartLoaded(true);
                 } catch (error) {
                     console.error('Error loading cart from server:', error);
-                    setCartLoaded(true); // Set to true even on error to prevent infinite loading
+                    setCartLoaded(true);
                 }
             };
             
             loadCart();
-        }, [loadCartFromServer]);
+        }, [loadCartFromServer, cartLoaded]);
     
         // API fetching logic - Fixed
         useEffect(() => {
@@ -248,23 +257,22 @@ export default function ProductDetailPage() {
                 // Convert Medicine to Product type for CartContext compatibility
                 const productForCart = convertMedicineToProduct(product, currentProvider);
                 
-                // Convert currentProvider to PharmacyStock format for CartContext
-                const pharmacyStock = {
+                const stockData = {
                     pharmacyId: currentProvider.id,
                     pharmacyName: currentProvider.providerName,
                     pharmacyNameAr: currentProvider.providerName,
-                    price: currentProvider.price,
+                    price: getUnitPrice(),
                     originalPrice: currentProvider.originalPrice,
+                    pricePerBlister: (currentProvider as any).pricePerBlister,
+                    pricePerBox: (currentProvider as any).pricePerBox,
                     quantity: currentProvider.quantity || 99,
                     inStock: currentProvider.inStock,
                     deliveryFee: currentProvider.deliveryFee || 15,
                     estimatedDeliveryTime: currentProvider.estimatedDeliveryTime || '2-3 hours',
                     lastUpdated: new Date().toISOString()
                 };
-                
-                // Add item to cart using the cart context
-                await addItem(productForCart, pharmacyStock, quantity);
-                // Small delay for better UX
+
+                await addItem(productForCart, stockData, quantity);
                 await new Promise((resolve) => setTimeout(resolve, 500));
             } catch (error) {
                 console.error('Error adding to cart:', error);
@@ -272,7 +280,7 @@ export default function ProductDetailPage() {
                 setAddingToCart(false);
             }
         };
-    
+
         // Calculate discount percentage - Fixed
         const discountPercentage = (currentProvider?.originalPrice && currentProvider?.price)
             ? Math.round(
@@ -286,20 +294,18 @@ export default function ProductDetailPage() {
         const getUnitPrice = (option?: 'blister' | 'box') => {
             const purchaseOpt = option || purchaseOption;
             if (!currentProvider?.price) return 0;
-
-            // For medicine products, use different pricing based on purchase option
-            if (product.category === 'otc' || product.category === 'prescription') {
-                // For blister: use the base price
-                if (purchaseOpt === 'blister') {
-                    return currentProvider.price;
+            console.log('current proider', currentProvider)
+            if (purchaseOpt === 'blister' && currentProvider?.pricePerBlister) {
+                    
+                    return currentProvider?.pricePerBlister;
                 }
                 // For box: assume a box contains 10 blisters, so price is higher
-                if (purchaseOpt === 'box') {
-                    return currentProvider.price * 10; // Box price = blister price * 10
+            if (purchaseOpt === 'box' && currentProvider?.pricePerBox) {
+                    return currentProvider?.pricePerBox; // Box price = blister price * 10
                 }
-            }
+            
             // For non-medicine products, use regular pricing
-            return currentProvider.price;
+            return currentProvider.pricePerBlister;
         };
 
         const getBlisterPrice = () => getUnitPrice('blister');
@@ -651,7 +657,7 @@ export default function ProductDetailPage() {
                                             </div>
                                             <div className="text-right">
                                                 <div className="text-sm font-bold text-[#1F1F6F]">
-                                                    EGP {provider.price}
+                                                    EGP {provider.pricePerBlister}
                                                 </div>
                                                 {provider.originalPrice && (
                                                     <div className="text-xs text-gray-500 line-through">
@@ -1086,7 +1092,7 @@ export default function ProductDetailPage() {
                                                     </div>
                                                     <div className="text-right">
                                                         <div className="text-lg font-bold text-[#1F1F6F]">
-                                                            EGP {provider.price}
+                                                            EGP {provider.pricePerBlister}
                                                         </div>
                                                         {provider.originalPrice && (
                                                             <div className="text-sm text-gray-500 line-through">

@@ -5,7 +5,6 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Logo } from '@/components/ui/Logo';
 import { useAuth } from '@/lib/contexts/AuthContext';
-import { Toaster } from '@/components/ui/toaster';
 
 interface AdminLayoutProps {
     children: React.ReactNode;
@@ -47,9 +46,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             ];
 
             additionalKeysToRemove.forEach((key) => {
-                if (typeof window !== 'undefined') {
                 localStorage.removeItem(key);
-                }
             });
 
             // Clear session storage
@@ -429,6 +426,24 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                         />
                     </svg>
                 );
+            case 'promo-code':
+                return (
+                    <svg
+                        className={iconClass}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        data-oid="1bp9.rh"
+                    >
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                            data-oid="g-d9g51"
+                        />
+                    </svg>
+                );
 
             case 'userPlus':
                 return (
@@ -564,6 +579,12 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     current: pathname === '/admin/cities',
                     iconType: 'location',
                 },
+                {
+                    name: 'Promo Codes',
+                    href: '/admin/promo-codes',
+                    current: pathname === '/admin/promo-codes',
+                    iconType: 'promo-code',
+                },
             ],
         },
     ];
@@ -632,6 +653,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 return 'Pharmacy Assignments';
             case '/admin/database-users':
                 return 'Database Users';
+            case '/admin/promo-codes':
+                return 'Promo Code Management';
             default:
                 return 'Admin Panel';
         }
@@ -891,7 +914,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                                         className={`space-y-1 ${sidebarCollapsed ? '' : 'ml-4'}`}
                                         data-oid="uedgfk6"
                                     >
-                                        {section.items.map((item:any) => (
+                                        {section.items.map((item) => (
                                             <button
                                                 key={item.name}
                                                 onClick={() => router.push(item.href)}
@@ -960,9 +983,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     </div>
                 </div>
             </div>
-            
-            {/* Toast Notifications */}
-            <Toaster />
         </div>
     );
 }

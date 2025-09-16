@@ -173,14 +173,14 @@ export function ProductCard({ product, onAddToCart, isMobile = false }: ProductC
                             {product.price && product.price || product?.priceReference || product?.overallAveragePrice > 0 ? (
                                 <>
                                     <span className="text-base font-bold text-[#1F1F6F]" data-oid="mobile-price">
-                                        {product.pharmacyStocks[0].price} EGP
+                                        {product.overallLowestPrice} EGP
                                     </span>
                                     {product.originalPrice && product.originalPrice || product?.priceReference || product?.overallAveragePrice > product.price && (
                                         <span
                                             className="text-sm text-gray-500 line-through"
                                             data-oid="mobile-original-price"
                                         >
-                                            {product?.price  || product.priceReference  || product?.overallAveragePrice } EGP
+                                            {product?.price  || product.priceReference  || product?.overallHighestPrice } EGP
                                         </span>
                                     )}
                                 </>
@@ -368,19 +368,18 @@ export function ProductCard({ product, onAddToCart, isMobile = false }: ProductC
                 {/* Desktop Price & Add to Cart */}
                 <div className="flex items-center justify-between" data-oid="desktop-price-section">
                     <div className="flex items-center space-x-2" data-oid="desktop-price-container">
-                        {product.price > 0 ? (
+                        {product.overallLowestPrice > 0 ? (
                             <>
                                 <span className="text-base font-bold text-[#1F1F6F]" data-oid="desktop-price">
-                                    {product.price} EGP
+                                    {product.overallLowestPrice} EGP
                                 </span>
-                                {product.originalPrice && product.originalPrice > product.price && (
+                                
                                     <span
                                         className="text-sm text-gray-500 line-through"
                                         data-oid="desktop-original-price"
                                     >
-                                        {product.originalPrice} EGP
+                                        {product.overallHighestPrice} EGP
                                     </span>
-                                )}
                             </>
                         ) : (
                             <span className="text-sm text-gray-500" data-oid="desktop-price-na">

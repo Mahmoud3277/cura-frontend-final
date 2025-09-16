@@ -124,7 +124,9 @@ export async function fetchMedicines(params: Record<string, any> = {}): Promise<
                 queryParams.append(key, value.toString());
             }
         });
-        // queryParams.append("productType", 'medicine')
+        // Filter for medicine-related categories
+        queryParams.append("productType", 'medicine');
+        
         const response = await fetch(`${API_BASE_URL}/products?${queryParams.toString()}`);
         
         if (!response.ok) {

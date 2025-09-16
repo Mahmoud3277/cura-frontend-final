@@ -44,13 +44,10 @@ export function SubscriptionDetailsModal({
     const getSubscriptionProducts = () => {
         if (!subscription) return [];
         return subscription.products
-            .map((subProduct) => {
-                const product = products.find((p) => p.id.toString() === subProduct.productId);
-                return {
-                    ...subProduct,
-                    product,
-                };
-            })
+            .map((subProduct) => ({
+                ...subProduct,
+                product: typeof subProduct.productId === 'object' ? subProduct.productId : null,
+            }))
             .filter((item) => item.product);
     };
 
@@ -71,7 +68,15 @@ export function SubscriptionDetailsModal({
         return t(`subscription.frequency.${frequency}`);
     };
 
-    const formatDate = (date: Date) => {
+    const formatDate = (dateInput: Date | string) => {
+        if (!dateInput) return 'N/A';
+        
+        const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+        
+        if (isNaN(date.getTime())) {
+            return 'Invalid Date';
+        }
+        
         return new Intl.DateTimeFormat(locale === 'ar' ? 'ar-EG' : 'en-US', {
             year: 'numeric',
             month: 'long',
@@ -261,7 +266,7 @@ export function SubscriptionDetailsModal({
                                     data-oid="9y:2w6n"
                                 >
                                     <img
-                                        src={item.product!.image}
+                                        src={item.product!.images?.[0]?.url || item.product!.image || '/placeholder-medicine.png'}
                                         alt={item.product!.name}
                                         className="w-12 h-12 object-cover rounded-lg"
                                         data-oid="8dhwu3u"
@@ -280,9 +285,7 @@ export function SubscriptionDetailsModal({
                                         className="text-sm text-gray-600 font-medium"
                                         data-oid="hb.szq:"
                                     >
-                                        {locale === 'ar'
-                                            ? item.product!.pharmacyAr
-                                            : item.product!.pharmacy}
+                                        {item.product!.manufacturer || 'N/A'}
                                     </p>
                                     <p className="text-sm text-gray-600" data-oid="hoesbxo">
                                         {t('subscription.quantity')}: {item.quantity}{' '}
@@ -294,7 +297,7 @@ export function SubscriptionDetailsModal({
                                         className="text-lg font-bold text-[#1F1F6F]"
                                         data-oid="vx5i3u8"
                                     >
-                                        {item.product!.price.toFixed(2)} {t('common.currency')}
+                                        {item.product!.pricePerBox?.toFixed(2) || 'N/A'} {item.product!.pricePerBox ? t('common.currency') : ''}
                                     </p>
                                 </div>
                             </div>

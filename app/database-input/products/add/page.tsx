@@ -59,6 +59,8 @@ interface ProductForm {
     barcode: string;
     therapeuticClass: string;
     priceReference: string;
+    pricePerBlisters: string;
+    pricePerBox: string;
     currency: string;
     ageGroup: string;
     pregnancyCategory: string;
@@ -119,6 +121,8 @@ export default function AddProductPage() {
         barcode: Math.random().toString(),
         therapeuticClass: '',
         priceReference: '',
+        pricePerBlisters: '',
+        pricePerBox: '',
         currency: 'EGP',
         ageGroup: '',
         pregnancyCategory: '',
@@ -668,6 +672,38 @@ export default function AddProductPage() {
                                         ))}
                                     </SelectContent>
                                 </Select>
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <Label htmlFor="pricePerBlisters">
+                                    Price Per Blister
+                                </Label>
+                                <Input
+                                    id="pricePerBlisters"
+                                    type="number"
+                                    step="0.01"
+                                    value={formData.pricePerBlisters}
+                                    onChange={(e) =>
+                                        handleInputChange('pricePerBlisters', e.target.value)
+                                    }
+                                    placeholder="e.g., 2.50"
+                                />
+                            </div>
+                            <div>
+                                <Label htmlFor="pricePerBox">
+                                    Price Per Box
+                                </Label>
+                                <Input
+                                    id="pricePerBox"
+                                    type="number"
+                                    step="0.01"
+                                    value={formData.pricePerBox}
+                                    onChange={(e) =>
+                                        handleInputChange('pricePerBox', e.target.value)
+                                    }
+                                    placeholder="e.g., 15.00"
+                                />
                             </div>
                         </div>
                         <div className="space-y-4">

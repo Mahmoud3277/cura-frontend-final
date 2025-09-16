@@ -6,6 +6,7 @@ interface MobileCartItemProps {
     id: string;
     productId: string;
     name: string;
+    productName?: string; // Added for API compatibility
     price: number;
     originalPrice?: number;
     quantity: number;
@@ -16,6 +17,7 @@ interface MobileCartItemProps {
     manufacturer: string;
     packSize: string;
     prescription?: boolean;
+    requiresPrescription?: boolean; // Added for API compatibility
     inStock?: boolean;
     image?: string;
     onRemove: (id: string) => void;
@@ -26,6 +28,7 @@ export function MobileCartItem({
     id,
     productId,
     name,
+    productName,
     price,
     originalPrice,
     quantity,
@@ -36,6 +39,7 @@ export function MobileCartItem({
     manufacturer,
     packSize,
     prescription = false,
+    requiresPrescription = false,
     inStock = true,
     image,
     onRemove,
@@ -53,6 +57,8 @@ export function MobileCartItem({
     };
 
     const hasDiscount = originalPrice && originalPrice > price;
+    const displayName = productName || name; // Use productName from API if available
+    const isPrescriptionRequired = requiresPrescription || prescription; // Check both properties
 
     return (
         <div
@@ -68,7 +74,7 @@ export function MobileCartItem({
                     {image ? (
                         <img
                             src={image}
-                            alt={name}
+                            alt={displayName}
                             className="w-full h-full object-contain rounded-lg"
                             onError={(e) => {
                                 const target = e.target as HTMLImageElement;
@@ -92,7 +98,7 @@ export function MobileCartItem({
                             className="font-semibold text-gray-900 text-sm leading-tight line-clamp-2 hover:text-[#1F1F6F] transition-colors"
                             data-oid="uhgmc50"
                         >
-                            {name}
+                            {displayName}
                         </Link>
                         <button
                             onClick={() => onRemove(id)}
@@ -130,7 +136,7 @@ export function MobileCartItem({
 
                     {/* Badges */}
                     <div className="flex flex-wrap gap-1 mb-3" data-oid="oy-u-tt">
-                        {prescription && (
+                        {isPrescriptionRequired && (
                             <span
                                 className="inline-block bg-red-100 text-red-800 text-xs px-2 py-0.5 rounded-full"
                                 data-oid="j8j1a.9"
@@ -155,7 +161,7 @@ export function MobileCartItem({
                             <button
                                 onClick={() => onUpdateQuantity(id, quantity - 1)}
                                 className="w-7 h-7 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                disabled={quantity <= 1}
+                                disabled={quantity <= 1 || !inStock}
                                 data-oid="g10f4op"
                             >
                                 <svg
@@ -183,7 +189,7 @@ export function MobileCartItem({
                             <button
                                 onClick={() => onUpdateQuantity(id, quantity + 1)}
                                 className="w-7 h-7 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                disabled={quantity >= maxQuantity}
+                                disabled={quantity >= maxQuantity || !inStock}
                                 data-oid=".v3x:.x"
                             >
                                 <svg

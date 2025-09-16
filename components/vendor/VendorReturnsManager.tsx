@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { orderReturnService } from '@/lib/services/orderReturnService';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Check, X } from 'lucide-react';
-import Cookies from 'js-cookie';
 import { getProductImageUrl } from '@/lib/utils/image-helpers';
+import { getAuthToken } from '@/lib/utils/cookies';
+import Cookies from 'js-cookie';
 
 interface VendorReturnsManagerProps {
     vendorId: string;
@@ -20,7 +20,7 @@ interface EnhancedReturn {
     refundAmount: number;
     requestedAt: string;
     orderId: {
-        _id: string;
+        id: string;
         orderNumber: string;
         customerPhone: string;
         customerName: string;
@@ -36,6 +36,7 @@ interface EnhancedReturn {
             reason: string;
             notes?: string;
             processedAt?: string;
+            status?: string;
         };
     };
 }
@@ -43,17 +44,22 @@ interface EnhancedReturn {
 // Helper function to get product image URL, utilizing the provided getProductImageUrl utility
 const getProductImage = (imageString: string) => {
     try {
+        // Handle both JSON string and direct URL formats
+        if (imageString.startsWith('http') || imageString.startsWith('/')) {
+            return imageString;
+        }
         const imageObject = JSON.parse(imageString);
         return getProductImageUrl(imageObject);
     } catch (error) {
+        // Try regex parsing as fallback (matching pharmacy approach)
+        const imageMatch = imageString.match(/url:\s*'([^']+)'/);
+        if (imageMatch) {
+            return imageMatch[1];
+        }
         return '/placeholder-product.png'; // fallback image
     }
 };
 
-const formatQuantity = (quantity: number, category: string) => {
-    // This helper function seems fine as is
-    return `Qty: ${quantity}`;
-};
 
 export function VendorReturnsManager({ vendorId }: VendorReturnsManagerProps) {
     const [returns, setReturns] = useState<EnhancedReturn[]>([]);
@@ -76,24 +82,35 @@ export function VendorReturnsManager({ vendorId }: VendorReturnsManagerProps) {
 
     useEffect(() => {
         loadReturns();
-    }, [statusFilter, processingId]); // Add processingId to dependencies
+    }, [statusFilter]);
 
     const loadReturns = async () => {
         setLoading(true);
         try {
+            const token = getAuthToken();
+
+            if (!token) {
+                console.error('No auth token found');
+                setReturns([]);
+                return;
+            }
+
+            // Build query parameters
             const params = new URLSearchParams({
                 page: '1',
-                limit: '10',
+                limit: '10', // Default limit
             });
 
             if (statusFilter) {
                 params.append('status', statusFilter);
             }
 
+            // Make API call to fetch returned orders
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/vendors/${vendorId}/returned-orders?${params}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
+                    // Use cookies for token like the rest of the app
                     ...(Cookies.get('authToken') && { Authorization: `Bearer ${Cookies.get('authToken')}` }),
                 },
             });
@@ -103,13 +120,16 @@ export function VendorReturnsManager({ vendorId }: VendorReturnsManagerProps) {
             }
 
             const apiResponse = await response.json();
-            console.log('Vendor returns API response:', apiResponse);
-
+            console.log(apiResponse, 'api response')
+            // Update summary and pagination state
             setSummary(apiResponse.data.summary);
             setPagination(apiResponse.data.pagination);
+
+            // Just use the API response data directly
             setReturns(apiResponse.data.returnedOrders);
         } catch (error) {
             console.error('Error loading returns:', error);
+            // Set empty array on error to prevent crashes
             setReturns([]);
         } finally {
             setLoading(false);
@@ -119,27 +139,45 @@ export function VendorReturnsManager({ vendorId }: VendorReturnsManagerProps) {
     const handleUpdateStatus = async (returnId: string, newStatus: string) => {
         setProcessingId(returnId);
         try {
-            console.log('New status for vendor return:', newStatus);
-
-            if (newStatus === 'approved' || newStatus === 'rejected') {
-                const endpoint = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/orders/return/${returnId}/process`;
-                const response = await fetch(endpoint, {
+            console.log('new status', newStatus)
+            // Use direct API calls like PharmacyReturnManager
+            if (newStatus === 'approved') {
+                console.log('approved')
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/orders/return/${returnId}/process`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${Cookies.get('authToken')}`,
                     },
                     body: JSON.stringify({
-                        status: newStatus,
-                        notes: `Return ${newStatus} by vendor`,
+                        action: 'approved',
+                        validatingAction: 'approved'
                     }),
                 });
 
                 if (!response.ok) {
                     const errorData = await response.json();
-                    throw new Error(errorData.error || `Failed to ${newStatus} return`);
+                    throw new Error(errorData.error || 'Failed to approve return');
+                }
+            } else if (newStatus === 'rejected') {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/orders/return/${returnId}/process`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${Cookies.get('authToken')}`,
+                    },
+                    body: JSON.stringify({
+                        action: 'reject',
+                        validatingAction: 'reject'
+                    }),
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to reject return');
                 }
             } else if (newStatus === 'refunded') {
+                // Process refund for approved returns
                 const refundResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/orders/return/${returnId}/refund`, {
                     method: 'PUT',
                     headers: {
@@ -155,6 +193,9 @@ export function VendorReturnsManager({ vendorId }: VendorReturnsManagerProps) {
                     const errorData = await refundResponse.json();
                     throw new Error(errorData.error || 'Failed to process refund');
                 }
+
+                const refundData = await refundResponse.json();
+                console.log('Refund processed successfully:', refundData);
             }
 
             // Refresh data after status update
@@ -182,6 +223,11 @@ export function VendorReturnsManager({ vendorId }: VendorReturnsManagerProps) {
         }
     };
 
+    const getDisplayStatus = (returnItem: EnhancedReturn) => {
+        // Prioritize returnInfo.status if it exists, otherwise use main status
+        return returnItem.orderId.returnInfo?.status || returnItem.status;
+    };
+
     const getStatusLabel = (status: string) => {
         switch (status) {
             case 'return-requested':
@@ -195,6 +241,13 @@ export function VendorReturnsManager({ vendorId }: VendorReturnsManagerProps) {
             default:
                 return status.charAt(0).toUpperCase() + status.slice(1).replace('-', ' ');
         }
+    };
+
+    const formatQuantity = (quantity: number, category: string) => {
+        if (category === 'medical_supplies') {
+            return `Qty: ${quantity}`;
+        }
+        return `Qty: ${quantity}`;
     };
 
     if (loading) {
@@ -254,7 +307,7 @@ export function VendorReturnsManager({ vendorId }: VendorReturnsManagerProps) {
                                             </div>
                                             <div>
                                                 <h4 className="font-semibold text-gray-900">
-                                                    Order: {returnItem.orderId.orderNumber || returnItem.orderId._id}
+                                                    {returnItem.orderId.orderNumber || returnItem.orderId.id}
                                                 </h4>
                                                 <p className="text-sm text-cura-light">
                                                     {returnItem.orderId.customerPhone} • {returnItem.orderId.customerName}
@@ -263,9 +316,9 @@ export function VendorReturnsManager({ vendorId }: VendorReturnsManagerProps) {
                                         </div>
                                         <div className="flex items-center space-x-3">
                                             <Badge
-                                                className={`${getStatusColor(returnItem.status)} uppercase text-xs font-medium px-3 py-1 border`}
+                                                className={`${getStatusColor(getDisplayStatus(returnItem))} uppercase text-xs font-medium px-3 py-1 border`}
                                             >
-                                                {getStatusLabel(returnItem.status)}
+                                                {getDisplayStatus(returnItem)}
                                             </Badge>
                                             <span className="text-lg font-bold text-cura-secondary">
                                                 EGP {returnItem.refundAmount.toFixed(2)}
@@ -368,50 +421,58 @@ export function VendorReturnsManager({ vendorId }: VendorReturnsManagerProps) {
                                         </div>
                                         
                                         <div className="flex items-center space-x-2">
-                                            {returnItem.status === 'return-requested' && (
-                                                <>
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        className="text-red-600 border-red-200 hover:bg-red-50"
-                                                        onClick={() =>
-                                                            handleUpdateStatus(returnItem.returnId, 'rejected')
-                                                        }
-                                                        disabled={processingId === returnItem.returnId}
-                                                    >
-                                                        <X className="w-4 h-4 mr-1" />
-                                                        Reject
-                                                    </Button>
-                                                    <Button
-                                                        size="sm"
-                                                        className="bg-cura-primary text-white hover:bg-cura-secondary"
-                                                        onClick={() =>
-                                                            handleUpdateStatus(returnItem.returnId, 'approved')
-                                                        }
-                                                        disabled={processingId === returnItem.returnId}
-                                                    >
-                                                        <Check className="w-4 h-4 mr-1" />
-                                                        {processingId === returnItem.returnId
-                                                            ? 'Processing...'
-                                                            : 'Approve Return'}
-                                                    </Button>
-                                                </>
-                                            )}
-                                            {returnItem.status === 'approved' && (
-                                                <Button
-                                                    size="sm"
-                                                    className="bg-green-600 text-white hover:bg-green-700"
-                                                    onClick={() =>
-                                                        handleUpdateStatus(returnItem.returnId, 'refunded')
-                                                    }
-                                                    disabled={processingId === returnItem.returnId}
-                                                >
-                                                    {processingId === returnItem.returnId
-                                                        ? 'Processing...'
-                                                        : 'Complete Refund'}
-                                                </Button>
-                                            )}
-                                            {(returnItem.status === 'rejected' || returnItem.status === 'refunded') && (
+                                            {(() => {
+                                                const currentStatus = getDisplayStatus(returnItem);
+                                                
+                                                if (currentStatus === 'approved') {
+                                                    return (
+                                                        <Button
+                                                            size="sm"
+                                                            className="bg-green-600 text-white hover:bg-green-700"
+                                                            onClick={() =>
+                                                                handleUpdateStatus(returnItem.returnId, 'refunded')
+                                                            }
+                                                            disabled={processingId === returnItem.returnId}
+                                                        >
+                                                            {processingId === returnItem.returnId
+                                                                ? 'Processing...'
+                                                                : 'Complete Refund'}
+                                                        </Button>
+                                                    );
+                                                } else if (currentStatus === 'return-requested') {
+                                                    return (
+                                                        <>
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className="text-red-600 border-red-200 hover:bg-red-50"
+                                                                onClick={() =>
+                                                                    handleUpdateStatus(returnItem.returnId, 'rejected')
+                                                                }
+                                                                disabled={processingId === returnItem.returnId}
+                                                            >
+                                                                <X className="w-4 h-4 mr-1" />
+                                                                Reject
+                                                            </Button>
+                                                            <Button
+                                                                size="sm"
+                                                                className="bg-cura-primary text-white hover:bg-cura-secondary"
+                                                                onClick={() =>
+                                                                    handleUpdateStatus(returnItem.returnId, 'approved')
+                                                                }
+                                                                disabled={processingId === returnItem.returnId}
+                                                            >
+                                                                <Check className="w-4 h-4 mr-1" />
+                                                                {processingId === returnItem.returnId
+                                                                    ? 'Processing...'
+                                                                    : 'Approve Return'}
+                                                            </Button>
+                                                        </>
+                                                    );
+                                                }
+                                                return null;
+                                            })()}
+                                            {(returnItem.status === 'refunded' || returnItem.status === 'rejected' || returnItem.orderId.returnInfo?.status === 'refunded' || returnItem.orderId.returnInfo?.status === 'rejected') && (
                                                 <div className="text-sm text-cura-light">
                                                     {returnItem.orderId.returnInfo?.processedAt && (
                                                         <>

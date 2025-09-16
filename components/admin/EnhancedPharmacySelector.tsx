@@ -2,14 +2,43 @@
 interface Pharmacy {
     id: string;
     name: string;
-    address: string;
+    address: string | {
+        street?: string;
+        area?: string;
+        city?: string;
+        state?: string;
+        zipCode?: string;
+        country?: string;
+    };
     phone: string;
     cityName: string;
     deliveryTime: string;
     deliveryFee: number;
     isActive: boolean;
-    workingHours: { open: string; close: string; is24Hours: boolean };
+    workingHours: {
+        open: string;
+        close: string;
+        is24Hours: boolean;
+    };
     specialties?: string[];
+    isVerified?: boolean;
+    email?: string;
+    inventory?: {
+        productId: string;
+        productName: string;
+        price: number;
+        inStock: boolean;
+        stockQuantity: number;
+    }[];
+    productStatistics?: {
+        Inventory: {
+            productId: string;
+            productName?: string;
+            price: number;
+            inStock: boolean;
+            stockQuantity: number;
+        }[];
+    };
 }
 interface Product {
     productId: string;
@@ -26,6 +55,7 @@ interface EnhancedPharmacySelectorProps {
     pharmacies: Pharmacy[];
     selectedPharmacyId?: string;
     onPharmacySelect: (pharmacyId: string) => void;
+    onTotalCalculated?: (total: number) => void;
 }
 export function EnhancedPharmacySelector({
     product,
@@ -33,8 +63,27 @@ export function EnhancedPharmacySelector({
     pharmacies,
     selectedPharmacyId,
     onPharmacySelect,
+    onTotalCalculated,
 }: EnhancedPharmacySelectorProps) {
-    const availablePharmacies = pharmacies.filter((p) => p.isActive);
+    console.log('All pharmacies:', pharmacies);
+    
+    // Filter pharmacies that have this product in stock
+    const availablePharmacies = pharmacies.filter(pharmacy => {
+        // Check if pharmacy has productStatistics with Inventory
+        if (!pharmacy.productStatistics?.Inventory) {
+            return false;
+        }
+        
+        // Check if the product is available in this pharmacy's inventory
+        const hasProduct = pharmacy.productStatistics.Inventory.some((item: any) => 
+            item.productId._id === product.productId && item.inStock && item.stockQuantity > 0
+        );
+        
+        console.log(`Pharmacy ${pharmacy.name} has product ${product.name}:`, hasProduct);
+        return hasProduct;
+    });
+    
+    console.log(`Filtered ${availablePharmacies.length} pharmacies for product ${product.name}`);
     return (
         <div
             className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
@@ -125,31 +174,42 @@ export function EnhancedPharmacySelector({
                                     {product.quantity > 1 ? 'es' : ''}{' '}
                                 </span>{' '}
                             </div>{' '}
-                            {product.price && (
-                                <>
-                                    {' '}
-                                    <div data-oid="5jwzd8p">
+                            {(() => {
+                                // Find the selected pharmacy's inventory for this product
+                                const selectedPharmacy = pharmacies.find(p => p.id === selectedPharmacyId);
+                                const productInventory = selectedPharmacy?.productStatistics?.Inventory?.find(
+                                    (item: any) => item.productId._id == product.productId
+                                );
+                                console.log(selectedPharmacy?.productStatistics?.Inventory)
+                                console.log(productInventory)
+                                const displayPrice = productInventory?.price;
+                                console.log('display price', displayPrice, product.productId)
+                                return displayPrice && (
+                                    <>
                                         {' '}
-                                        <span className="text-gray-500" data-oid="puq4m78">
-                                            Unit Price:{' '}
-                                        </span>{' '}
-                                        <span className="font-medium" data-oid="v8jlp.i">
+                                        <div data-oid="5jwzd8p">
                                             {' '}
-                                            {product.price} EGP per {product.unitType}{' '}
-                                        </span>{' '}
-                                    </div>{' '}
-                                    <div data-oid="cbwnsx.">
-                                        {' '}
-                                        <span className="text-gray-500" data-oid="3iitcgc">
-                                            Pack Size:{' '}
-                                        </span>{' '}
-                                        <span className="font-medium" data-oid="nt66l3g">
+                                            <span className="text-gray-500" data-oid="puq4m78">
+                                                Unit Price:{' '}
+                                            </span>{' '}
+                                            <span className="font-medium" data-oid="v8jlp.i">
+                                                {' '}
+                                                {displayPrice} EGP per {product.unitType}{' '}
+                                            </span>{' '}
+                                        </div>{' '}
+                                        <div data-oid="cbwnsx.">
                                             {' '}
-                                            {product.packSize || 'N/A'}{' '}
-                                        </span>{' '}
-                                    </div>{' '}
-                                </>
-                            )}{' '}
+                                            <span className="text-gray-500" data-oid="3iitcgc">
+                                                Pack Size:{' '}
+                                            </span>{' '}
+                                            <span className="font-medium" data-oid="nt66l3g">
+                                                {' '}
+                                                {product.packSize || 'N/A'}{' '}
+                                            </span>{' '}
+                                        </div>{' '}
+                                    </>
+                                );
+                            })()}{' }'}
                         </div>{' '}
                     </div>{' '}
                 </div>{' '}
@@ -212,13 +272,30 @@ export function EnhancedPharmacySelector({
                                                     {pharmacy.name}{' '}
                                                 </h4>{' '}
                                                 <span
-                                                    className={`px-2 py-1 rounded-full text-xs font-medium ${pharmacy.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}
+                                                    className={`px-2 py-1 rounded-full text-xs font-medium ${pharmacy ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}
                                                     data-oid="6kl8ekp"
                                                 >
                                                     {' '}
-                                                    {pharmacy.isActive ? 'Open' : 'Closed'}{' '}
+                                                    {pharmacy ? 'Open' : 'Closed'}{' '}
                                                 </span>{' '}
                                             </div>{' '}
+                                            {/* Product Price at this Pharmacy */}
+                                            {(() => {
+                                                const productInInventory = pharmacy.productStatistics?.Inventory?.find((item: any) => 
+                                                    item.productId._id == product.productId
+                                                );
+                                                return productInInventory ? (
+                                                    <div className="mt-2 mb-2">
+                                                        <span className="text-lg font-bold text-[#1F1F6F]">
+                                                            {productInInventory.price} EGP
+                                                        </span>
+                                                        <span className="text-sm text-gray-500 ml-1">per box</span>
+                                                        <span className="text-xs text-green-600 ml-2">
+                                                            {productInInventory.stockQuantity} in stock
+                                                        </span>
+                                                    </div>
+                                                ) : null;
+                                            })()}
                                             <div
                                                 className="flex items-center space-x-4 mt-1 text-sm text-gray-600"
                                                 data-oid="dd2w_sa"
@@ -336,7 +413,9 @@ export function EnhancedPharmacySelector({
                                                                 data-oid="42ib3y."
                                                             />{' '}
                                                         </svg>{' '}
-                                                        {pharmacy.address}{' '}
+                                                        {typeof pharmacy.address === 'string' 
+                                                            ? pharmacy.address 
+                                                            : `${pharmacy.address?.street || ''}, ${pharmacy.address?.city || ''}`}{' '}
                                                     </p>{' '}
                                                     <p
                                                         className="flex items-center gap-2"
@@ -403,31 +482,37 @@ export function EnhancedPharmacySelector({
                                                     data-oid="ypgkgcl"
                                                 >
                                                     {' '}
-                                                    <div
-                                                        className="flex justify-between"
-                                                        data-oid="xd_0u5d"
-                                                    >
-                                                        {' '}
-                                                        <span
-                                                            className="text-gray-600"
-                                                            data-oid="8ipari1"
-                                                        >
-                                                            {' '}
-                                                            {product.quantity} ×{' '}
-                                                            {product.price || 0} EGP{' '}
-                                                        </span>{' '}
-                                                        <span
-                                                            className="font-medium text-gray-900"
-                                                            data-oid="i0ykqhr"
-                                                        >
-                                                            {' '}
-                                                            {(
-                                                                (product.price || 0) *
-                                                                product.quantity
-                                                            ).toFixed(2)}{' '}
-                                                            EGP{' '}
-                                                        </span>{' '}
-                                                    </div>{' '}
+                                                    {(() => {
+                                                        const productInInventory = pharmacy.productStatistics?.Inventory?.find((item: any) => 
+                                                            item.productId._id == product.productId
+                                                        );
+                                                        const pharmacyPrice = productInInventory?.price || product.price || 0;
+                                                        
+                                                        return (
+                                                            <div
+                                                                className="flex justify-between"
+                                                                data-oid="xd_0u5d"
+                                                            >
+                                                                {' '}
+                                                                <span
+                                                                    className="text-gray-600"
+                                                                    data-oid="8ipari1"
+                                                                >
+                                                                    {' '}
+                                                                    {product.quantity} ×{' '}
+                                                                    {pharmacyPrice} EGP{' '}
+                                                                </span>{' '}
+                                                                <span
+                                                                    className="font-medium text-gray-900"
+                                                                    data-oid="i0ykqhr"
+                                                                >
+                                                                    {' '}
+                                                                    {(pharmacyPrice * product.quantity).toFixed(2)}{' '}
+                                                                    EGP{' '}
+                                                                </span>{' '}
+                                                            </div>
+                                                        );
+                                                    })()}{' }'}
                                                     <div
                                                         className="flex justify-between"
                                                         data-oid="37on6o6"
@@ -459,18 +544,29 @@ export function EnhancedPharmacySelector({
                                                         >
                                                             Total
                                                         </span>{' '}
-                                                        <span
-                                                            className="font-bold text-[#1F1F6F]"
-                                                            data-oid="98opw.6"
-                                                        >
-                                                            {' '}
-                                                            {(
-                                                                (product.price || 0) *
-                                                                    product.quantity +
-                                                                pharmacy.deliveryFee
-                                                            ).toFixed(2)}{' '}
-                                                            EGP{' '}
-                                                        </span>{' '}
+                                                        {(() => {
+                                                            const productInInventory = pharmacy.productStatistics?.Inventory?.find((item: any) => 
+                                                                item.productId._id == product.productId
+                                                            );
+                                                            const pharmacyPrice = productInInventory?.price || product.price || 0;
+                                                            const total = (pharmacyPrice * product.quantity) + pharmacy.deliveryFee;
+                                                            
+                                                            // Call the callback with calculated total
+                                                            if (selectedPharmacyId === pharmacy.id && onTotalCalculated) {
+                                                                onTotalCalculated(total);
+                                                            }
+                                                            
+                                                            return (
+                                                                <span
+                                                                    className="font-bold text-[#1F1F6F]"
+                                                                    data-oid="98opw.6"
+                                                                >
+                                                                    {' '}
+                                                                    {total.toFixed(2)}{' '}
+                                                                    EGP{' '}
+                                                                </span>
+                                                            );
+                                                        })()}{' }'}
                                                     </div>{' '}
                                                 </div>{' '}
                                             </div>{' '}

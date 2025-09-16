@@ -1,23 +1,13 @@
 // Pharmacy Management Service - Integrated with Backend API
 import axios, { AxiosResponse } from 'axios';
 import { getAuthToken, setAuthToken, removeAuthToken } from '../utils/cookies';
+import { API_CONFIG, getAuthHeaders, apiRequest, API_ENDPOINTS } from '@/lib/config/api';
+
+// Use centralized API configuration
+const PHARMACY_ENDPOINTS = API_ENDPOINTS.PHARMACIES;
 
 // Configuration
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-const PHARMACY_ENDPOINTS = {
-  BASE: '/pharmacies',
-  BY_ID: (id: string) => `/pharmacies/searchPharmacyById/${id}`,
-  BY_CITY: '/pharmacies/city',
-  BY_GOVERNORATE: (id: string) => `/pharmacies/governorate/${id}`,
-  BY_SPECIALTY: (specialty: string) => `/pharmacies/specialty/${specialty}`,
-  NEARBY: '/pharmacies/nearby/location',
-  CUSTOMER_LOCATION: '/pharmacies/customer-location/available',
-  SEARCH: '/pharmacies/search',
-  STATS: '/pharmacies/stats/summary',
-  REVIEWS: (id: string) => `/pharmacies/${id}/reviews`,
-  METRICS: (id: string) => `/pharmacies/${id}/metrics`,
-  PRODUCT_STATS: (id: string) => `/pharmacies/${id}/product-stats`
-};
 
 // API Response Types
 interface APIResponse<T> {
@@ -181,8 +171,8 @@ export interface ProductStatistics {
 // Utility functions
 const createApiClient = () => {
   const client = axios.create({
-    baseURL: API_BASE_URL,
-    timeout: 10000,
+    baseURL: API_CONFIG.BASE_URL,
+    timeout: API_CONFIG.TIMEOUT,
   });
 
   // Add auth token if available
@@ -211,7 +201,7 @@ const apiClient = createApiClient();
 // Convert backend pharmacy to frontend format
 const convertBackendPharmacy = (backendPharmacy: BackendPharmacy): PharmacyDetails => {
   return {
-    id: backendPharmacy.id,
+    id: backendPharmacy._id,
     name: backendPharmacy.name,
     nameAr: backendPharmacy.nameAr || '',
     email: backendPharmacy.email,
@@ -225,6 +215,8 @@ const convertBackendPharmacy = (backendPharmacy: BackendPharmacy): PharmacyDetai
     coordinates: backendPharmacy.address.coordinates || { lat: 0, lng: 0 },
     status: backendPharmacy.isActive && backendPharmacy.isVerified ? 'active' : 
              backendPharmacy.isActive && !backendPharmacy.isVerified ? 'pending' : 'inactive',
+    isActive: backendPharmacy.isActive,
+    isVerified: backendPharmacy.isVerified,
     licenseNumber: backendPharmacy.licenseNumber || '',
     licenseExpiry: backendPharmacy.licenseExpiry || '',
     taxId: '', // Not in backend model
@@ -263,7 +255,7 @@ const convertBackendPharmacy = (backendPharmacy: BackendPharmacy): PharmacyDetai
       outOfStockItems: backendPharmacy.productStats?.outOfStockItems || 0,
       lastUpdated: backendPharmacy.productStats?.lastUpdated || new Date().toISOString()
     },
-    workingHours: backendPharmacy.workingHours || {
+    workingHours: {
       monday: { open: '09:00', close: '21:00', is24Hours: false },
       tuesday: { open: '09:00', close: '21:00', is24Hours: false },
       wednesday: { open: '09:00', close: '21:00', is24Hours: false },
@@ -274,18 +266,18 @@ const convertBackendPharmacy = (backendPharmacy: BackendPharmacy): PharmacyDetai
     },
     features: backendPharmacy.features || [],
     specialties: backendPharmacy.specialties || [],
-    documents: backendPharmacy.documents || {
-      license: '',
-      taxCertificate: '',
-      bankStatement: '',
-      ownershipProof: ''
+    documents: {
+      license: backendPharmacy.documents?.license || '',
+      taxCertificate: backendPharmacy.documents?.taxCertificate || '',
+      bankStatement: backendPharmacy.documents?.bankStatement || '',
+      ownershipProof: backendPharmacy.documents?.ownershipProof || ''
     },
-    contactPerson: backendPharmacy.contactPerson || {
-      name: backendPharmacy.owner.name,
-      nameAr: '',
-      position: 'Owner',
-      phone: backendPharmacy.owner.phone,
-      email: backendPharmacy.owner.email
+    contactPerson: {
+      name: backendPharmacy.contactPerson?.name || backendPharmacy.owner?.name || '',
+      nameAr: backendPharmacy.contactPerson?.nameAr || '',
+      position: backendPharmacy.contactPerson?.position || 'Owner',
+      phone: backendPharmacy.contactPerson?.phone || backendPharmacy.owner?.phone || '',
+      email: backendPharmacy.contactPerson?.email || backendPharmacy.owner?.email || ''
     },
     createdAt: backendPharmacy.createdAt,
     updatedAt: backendPharmacy.updatedAt
@@ -310,6 +302,8 @@ export interface PharmacyDetails {
     lng: number;
   };
   status: 'active' | 'inactive' | 'pending' | 'suspended' | 'rejected';
+  isActive: boolean;
+  isVerified: boolean;
   licenseNumber: string;
   licenseExpiry: string;
   taxId: string;
@@ -453,7 +447,7 @@ class PharmacyManagementService {
       }
 
       console.log(response)
-      const convertedPharmacies = response.data.data.map(convertBackendPharmacy);
+      const convertedPharmacies = response.data.data;
       return {
         data: convertedPharmacies,
         pagination: response.data.pagination

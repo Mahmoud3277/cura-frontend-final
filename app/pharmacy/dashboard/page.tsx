@@ -342,7 +342,7 @@ export default function PharmacyDashboardPage() {
                                                                             >
                                                                                 <img
                                                                                     src={
-                                                                                        item.productId.images[itemIndex].url ||
+                                                                                        item.productId?.images?.[itemIndex]?.url ||
                                                                                         `https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=50&h=50&fit=crop&crop=center`
                                                                                     }
                                                                                     alt={

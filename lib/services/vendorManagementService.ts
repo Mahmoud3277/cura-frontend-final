@@ -339,8 +339,10 @@ class EnhancedProviderOrderService {
     if (!response) {
       throw new Error(`Request failed: ${response.statusText}`);
     }
-    
-    return await response.json();
+    const data = await response.json()
+    console.log(data  , 'response')
+
+    return data;
   }
 
   // ===================
@@ -348,8 +350,11 @@ class EnhancedProviderOrderService {
   // ===================
 
   // Get all orders with filters
-  async getAllOrders(filters?: OrderFilters, id?: string): Promise<PaginatedOrdersResponse> {
+  async getAllOrders(filters?: OrderFilters, id?: string): Promise<PaginatedOrdersResponse | null> {
     const params = new URLSearchParams();
+    
+    // Add vendor ID to params if provided
+    if (id) params.append('assignedTo', id);
     
     if (filters) {
       if (filters.status) {
@@ -366,7 +371,6 @@ class EnhancedProviderOrderService {
           params.append('priority', filters.priority);
         }
       }
-      if (id) params.append('assignedTo', id);
       if (filters.paymentStatus) params.append('paymentStatus', filters.paymentStatus);
       if (filters.orderType) params.append('orderType', filters.orderType);
       if (filters.dateRange?.start) params.append('startDate', filters.dateRange.start);
@@ -377,7 +381,13 @@ class EnhancedProviderOrderService {
 
     const queryString = params.toString();
     const endpoint = `${this.ordersUrl}/vendor${queryString ? `?${queryString}` : ''}`;
-    return this.makeRequest<PaginatedOrdersResponse>(endpoint);
+    console.log('endpoint', endpoint);
+    if(queryString){
+      const realData = await this.makeRequest<PaginatedOrdersResponse>(endpoint);
+      console.log(realData, 'realData')
+      return realData;
+    }
+    return null;
   }
 
   // Get vendor orders
@@ -645,7 +655,7 @@ class EnhancedProviderOrderService {
     
     const queryString = params.toString();
     const endpoint = `${this.vendorsUrl}/product/${encodeURIComponent(productName)}${queryString ? `?${queryString}` : ''}`;
-    
+    console.log('endpoint', endpoint)
     return this.makeRequest<VendorsByProductResponse>(endpoint);
   }
 

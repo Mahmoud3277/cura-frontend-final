@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
+import { getAuthToken } from '@/lib/utils/cookies';
 import { providerOrderService, vendorManagementService } from '@/lib/services/vendorManagementService';
 import { useTranslation } from '@/lib/hooks/useTranslation';
 import { VendorAnalyticsDashboard } from '@/components/analytics/VendorAnalyticsDashboard';
@@ -54,6 +55,7 @@ export default function VendorDashboardPage() {
     const [loading, setLoading] = useState(true);
     const [selectedOrder, setSelectedOrder] = useState<VendorOrder | null>(null);
     const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
+    const [vendorId, setVendorId] = useState<string>('');
 
     const formatTime = (dateString: string) => {
         const date = new Date(dateString);
@@ -75,24 +77,36 @@ export default function VendorDashboardPage() {
         setIsOrderModalOpen(false);
         setSelectedOrder(null);
     };
-    const getUser = async():Promise<string>=>{
-        const token = Cookies.get('authToken')
-        const user = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/auth/me`,{
+    const getVendorId = async():Promise<string>=>{
+        const token = getAuthToken();
+        if(!token) {
+            throw new Error('No authentication token found');
+        }
+
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/auth/me`,{
             headers: {
                 'Content-Type': 'application/json',
-                ...(token && { Authorization: `Bearer ${token}` }),
+                Authorization: `Bearer ${token}`,
             },
-        })
-        const data = await user.json()
-        console.log(data.data.vendor._id)
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch user data');
+        }
+
+        const data = await response.json();
+        console.log('Vendor data:', data.data.vendor);
+
+        // Return vendor ID from the response
         return data.data.vendor._id;
     }
     useEffect(() => {
         const loadData = async() => {
             try {
                 
-                const userId = await getUser()
-                const allOrders = await providerOrderService.getAllOrders({},userId);
+                const fetchedVendorId = await getVendorId();
+                setVendorId(fetchedVendorId);
+                const allOrders = await providerOrderService.getAllOrders({}, fetchedVendorId);
                 // const orderStats = await providerOrderService.getOrderStats();
                 const mockStats = {
                     totalOrders: allOrders.pagination.totalRecords,
@@ -547,7 +561,7 @@ export default function VendorDashboardPage() {
                     </TabsContent>
 
                     <TabsContent value="returns" data-oid=":f_pobc">
-                        <VendorReturnsManager vendorId="electroplus-vendor" data-oid="bk9h1xd" />
+                        <VendorReturnsManager vendorId={vendorId} data-oid="bk9h1xd" />
                     </TabsContent>
                 </Tabs>
             </div>

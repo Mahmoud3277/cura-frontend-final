@@ -35,6 +35,16 @@ interface Product {
         category: string;
         Manufacturer: string;
         description?: string;
+        images?: Array<{
+            _id: string;
+            filename: string;
+            key: string;
+            originalName: string;
+            size: number;
+            type: string;
+            uploadedAt: string;
+            url: string;
+        }>;
     };
     productName?: string;
     name?: string;
@@ -47,6 +57,8 @@ interface Product {
     form?: string;
     prescriptionRequired?: boolean;
     price: number;
+    pricePerBlister?: number;
+    pricePerBox?: number;
     stock?: number;
     stockQuantity?: number;
     expiryDate?: string;
@@ -85,6 +97,7 @@ export default function VendorProductsPage() {
     const [showViewDetailsModal, setShowViewDetailsModal] = useState(false);
     const [viewingProduct, setViewingProduct] = useState<Product | null>(null);
     const [suppliers, setSuppliers] = useState<string[]>(['all']);
+    const [addedProduct, setAddedProduct] = useState<Product | null>(null);
 
     const categories = [
         'all',
@@ -149,8 +162,10 @@ export default function VendorProductsPage() {
         try {
             const vendorId = await getUser();
             const response = await providerOrderService.getVendorById(vendorId);
+            console.log(response, 'response from apge')
             if (response && response.data.products) {
                 const inventoryProducts = response.data.products;
+                console.log('products', inventoryProducts)
                 setProducts(inventoryProducts);
                 const uniqueSuppliers = ['all', ...new Set(
                     inventoryProducts.map((item: Product) =>
@@ -255,6 +270,21 @@ export default function VendorProductsPage() {
         }
     };
 
+    const getProductImage = (product: Product): string => {
+        // Check if productId has images array
+        if (product.productId?.images && Array.isArray(product.productId.images) && product.productId.images.length > 0) {
+            return product.productId.images[0].url;
+        }
+        
+        // Fallback to legacy image field
+        if (product.image) {
+            return product.image;
+        }
+        
+        // Default placeholder
+        return '/api/placeholder/300/300';
+    };
+
     const calculateDiscountedPrice = (product: Product): number => {
         if (!product.discount || !product.discount.isActive) {
             return product.price;
@@ -307,7 +337,7 @@ export default function VendorProductsPage() {
     };
 
     const handleEditProduct = (product: Product) => {
-        setEditingProduct(product);
+        setEditingProduct({ ...product }); // Create a copy to avoid reference issues
         setShowEditModal(true);
     };
 
@@ -324,6 +354,7 @@ export default function VendorProductsPage() {
         try {
             const vendorId = await getUser();
             const token = Cookies.get('authToken');
+            console.log(productId, 'productId to edit.')
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/vendors/update-products/${vendorId}`, {
                 method: 'PUT',
                 headers: {
@@ -585,12 +616,13 @@ export default function VendorProductsPage() {
                             </TableHead>
                             <TableHead className="cursor-pointer hover:bg-gray-100 transition-colors" onClick={() => handleSort('price')}>
                                 <div className="flex items-center space-x-1">
-                                    <span className="font-semibold">Price</span>
+                                    <span className="font-semibold">Box Price</span>
                                     {sortBy === 'price' && (
                                         <span className="text-cura-primary">{sortOrder === 'asc' ? '↑' : '↓'}</span>
                                     )}
                                 </div>
                             </TableHead>
+                            <TableHead>Blister Price</TableHead>
                             <TableHead>Expiry</TableHead>
                             <TableHead>Actions</TableHead>
                         </TableRow>
@@ -603,19 +635,17 @@ export default function VendorProductsPage() {
                                 <TableRow key={productId} className="hover:bg-gray-50 transition-colors">
                                     <TableCell>
                                         <div className="flex items-center justify-center">
-                                            {product.image ? (
-                                                <img
-                                                    src={product.image}
-                                                    alt={product.productName || product.name || ''}
-                                                    className="w-12 h-12 rounded-lg object-cover border-2 border-cura-primary/20 shadow-sm"
-                                                    onError={(e) => {
-                                                        const target = e.target as HTMLImageElement;
-                                                        target.style.display = 'none';
-                                                        target.nextElementSibling?.classList.remove('hidden');
-                                                    }}
-                                                />
-                                            ) : null}
-                                            <div className={`w-12 h-12 bg-gradient-to-br from-cura-primary/10 to-cura-primary/20 rounded-lg flex items-center justify-center border-2 border-cura-primary/20 ${product.image ? 'hidden' : ''}`}>
+                                            <img
+                                                src={getProductImage(product)}
+                                                alt={product.productName || product.name || product.productId?.Productname || ''}
+                                                className="w-12 h-12 rounded-lg object-cover border-2 border-cura-primary/20 shadow-sm"
+                                                onError={(e) => {
+                                                    const target = e.target as HTMLImageElement;
+                                                    target.style.display = 'none';
+                                                    target.nextElementSibling?.classList.remove('hidden');
+                                                }}
+                                            />
+                                            <div className="w-12 h-12 bg-gradient-to-br from-cura-primary/10 to-cura-primary/20 rounded-lg flex items-center justify-center border-2 border-cura-primary/20 hidden">
                                                 <svg className="w-6 h-6 text-cura-primary/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                                 </svg>
@@ -660,7 +690,7 @@ export default function VendorProductsPage() {
                                             {product.discount && product.discount.isActive ? (
                                                 <>
                                                     <span className="text-sm text-gray-500 line-through">
-                                                        EGP {product.price?.toFixed(2)}
+                                                        EGP {(product.pricePerBox || product.price)?.toFixed(2)}
                                                     </span>
                                                     <span className="font-medium text-green-600">
                                                         EGP {calculateDiscountedPrice(product).toFixed(2)}
@@ -669,10 +699,15 @@ export default function VendorProductsPage() {
                                                 </>
                                             ) : (
                                                 <span className="font-medium text-green-600">
-                                                    EGP {product.price?.toFixed(2)}
+                                                    EGP {(product.pricePerBox || product.price)?.toFixed(2)}
                                                 </span>
                                             )}
                                         </div>
+                                    </TableCell>
+                                    <TableCell>
+                                        <span className="font-medium text-blue-600">
+                                            {product.pricePerBlister ? `EGP ${product.pricePerBlister.toFixed(2)}` : 'N/A'}
+                                        </span>
                                     </TableCell>
                                     <TableCell>
                                         <div className="text-sm">
@@ -757,7 +792,7 @@ export default function VendorProductsPage() {
             {/* Product Selection Modal */}
             <VendorProductSelectionModal
                 isOpen={showProductSelectionModal}
-                setAddedProduct = {setAddedProduct}
+                setAddedProduct={setAddedProduct}
                 onClose={() => setShowProductSelectionModal(false)}
                 onSelectProduct={handleProductSelection}
                 
@@ -825,10 +860,18 @@ export default function VendorProductsPage() {
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Price</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Box Price</label>
                                     <div className="p-3 bg-gray-50 rounded-lg border">
                                         <span className="font-medium text-green-600">
-                                            EGP {viewingProduct.price?.toFixed(2)}
+                                            EGP {(viewingProduct.pricePerBox || viewingProduct.price)?.toFixed(2)}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Blister Price</label>
+                                    <div className="p-3 bg-gray-50 rounded-lg border">
+                                        <span className="font-medium text-blue-600">
+                                            {viewingProduct.pricePerBlister ? `EGP ${viewingProduct.pricePerBlister.toFixed(2)}` : 'Not specified'}
                                         </span>
                                     </div>
                                 </div>
@@ -926,18 +969,38 @@ export default function VendorProductsPage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Price (EGP) *
+                                        Box Price (EGP) *
                                     </label>
                                     <Input
                                         type="number"
                                         step="0.01"
-                                        value={editingProduct.price || 0}
+                                        value={editingProduct.pricePerBox || editingProduct.price || ''}
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+                                            setEditingProduct({
+                                                ...editingProduct,
+                                                pricePerBox: value ? parseFloat(value) : undefined,
+                                                price: value ? parseFloat(value) : undefined,
+                                            });
+                                        }}
+                                        placeholder="Enter box price"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Blister Price (EGP)
+                                    </label>
+                                    <Input
+                                        type="number"
+                                        step="0.01"
+                                        value={editingProduct.pricePerBlister || ''}
                                         onChange={(e) =>
                                             setEditingProduct({
                                                 ...editingProduct,
-                                                price: parseFloat(e.target.value),
+                                                pricePerBlister: e.target.value ? parseFloat(e.target.value) : undefined,
                                             })
                                         }
+                                        placeholder="Optional"
                                     />
                                 </div>
                                 <div>

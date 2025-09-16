@@ -7,6 +7,8 @@ export interface Product {
     price: number;
     originalPrice?: number;
     priceReference?: number;
+    pricePerBlister?: number;
+    pricePerBox?: number;
     images: Array<{url: string; key: string; filename: string; originalName: string; type: string; size: number; uploadedAt: Date}>;
     pharmacyId: string;
     pharmacy: string;
@@ -86,6 +88,8 @@ const mapApiProductToInterface = (apiProduct: any): Product => {
         price: apiProduct.price,
         originalPrice: apiProduct.originalPrice,
         priceReference: apiProduct.priceReference,
+        pricePerBlister: apiProduct.pricePerBlister,
+        pricePerBox: apiProduct.pricePerBox,
         images: apiProduct.images || [],
         pharmacyId: apiProduct.pharmacyId,
         pharmacy: apiProduct.pharmacy,

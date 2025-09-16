@@ -20,7 +20,6 @@ export default function CartPage() {
     const { t } = useTranslation(locale);
     const isMobile = useIsMobile();
     const router = useRouter();
-
     // Handle authentication redirect with proper Next.js routing
     useEffect(() => {
         // Only redirect if we're not loading AND the user is definitely not authenticated
@@ -72,9 +71,9 @@ export default function CartPage() {
     const [promoCode, setPromoCode] = useState('');
     const [promoError, setPromoError] = useState('');
 
-    const handleApplyPromo = () => {
+    const handleApplyPromo = async () => {
         setPromoError('');
-        const success = applyPromoCode(promoCode);
+        const success = await applyPromoCode(promoCode);
         if (success) {
             setPromoCode('');
         } else {
@@ -97,7 +96,10 @@ export default function CartPage() {
 
     }
     useEffect(() => {
-        fetchCartFromServer()
+        // Only load cart from server if cart is empty to avoid clearing promo codes
+        if (items.length === 0) {
+            fetchCartFromServer()
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
     return (
@@ -264,6 +266,7 @@ export default function CartPage() {
                                             id={item.id}
                                             productId={item.productId}
                                             name={item.name}
+                                            productName={item.productName}
                                             price={item.price}
                                             originalPrice={item.originalPrice}
                                             quantity={item.quantity}
@@ -274,6 +277,7 @@ export default function CartPage() {
                                             manufacturer={item.manufacturer}
                                             packSize={item.packSize}
                                             prescription={item.prescription}
+                                            requiresPrescription={item.requiresPrescription}
                                             inStock={item.inStock}
                                             image={item.image}
                                             onRemove={removeItem}
@@ -354,14 +358,14 @@ export default function CartPage() {
                                                                 className="text-sm text-gray-600 mt-1"
                                                                 data-oid=".epx8o."
                                                             >
-                                                                {item.pharmacy} • {item.cityName}
+                                                                {item.pharmacy} • {item.cityId}
                                                             </p>
                                                             <p
                                                                 className="text-xs text-gray-500 mt-1"
                                                                 data-oid="33cpw7c"
                                                             >
                                                                 {item.manufacturer} •{' '}
-                                                                {item.packSize}
+                                                                {item.packagingType}
                                                             </p>
                                                             {item.requiresPrescription && (
                                                                 <span

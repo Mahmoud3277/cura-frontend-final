@@ -1,5 +1,33 @@
 import { Subscription, SubscriptionProduct, Product } from '@/lib/types';
-import { products } from '@/lib/data/products';
+import { filterProducts } from '@/lib/data/products';
+import { getAuthToken } from '@/lib/utils/cookies';
+
+// API Configuration
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const SUBSCRIPTIONS_ENDPOINT = `${API_BASE_URL}/subscriptions`;
+
+// Helper function for API requests
+const apiRequest = async (url: string, options: RequestInit = {}) => {
+    const token = getAuthToken();
+    if(!token){
+        console.log('no token')
+    }
+    const response = await fetch(url, {
+        ...options,
+        headers: {
+            'Content-Type': 'application/json',
+            ...(token && { Authorization: `Bearer ${token}` }),
+            ...options.headers,
+        },
+    });
+    
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Network error' }));
+        throw new Error(errorData.error || errorData.message || `HTTP error! status: ${response.status}`);
+    }
+    
+    return response.json();
+};
 
 export interface SubscriptionPlan {
     id: string;
@@ -47,289 +75,107 @@ export interface SubscriptionAnalytics {
 }
 
 class SubscriptionService {
-    private subscriptions: Subscription[] = [];
-    private subscriptionPlans: SubscriptionPlan[] = [];
-
-    constructor() {
-        this.initializeMockData();
-    }
-
-    private initializeMockData() {
-        // Initialize subscription plans
-        this.subscriptionPlans = [
-            {
-                id: 'standard-plan',
-                name: 'Standard Subscription',
-                nameAr: 'الاشتراك العادي',
-                description:
-                    'Monthly medicine delivery with fixed discount - prices may vary based on current medicine costs',
-                descriptionAr:
-                    'توصيل شهري للأدوية مع خصم ثابت - قد تتغير الأسعار حسب تكلفة الأدوية الحالية',
-                type: 'standard',
-                minOrderValue: 50,
-                monthlyFee: 25,
-                orderDiscount: 5, // 5 EGP discount per order
-                medicineDiscount: 2, // 2 EGP discount per medicine
-                features: [
-                    'Monthly delivery',
-                    '5 EGP discount per order',
-                    'Free delivery',
-                    'Medicine availability guarantee',
-                    'Alternative medicine consultation',
-                    'Customer support',
-                    'Dynamic pricing based on current medicine costs',
-                ],
-                featuresAr: [
-                    'توصيل شهري',
-                    'خصم 5 جنيه على كل طلب',
-                    'توصيل مجاني',
-                    'ضمان توفر الأدوية',
-                    'استشارة الأدوية البديلة',
-                    'دعم العملاء',
-                    'أسعار ديناميكية حسب تكلفة الأدوية الحالية',
-                ],
-            },
-            {
-                id: 'premium-plan',
-                name: 'Premium Subscription',
-                nameAr: 'الاشتراك المميز',
-                description:
-                    'Premium monthly medicine delivery with higher discount - prices may vary based on current medicine costs',
-                descriptionAr:
-                    'توصيل شهري مميز للأدوية مع خصم أعلى - قد تتغير الأسعار حسب تكلفة الأدوية الحالية',
-                type: 'premium',
-                minOrderValue: 100,
-                monthlyFee: 35,
-                orderDiscount: 10, // 10 EGP discount per order
-                medicineDiscount: 5, // 5 EGP discount per medicine
-                isPopular: true,
-                features: [
-                    'Monthly delivery',
-                    '10 EGP discount per order',
-                    'Free delivery',
-                    'Medicine availability guarantee',
-                    'Alternative medicine consultation',
-                    'Priority customer support',
-                    'Health consultations',
-                    'Medicine reminders',
-                    'Chronic disease management',
-                    'Dynamic pricing based on current medicine costs',
-                    'Price protection for 3 months',
-                ],
-                featuresAr: [
-                    'توصيل شهري',
-                    'خصم 10 جنيه على كل طلب',
-                    'توصيل مجاني',
-                    'ضمان توفر الأدوية',
-                    'استشارة الأدوية البديلة',
-                    'دعم عملاء أولوية',
-                    'استشارات صحية',
-                    'تذكير بالأدوية',
-                    'إدارة الأمراض المزمنة',
-                    'أسعار ديناميكية حسب تكلفة الأدوية الحالية',
-                    'حماية السعر لمدة 3 أشهر',
-                ],
-            },
-        ];
-
-        // Initialize mock subscriptions with current dates
-        const today = new Date();
-        const nextWeek = new Date(today);
-        nextWeek.setDate(today.getDate() + 7);
-
-        const nextMonth = new Date(today);
-        nextMonth.setMonth(today.getMonth() + 1);
-
-        const inTwoDays = new Date(today);
-        inTwoDays.setDate(today.getDate() + 2);
-
-        const lastMonth = new Date(today);
-        lastMonth.setMonth(today.getMonth() - 1);
-
-        const twoWeeksAgo = new Date(today);
-        twoWeeksAgo.setDate(today.getDate() - 14);
-
-        this.subscriptions = [
-            {
-                id: 'SUB-001',
-                customerId: 'customer-001',
-                products: [
-                    {
-                        productId: '1',
-                        pharmacyId: 'healthplus-ismailia',
-                        quantity: 2,
-                        unitType: 'box',
-                    },
-                    {
-                        productId: '2',
-                        pharmacyId: 'wellcare-ismailia',
-                        quantity: 1,
-                        unitType: 'box',
-                    },
-                ],
-                frequency: 'monthly',
-                nextDelivery: nextMonth,
-                isActive: true,
-                totalAmount: 95.0,
-                createdAt: lastMonth,
-                deliveryAddress: '123 Main St, Ismailia, Egypt',
-                deliveryInstructions: 'Leave at front door',
-                planId: 'premium-plan',
-                discount: 12,
-                status: 'active',
-                deliveryHistory: [
-                    {
-                        id: 'DEL-001',
-                        deliveryDate: lastMonth,
-                        status: 'delivered',
-                        trackingNumber: 'TRK-001',
-                        deliveredBy: 'Ahmed Hassan',
-                    },
-                ],
-            },
-            {
-                id: 'SUB-002',
-                customerId: 'customer-001',
-                products: [
-                    {
-                        productId: '2',
-                        pharmacyId: 'wellcare-ismailia',
-                        quantity: 2,
-                        unitType: 'box',
-                    },
-                ],
-                frequency: 'monthly',
-                nextDelivery: inTwoDays,
-                isActive: true,
-                totalAmount: 41.4, // 45 * 0.92 (8% discount)
-                createdAt: twoWeeksAgo,
-                deliveryAddress: '123 Main St, Ismailia, Egypt',
-                planId: 'standard-plan',
-                discount: 8,
-                status: 'active',
-                deliveryHistory: [
-                    {
-                        id: 'DEL-002',
-                        deliveryDate: twoWeeksAgo,
-                        status: 'delivered',
-                        trackingNumber: 'TRK-002',
-                        deliveredBy: 'Mohamed Ali',
-                    },
-                ],
-            },
-            {
-                id: 'SUB-003',
-                customerId: 'customer-002',
-                products: [
-                    {
-                        productId: '4',
-                        pharmacyId: 'medicare-cairo',
-                        quantity: 1,
-                        unitType: 'box',
-                    },
-                ],
-                frequency: 'monthly',
-                nextDelivery: nextWeek,
-                isActive: false,
-                totalAmount: 57.2, // 65 * 0.88 (12% discount)
-                createdAt: lastMonth,
-                deliveryAddress: '456 Nile St, Cairo, Egypt',
-                planId: 'premium-plan',
-                discount: 12,
-                status: 'paused',
-                pauseReason: 'Temporary travel',
-                pausedUntil: nextMonth,
-                deliveryHistory: [],
-            },
-        ];
+    // Helper method to get current user ID
+    private async getCurrentUserId(): Promise<string | null> {
+        try {
+            const response = await apiRequest(`${API_BASE_URL}/auth/me`);
+            return response.data?.user?._id || null;
+        } catch (error) {
+            console.error('Error fetching current user:', error);
+            return null;
+        }
     }
 
     // Subscription Plans
-    getSubscriptionPlans(): SubscriptionPlan[] {
-        return this.subscriptionPlans;
+    async getSubscriptionPlans(): Promise<SubscriptionPlan[]> {
+        try {
+            const response = await apiRequest(`${SUBSCRIPTIONS_ENDPOINT}/plans`);
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching subscription plans:', error);
+            return [];
+        }
     }
 
-    getSubscriptionPlan(planId: string): SubscriptionPlan | undefined {
-        return this.subscriptionPlans.find((plan) => plan.id === planId);
+    async getSubscriptionPlan(planId: string): Promise<SubscriptionPlan | undefined> {
+        try {
+            const response = await apiRequest(`${SUBSCRIPTIONS_ENDPOINT}/plans/${planId}`);
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching subscription plan:', error);
+            return undefined;
+        }
     }
 
     // Create Subscription
     async createSubscription(data: CreateSubscriptionData): Promise<Subscription> {
         console.log('Creating subscription with data:', data);
 
-        const newSubscription: Subscription = {
-            id: `SUB-${String(this.subscriptions.length + 1).padStart(3, '0')}`,
-            customerId: data.customerId,
-            products: data.products,
-            frequency: data.frequency,
-            nextDelivery: data.startDate || this.calculateNextDelivery(data.frequency),
-            isActive: true,
-            totalAmount: this.calculateSubscriptionTotal(data.products, data.frequency),
-            createdAt: new Date(),
-            deliveryAddress: data.deliveryAddress,
-            deliveryInstructions: data.deliveryInstructions,
-            status: 'active',
-            deliveryHistory: [],
-        };
+        try {
+            // Get current user ID if not provided
+            if (!data.customerId) {
+                const userId = await this.getCurrentUserId();
+                if (!userId) {
+                    throw new Error('Unable to get current user ID');
+                }
+                data.customerId = userId;
+            }
 
-        // Add plan details if applicable
-        const plan = this.getRecommendedPlan(newSubscription.totalAmount, data.frequency);
-        if (plan) {
-            newSubscription.planId = plan.id;
-            newSubscription.discount = plan.orderDiscount;
-            // Apply order discount
-            newSubscription.totalAmount = Math.max(
-                0,
-                newSubscription.totalAmount - plan.orderDiscount + plan.monthlyFee,
-            );
+            const response = await apiRequest(SUBSCRIPTIONS_ENDPOINT, {
+                method: 'POST',
+                body: JSON.stringify(data),
+            });
+
+            console.log('New subscription created:', response.data);
+            return response.data;
+        } catch (error) {
+            console.error('Error creating subscription:', error);
+            throw error;
         }
-
-        console.log('New subscription created:', newSubscription);
-        this.subscriptions.push(newSubscription);
-        console.log('Total subscriptions after creation:', this.subscriptions.length);
-        console.log(
-            'All subscriptions:',
-            this.subscriptions.map((s) => ({
-                id: s.id,
-                customerId: s.customerId,
-                status: s.status,
-            })),
-        );
-
-        return newSubscription;
     }
 
     // Get Subscriptions
-    getCustomerSubscriptions(customerId: string): Subscription[] {
+    async getCustomerSubscriptions(customerId: string): Promise<Subscription[]> {
         console.log('Getting subscriptions for customer:', customerId);
-        console.log(
-            'All subscriptions:',
-            this.subscriptions.map((s) => ({
-                id: s.id,
-                customerId: s.customerId,
-                status: s.status,
-            })),
-        );
-        const customerSubs = this.subscriptions.filter((sub) => sub.customerId === customerId);
-        console.log(
-            'Customer subscriptions found:',
-            customerSubs.map((s) => ({ id: s.id, status: s.status })),
-        );
-        return customerSubs;
+        
+        try {
+            const response = await apiRequest(`${SUBSCRIPTIONS_ENDPOINT}/customer/${customerId}`);
+            console.log('Customer subscriptions found:', response.data);
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching customer subscriptions:', error);
+            return [];
+        }
     }
 
-    getActiveSubscriptions(customerId: string): Subscription[] {
-        return this.subscriptions.filter(
-            (sub) => sub.customerId === customerId && sub.isActive && sub.status === 'active',
-        );
+    async getActiveSubscriptions(customerId: string): Promise<Subscription[]> {
+        try {
+            const response = await apiRequest(`${SUBSCRIPTIONS_ENDPOINT}/customer/${customerId}/active`);
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching active subscriptions:', error);
+            return [];
+        }
     }
 
-    getAllSubscriptions(): Subscription[] {
-        return this.subscriptions;
+    async getAllSubscriptions(): Promise<Subscription[]> {
+        try {
+            const response = await apiRequest(SUBSCRIPTIONS_ENDPOINT);
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching all subscriptions:', error);
+            return [];
+        }
     }
 
-    getSubscription(subscriptionId: string): Subscription | undefined {
-        return this.subscriptions.find((sub) => sub.id === subscriptionId);
+    async getSubscription(subscriptionId: string): Promise<Subscription | undefined> {
+        try {
+            const response = await apiRequest(`${SUBSCRIPTIONS_ENDPOINT}/${subscriptionId}`);
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching subscription:', error);
+            return undefined;
+        }
     }
 
     // Update Subscription
@@ -337,36 +183,16 @@ class SubscriptionService {
         subscriptionId: string,
         updates: Partial<Subscription>,
     ): Promise<Subscription | null> {
-        const index = this.subscriptions.findIndex((sub) => sub.id === subscriptionId);
-        if (index === -1) return null;
-
-        this.subscriptions[index] = {
-            ...this.subscriptions[index],
-            ...updates,
-            updatedAt: new Date(),
-        };
-
-        // Recalculate total if products or frequency changed
-        if (updates.products || updates.frequency) {
-            const subscription = this.subscriptions[index];
-            subscription.totalAmount = this.calculateSubscriptionTotal(
-                subscription.products,
-                subscription.frequency,
-            );
-
-            // Apply plan discount
-            if (subscription.planId) {
-                const plan = this.getSubscriptionPlan(subscription.planId);
-                if (plan) {
-                    subscription.totalAmount = Math.max(
-                        0,
-                        subscription.totalAmount - plan.orderDiscount + plan.monthlyFee,
-                    );
-                }
-            }
+        try {
+            const response = await apiRequest(`${SUBSCRIPTIONS_ENDPOINT}/${subscriptionId}`, {
+                method: 'PUT',
+                body: JSON.stringify(updates),
+            });
+            return response.data;
+        } catch (error) {
+            console.error('Error updating subscription:', error);
+            return null;
         }
-
-        return this.subscriptions[index];
     }
 
     // Pause/Resume Subscription
@@ -375,57 +201,57 @@ class SubscriptionService {
         reason?: string,
         pauseUntil?: Date,
     ): Promise<boolean> {
-        const subscription = this.getSubscription(subscriptionId);
-        if (!subscription) return false;
-
-        subscription.status = 'paused';
-        subscription.pauseReason = reason;
-        subscription.pausedUntil = pauseUntil;
-        subscription.updatedAt = new Date();
-
-        return true;
+        try {
+            await apiRequest(`${SUBSCRIPTIONS_ENDPOINT}/${subscriptionId}/pause`, {
+                method: 'POST',
+                body: JSON.stringify({ reason, pauseUntil }),
+            });
+            return true;
+        } catch (error) {
+            console.error('Error pausing subscription:', error);
+            return false;
+        }
     }
 
     async resumeSubscription(subscriptionId: string): Promise<boolean> {
-        const subscription = this.getSubscription(subscriptionId);
-        if (!subscription) return false;
-
-        subscription.status = 'active';
-        subscription.pauseReason = undefined;
-        subscription.pausedUntil = undefined;
-        subscription.nextDelivery = this.calculateNextDelivery(subscription.frequency);
-        subscription.updatedAt = new Date();
-
-        return true;
+        try {
+            await apiRequest(`${SUBSCRIPTIONS_ENDPOINT}/${subscriptionId}/resume`, {
+                method: 'POST',
+            });
+            return true;
+        } catch (error) {
+            console.error('Error resuming subscription:', error);
+            return false;
+        }
     }
 
     // Cancel Subscription
     async cancelSubscription(subscriptionId: string, reason?: string): Promise<boolean> {
-        const subscription = this.getSubscription(subscriptionId);
-        if (!subscription) return false;
-
-        subscription.isActive = false;
-        subscription.status = 'cancelled';
-        subscription.cancelReason = reason;
-        subscription.cancelledAt = new Date();
-        subscription.updatedAt = new Date();
-
-        return true;
+        try {
+            await apiRequest(`${SUBSCRIPTIONS_ENDPOINT}/${subscriptionId}/cancel`, {
+                method: 'POST',
+                body: JSON.stringify({ reason }),
+            });
+            return true;
+        } catch (error) {
+            console.error('Error cancelling subscription:', error);
+            return false;
+        }
     }
 
     // Delivery Management
-    getUpcomingDeliveries(customerId?: string): Subscription[] {
-        let subscriptions = this.subscriptions.filter(
-            (sub) => sub.isActive && sub.status === 'active',
-        );
-
-        if (customerId) {
-            subscriptions = subscriptions.filter((sub) => sub.customerId === customerId);
+    async getUpcomingDeliveries(customerId?: string): Promise<Subscription[]> {
+        try {
+            const url = customerId 
+                ? `${SUBSCRIPTIONS_ENDPOINT}/deliveries/upcoming?customerId=${customerId}`
+                : `${SUBSCRIPTIONS_ENDPOINT}/deliveries/upcoming`;
+            
+            const response = await apiRequest(url);
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching upcoming deliveries:', error);
+            return [];
         }
-
-        return subscriptions
-            .filter((sub) => sub.nextDelivery && sub.nextDelivery > new Date())
-            .sort((a, b) => a.nextDelivery!.getTime() - b.nextDelivery!.getTime());
     }
 
     async processDelivery(
@@ -436,197 +262,121 @@ class SubscriptionService {
             deliveryNotes?: string;
         },
     ): Promise<boolean> {
-        const subscription = this.getSubscription(subscriptionId);
-        if (!subscription) return false;
-
-        // Add to delivery history
-        const delivery = {
-            id: `DEL-${Date.now()}`,
-            deliveryDate: new Date(),
-            status: 'delivered' as const,
-            trackingNumber: deliveryData.trackingNumber,
-            deliveredBy: deliveryData.deliveredBy,
-            notes: deliveryData.deliveryNotes,
-        };
-
-        if (!subscription.deliveryHistory) {
-            subscription.deliveryHistory = [];
+        try {
+            await apiRequest(`${SUBSCRIPTIONS_ENDPOINT}/${subscriptionId}/delivery`, {
+                method: 'POST',
+                body: JSON.stringify(deliveryData),
+            });
+            return true;
+        } catch (error) {
+            console.error('Error processing delivery:', error);
+            return false;
         }
-        subscription.deliveryHistory.push(delivery);
-
-        // Calculate next delivery
-        subscription.nextDelivery = this.calculateNextDelivery(subscription.frequency);
-        subscription.updatedAt = new Date();
-
-        return true;
     }
 
     // Analytics
-    getSubscriptionAnalytics(): SubscriptionAnalytics {
-        const activeSubscriptions = this.subscriptions.filter((sub) => sub.isActive);
-        const pausedSubscriptions = this.subscriptions.filter((sub) => sub.status === 'paused');
-        const cancelledSubscriptions = this.subscriptions.filter(
-            (sub) => sub.status === 'cancelled',
-        );
-
-        const totalRevenue = this.subscriptions.reduce((sum, sub) => sum + sub.totalAmount, 0);
-        const monthlyRevenue = activeSubscriptions
-            .filter((sub) => sub.frequency === 'monthly')
-            .reduce((sum, sub) => sum + sub.totalAmount, 0);
-
-        const frequencyBreakdown = this.subscriptions.reduce(
-            (acc, sub) => {
-                acc[sub.frequency] = (acc[sub.frequency] || 0) + 1;
-                return acc;
-            },
-            {} as Record<string, number>,
-        );
-
-        // Calculate popular products
-        const productCounts = new Map<string, { count: number; revenue: number; name: string }>();
-        this.subscriptions.forEach((sub) => {
-            sub.products.forEach((product) => {
-                const productData = products.find((p) => p.id.toString() === product.productId);
-                if (productData) {
-                    const existing = productCounts.get(product.productId) || {
-                        count: 0,
-                        revenue: 0,
-                        name: productData.name,
-                    };
-                    existing.count += product.quantity;
-                    existing.revenue += productData.price * product.quantity;
-                    existing.name = productData.name;
-                    productCounts.set(product.productId, existing);
-                }
-            });
-        });
-
-        const popularProducts = Array.from(productCounts.entries())
-            .map(([productId, data]) => ({
-                productId,
-                name: data.name,
-                subscriptionCount: data.count,
-                revenue: data.revenue,
-            }))
-            .sort((a, b) => b.subscriptionCount - a.subscriptionCount)
-            .slice(0, 5);
-
-        return {
-            totalSubscriptions: this.subscriptions.length,
-            activeSubscriptions: activeSubscriptions.length,
-            pausedSubscriptions: pausedSubscriptions.length,
-            cancelledSubscriptions: cancelledSubscriptions.length,
-            totalRevenue,
-            monthlyRecurringRevenue: monthlyRevenue,
-            averageOrderValue: totalRevenue / this.subscriptions.length || 0,
-            customerRetentionRate: 85.5,
-            churnRate: 14.5,
-            popularProducts,
-            frequencyBreakdown,
-            upcomingDeliveries: this.getUpcomingDeliveries().length,
-        };
+    async getSubscriptionAnalytics(): Promise<SubscriptionAnalytics> {
+        try {
+            const response = await apiRequest(`${SUBSCRIPTIONS_ENDPOINT}/analytics/overview`);
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching subscription analytics:', error);
+            // Return default analytics on error
+            return {
+                totalSubscriptions: 0,
+                activeSubscriptions: 0,
+                pausedSubscriptions: 0,
+                cancelledSubscriptions: 0,
+                totalRevenue: 0,
+                monthlyRecurringRevenue: 0,
+                averageOrderValue: 0,
+                customerRetentionRate: 0,
+                churnRate: 0,
+                popularProducts: [],
+                frequencyBreakdown: {},
+                upcomingDeliveries: 0,
+            };
+        }
     }
 
     // Helper Methods
-    private calculateSubscriptionTotal(
+    private async calculateSubscriptionTotal(
         subscriptionProducts: SubscriptionProduct[],
         frequency: string,
-    ): number {
-        return subscriptionProducts.reduce((total, product) => {
-            const productData = products.find((p) => p.id.toString() === product.productId);
-            return total + (productData?.price || 0) * product.quantity;
-        }, 0);
-    }
+    ): Promise<number> {
+        try {
+            // Get product prices from the products API
+            const productPromises = subscriptionProducts.map(async (product) => {
+                const products = await filterProducts({
+                    page: 1,
+                    limit: 1,
+                });
+                const productData = products.products.find((p) => p._id.toString() === product.productId);
+                return (productData?.price || 0) * product.quantity;
+            });
 
-    private calculateNextDelivery(frequency: string, fromDate: Date = new Date()): Date {
-        const nextDelivery = new Date(fromDate);
-
-        switch (frequency) {
-            case 'weekly':
-                nextDelivery.setDate(nextDelivery.getDate() + 7);
-                break;
-            case 'bi-weekly':
-                nextDelivery.setDate(nextDelivery.getDate() + 14);
-                break;
-            case 'monthly':
-                nextDelivery.setMonth(nextDelivery.getMonth() + 1);
-                break;
-            case 'quarterly':
-                nextDelivery.setMonth(nextDelivery.getMonth() + 3);
-                break;
+            const amounts = await Promise.all(productPromises);
+            return amounts.reduce((total, amount) => total + amount, 0);
+        } catch (error) {
+            console.error('Error calculating subscription total:', error);
+            return 0;
         }
-
-        return nextDelivery;
-    }
-
-    private getRecommendedPlan(
-        orderValue: number,
-        frequency: string,
-    ): SubscriptionPlan | undefined {
-        return this.subscriptionPlans.find((plan) => orderValue >= plan.minOrderValue);
     }
 
     // Product Recommendations
-    getRecommendedProducts(customerId: string): Product[] {
-        const customerSubscriptions = this.getCustomerSubscriptions(customerId);
-        const subscribedProductIds = new Set(
-            customerSubscriptions.flatMap((sub) => sub.products.map((p) => p.productId)),
-        );
+    async getRecommendedProducts(customerId: string): Promise<any[]> {
+        try {
+            const customerSubscriptions = await this.getCustomerSubscriptions(customerId);
+            const subscribedProductIds = customerSubscriptions.flatMap((sub) => sub.products.map((p) => p.productId));
 
-        // Get products from same categories as subscribed products
-        const subscribedProducts = products.filter((p) =>
-            subscribedProductIds.has(p.id.toString()),
-        );
+            // Get products from the products API
+            const productsResponse = await filterProducts({
+                page: 1,
+                limit: 50,
+            });
+            const products = productsResponse.products;
 
-        const categories = [...new Set(subscribedProducts.map((p) => p.category))];
+            // Get products from same categories as subscribed products
+            const subscribedProducts = products.filter((p) =>
+                subscribedProductIds.includes(p._id.toString()),
+            );
 
-        return products
-            .filter(
-                (p) =>
-                    categories.includes(p.category) &&
-                    !subscribedProductIds.has(p.id.toString()) &&
-                    p.availability.inStock,
-            )
-            .slice(0, 6);
+            const categories = Array.from(new Set(subscribedProducts.map((p) => p.category)));
+
+            return products
+                .filter(
+                    (p) =>
+                        categories.includes(p.category) &&
+                        !subscribedProductIds.includes(p._id.toString()) &&
+                        p.availability?.inStock,
+                )
+                .slice(0, 6);
+        } catch (error) {
+            console.error('Error getting recommended products:', error);
+            return [];
+        }
     }
 
     // Subscription Conversion
-    convertCartToSubscription(cartItems: any[], frequency: string): CreateSubscriptionData {
+    async convertCartToSubscription(cartItems: any[], frequency: string): Promise<CreateSubscriptionData> {
         const products: SubscriptionProduct[] = cartItems.map((item) => ({
             productId: item.productId.toString(),
-            pharmacyId: item.pharmacyId,
             quantity: item.quantity,
             unitType: 'box',
         }));
 
+        // Get current user ID
+        const customerId = await this.getCurrentUserId();
+        if (!customerId) {
+            throw new Error('Unable to get current user ID');
+        }
+
         return {
-            customerId: 'customer-001', // This would come from auth context
+            customerId,
             products,
             frequency: frequency as any,
             deliveryAddress: '', // This would be filled by user
         };
-    }
-
-    // Debug method to test subscription creation
-    debugCreateTestSubscription(customerId: string): Subscription {
-        console.log('Creating test subscription for customer:', customerId);
-        const testData: CreateSubscriptionData = {
-            customerId,
-            products: [
-                {
-                    productId: '1',
-                    pharmacyId: 'healthplus-ismailia',
-                    quantity: 1,
-                    unitType: 'box',
-                },
-            ],
-            frequency: 'monthly',
-            deliveryAddress: 'Test Address',
-        };
-
-        const subscription = this.createSubscription(testData);
-        console.log('Test subscription created:', subscription);
-        return subscription as any; // Cast to avoid async issues in debug
     }
 }
 

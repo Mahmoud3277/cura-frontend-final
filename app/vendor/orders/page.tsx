@@ -1,14 +1,18 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Cookies from 'js-cookie';
-
 import { providerOrderService } from '@/lib/services/vendorManagementService';
+import { useAuth } from '@/lib/contexts/AuthContext';
+import { getAuthToken } from '@/lib/utils/cookies';
+import { BRAND_COLORS } from '@/lib/constants';
 interface VendorOrder {
+    _id: string;
     id: string;
     orderNumber: string;
     customerName: string;
     customerPhone: string;
+    customerEmail: string;
+    customerId: string;
     deliveryAddress: {
         street: string;
         area: string;
@@ -20,71 +24,103 @@ interface VendorOrder {
         productName: string;
         quantity: number;
         unitPrice: number;
+        totalPrice: number;
         image?: string;
         manufacturer?: string;
+        prescription?: boolean;
+        packagingType?: string;
+        pricePerBlister?: number;
+        pricePerBox?: number;
     }>;
     totalAmount: number;
-    status: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'out-for-delivery' | 'delivered' | 'return-requested' | 'approved' | 'refunded' | 'rejected';
+    status: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'out-for-delivery' | 'delivered' | 'return-requested' | 'approved' | 'refunded' | 'rejected' | 'cancelled';
     createdAt: string;
     paymentMethod: string;
+    paymentStatus: string;
     vendorNotes?: string;
+    assignedTo?: string;
+    isAssigned: boolean;
 }
-
-const BRAND_COLORS = {
-    primary: '#1F1F6F',
-    secondary: '#14274E',
-    accent: '#394867',
-};
 
 export default function VendorOrdersPage() {
     const router = useRouter();
+    const { user } = useAuth();
     const [orders, setOrders] = useState<VendorOrder[]>([]);
     const [filteredOrders, setFilteredOrders] = useState<VendorOrder[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
-    const [VendorId, setVendorId] = useState("");
-    // Mock data for demonstration
-    const getUser = async():Promise<string>=>{
-        const token = Cookies.get('authToken')
-        const user = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/auth/me`,{
-            headers: {
-                'Content-Type': 'application/json',
-                ...(token && { Authorization: `Bearer ${token}` }),
-            },
-        })
-        const data = await user.json()
-        console.log(data)
-        setVendorId(data.data.vendor._id)
-        return data.data.vendor._id;
+    const [vendorData, setVendorData] = useState<any>(null);
+
+    const getUser = async(): Promise<any> => {
+        const token = getAuthToken();
+        if (token) {
+            const user = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/auth/me`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token && { Authorization: `Bearer ${token}` }),
+                },
+            });
+            const data = await user.json();
+            console.log(data);
+            setVendorData(data.data);
+            return data.data.vendor;
+        }
+        return undefined;
     }
+
     const loadData = async() => {
         try {
-            const vendorId = await getUser();
-            // const pharmacyId = await getUser();
-            if(vendorId){
-                const allOrders =await  providerOrderService.getAllOrders({},vendorId);
-                console.log(allOrders.data)
-            setOrders(allOrders.data as VendorOrder[]);
-            setLoading(false);
+            const vendor = await getUser();
+            if (vendor) {
+                const allOrders = await providerOrderService.getAllOrders({}, vendor._id);
+                console.log('all orders', allOrders);
+                if (allOrders && allOrders.data && allOrders.data.length > 0) {
+                    setOrders(allOrders.data as unknown as VendorOrder[]);
+                }
+                setLoading(false);
             }
-            
         } catch (error) {
             console.error('Error loading data:', error);
             setLoading(false);
         }
     };
     useEffect(() => {
-       
+        if (!user || user.role !== 'vendor') {
+            setLoading(false);
+            return;
+        }
+        
         loadData();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
 
-    // Apply filters based on search and exclude delivered orders
+        // Subscribe to order updates
+        const unsubscribeOrders = providerOrderService.subscribe((updatedOrders) => {
+            const currentVendorId = vendorData?.vendor?._id;
+            if (currentVendorId) {
+                const vendorOrders = updatedOrders.filter(
+                    (order) => order.assignedTo === currentVendorId,
+                );
+                setOrders(vendorOrders as unknown as VendorOrder[]);
+            }
+        });
+
+        return () => {
+            unsubscribeOrders();
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user, vendorData]);
+
+    // Apply filters based on search (exclude delivered orders they should only appear in dashboard)
     useEffect(() => {
         let filtered = [...orders];
-
+        console.log('orders, ', orders);
         // Exclude delivered and return-requested orders (they should only appear in dashboard/returns)
-        filtered = filtered.filter((order) => order.status !== 'delivered' && order.status !== 'return-requested');
+        filtered = filtered.filter((order) => 
+            order.status !== 'delivered' && 
+            order.status !== 'return-requested' &&
+            order.status !== 'approved' &&
+            order.status !== 'rejected' &&
+            order.status !== 'refunded'
+        );
 
         // Apply search
         if (searchQuery.trim()) {
@@ -93,10 +129,11 @@ export default function VendorOrdersPage() {
                 (order) =>
                     order.orderNumber.toLowerCase().includes(query) ||
                     order.customerName.toLowerCase().includes(query) ||
-                    order.customerPhone.includes(query),
+                    order.customerPhone.includes(query) ||
+                    order.customerEmail.toLowerCase().includes(query),
             );
         }
-
+        console.log(filtered, 'filtered orders');
         setFilteredOrders(filtered);
     }, [orders, searchQuery]);
 
@@ -107,6 +144,7 @@ export default function VendorOrdersPage() {
                 alert('Order not found');
                 return;
             }
+            console.log('order', order, newStatus, 'newStatus');
             if (newStatus === 'confirmed') {
                 // Check if order can be accepted
                 if (!providerOrderService.canAcceptOrder(order as any)) {
@@ -122,11 +160,14 @@ export default function VendorOrdersPage() {
                 }
                 // Accept the order
                 await providerOrderService.acceptOrder(orderId);
-                loadData()
+                loadData();
                 // Removed success alert - order acceptance works silently
             } else {
-                await providerOrderService.updateOrderStatus(orderId, newStatus as any);
-                loadData()
+                console.log('updating status');
+                const response = await providerOrderService.updateOrderStatus(orderId, newStatus as any);
+                if (response) {
+                    loadData();
+                }
             }
         } catch (error) {
             console.error('Error updating order status:', error);
@@ -153,6 +194,14 @@ export default function VendorOrdersPage() {
             case 'delivered':
                 return 'bg-emerald-100 text-emerald-800 border-emerald-200';
             case 'cancelled':
+                return 'bg-red-100 text-red-800 border-red-200';
+            case 'return-requested':
+                return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+            case 'approved':
+                return 'bg-blue-100 text-blue-800 border-blue-200';
+            case 'refunded':
+                return 'bg-green-100 text-green-800 border-green-200';
+            case 'rejected':
                 return 'bg-red-100 text-red-800 border-red-200';
             default:
                 return 'bg-gray-100 text-gray-800 border-gray-200';
@@ -192,6 +241,49 @@ export default function VendorOrdersPage() {
                 return null;
         }
     };
+
+    const getStatusLabel = (status: string) => {
+        switch (status) {
+            case 'approved':
+                return 'approved-refunded';
+            case 'return-requested':
+                return 'return-requested';
+            case 'refunded':
+                return 'refunded';
+            case 'rejected':
+                return 'rejected';
+            default:
+                return status.charAt(0).toUpperCase() + status.slice(1).replace('-', ' ');
+        }
+    };
+
+    const getProductImageUrl = (imageData: string | undefined): string => {
+        if (!imageData) {
+            return `https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=50&h=50&fit=crop&crop=center`;
+        }
+
+        // First try regex parsing for the malformed JSON format with single quotes
+        const urlMatch = imageData.match(/url:\s*'([^']+)'/);
+        if (urlMatch && urlMatch[1]) {
+            return urlMatch[1];
+        }
+
+        try {
+            // Try to parse as proper JSON
+            const parsed = JSON.parse(imageData);
+            if (parsed.url) {
+                return parsed.url;
+            }
+        } catch (error) {
+            // If JSON parsing fails, check if it's already a URL
+            if (typeof imageData === 'string' && imageData.startsWith('http')) {
+                return imageData;
+            }
+        }
+
+        // Fallback image
+        return `https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=50&h=50&fit=crop&crop=center`;
+    };
     
     if (loading) {
         return (
@@ -204,6 +296,34 @@ export default function VendorOrdersPage() {
                     ></div>
                     <p className="text-gray-600" data-oid="xy4l3cj">
                         Loading orders...
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
+    if (!user || user.role !== 'vendor') {
+        return (
+            <div className="flex items-center justify-center h-64" data-oid="cnvruqs">
+                <div className="text-center" data-oid="3dhnauu">
+                    <svg
+                        className="w-16 h-16 mx-auto mb-4 text-red-500"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                        data-oid="ez83d62"
+                    >
+                        <path
+                            fillRule="evenodd"
+                            d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                            clipRule="evenodd"
+                            data-oid="bfpq6go"
+                        />
+                    </svg>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2" data-oid="hq.m.q0">
+                        Access Denied
+                    </h3>
+                    <p className="text-gray-600" data-oid="nq0mmwh">
+                        You need to be logged in as a vendor to access this page.
                     </p>
                 </div>
             </div>
@@ -378,8 +498,7 @@ export default function VendorOrdersPage() {
                                                     className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(order.status)}`}
                                                     data-oid="h6ttrle"
                                                 >
-                                                    {order.status.charAt(0).toUpperCase() +
-                                                        order.status.slice(1).replace('-', ' ')}
+                                                    {getStatusLabel(order.status)}
                                                 </span>
                                                 <span
                                                     className="text-lg font-bold text-gray-900"
@@ -413,10 +532,7 @@ export default function VendorOrdersPage() {
                                                             data-oid="hb9_you"
                                                         >
                                                             <img
-                                                                src={
-                                                                    item.image ||
-                                                                    `https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=50&h=50&fit=crop&crop=center`
-                                                                }
+                                                                src={getProductImageUrl(item.image)}
                                                                 alt={item.productName}
                                                                 className="w-full h-full object-cover"
                                                                 onError={(e) => {
@@ -457,6 +573,20 @@ export default function VendorOrdersPage() {
                                                                     Qty: {item.quantity}
                                                                 </span>
                                                             </div>
+                                                            {/* Packaging Information */}
+                                                            {item.packagingType && (
+                                                                <div className="flex items-center justify-between mt-1">
+                                                                    <span className="text-xs text-gray-500">
+                                                                        Package: {item.packagingType}
+                                                                    </span>
+                                                                    {item.pricePerBlister && item.pricePerBox && (
+                                                                        <div className="text-xs text-gray-500">
+                                                                            <span>Blister: EGP {item.pricePerBlister}</span>
+                                                                            <span className="ml-2">Box: EGP {item.pricePerBox}</span>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 ))}

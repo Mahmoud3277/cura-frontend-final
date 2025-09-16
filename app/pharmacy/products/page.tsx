@@ -193,7 +193,9 @@ export default function PharmacyProductsPage() {
                 console.log(inventoryProducts.inventory, 'inven')
                 setProducts(inventoryProducts.inventory)
                 inventoryProducts.inventory.map((supplier)=>{
-                    setsuppliers((e)=>[...e, supplier.productId.Manufacturer])
+                    if (supplier.productId?.Manufacturer) {
+                        setsuppliers((e)=>[...e, supplier.productId.Manufacturer])
+                    }
                 })
             }
             setLoading(false);

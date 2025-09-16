@@ -4,7 +4,6 @@ import { getAuthToken } from '../utils/cookies';
 
 import { createContext, useContext, useReducer, useEffect, ReactNode, useCallback } from 'react';
 import { useAuth } from './AuthContext';
-import { User } from '../types';
 
 // Updated Product type based on your actual product structure
 interface Product {
@@ -24,6 +23,8 @@ interface Product {
   form: string;
   unit: string;
   packSize: string;
+  pricePerBlister?: number;
+  pricePerBox?: number;
   route: string;
   frequency: string;
   instructions: string;
@@ -128,6 +129,9 @@ interface CartItem {
   activeIngredient: string;
   dosage: string;
   packSize: string;
+  packagingType: 'blister' | 'box' | 'bottle' | 'tube' | 'vial' | 'ampoule';
+  pricePerBlister?: number;
+  pricePerBox?: number;
   deliveryFee: number;
   estimatedDeliveryTime: string;
   maxQuantity: number;
@@ -179,7 +183,7 @@ interface CartContextType extends CartState {
   removeItem: (itemId: string) => Promise<void>;
   updateQuantity: (itemId: string, quantity: number) => Promise<void>;
   clearCart: () => Promise<void>;
-  applyPromoCode: (code: string) => boolean;
+  applyPromoCode: (code: string) => Promise<boolean>;
   removePromoCode: () => void;
   getItemQuantity: (productId: string, pharmacyId: string) => number;
   isInCart: (productId: string, pharmacyId: string) => boolean;
@@ -197,30 +201,7 @@ interface CartContextType extends CartState {
   loadCartFromServer: () => Promise<void>;
 }
 
-// Available promo codes
-const PROMO_CODES: Record<string, PromoCode> = {
-  SAVE10: {
-    code: 'SAVE10',
-    discount: 0.1,
-    description: '10% off your order',
-    minOrderAmount: 50,
-    maxDiscount: 50,
-  },
-  WELCOME15: {
-    code: 'WELCOME15',
-    discount: 0.15,
-    description: '15% off for new customers',
-    minOrderAmount: 100,
-    maxDiscount: 75,
-  },
-  HEALTH20: {
-    code: 'HEALTH20',
-    discount: 0.2,
-    description: '20% off health supplements',
-    minOrderAmount: 75,
-    maxDiscount: 100,
-  },
-};
+// Promo codes are now loaded dynamically from backend
 
 // Initial State
 const initialState: CartState = {
@@ -257,7 +238,9 @@ function calculateTotals(
   // Calculate discount
   let discount = 0;
   if (appliedPromo && subtotal >= (appliedPromo.minOrderAmount || 0)) {
-    discount = Math.min(subtotal * appliedPromo.discount, appliedPromo.maxDiscount || Infinity);
+    // Convert percentage to decimal if needed
+    const discountRate = appliedPromo.discount > 1 ? appliedPromo.discount / 100 : appliedPromo.discount;
+    discount = Math.min(subtotal * discountRate, appliedPromo.maxDiscount || Infinity);
   }
 
   const total = subtotal + deliveryFee - discount;
@@ -328,6 +311,9 @@ function createCartItem(product: Product, pharmacyStock: PharmacyStock | null, q
     activeIngredient: product.activeIngredient,
     dosage: product.dosage,
     packSize: product.packSize,
+    packagingType: 'box', // Default packaging type
+    pricePerBlister: product.pricePerBlister,
+    pricePerBox: product.pricePerBox,
     deliveryFee: stockData.deliveryFee,
     estimatedDeliveryTime: stockData.estimatedDeliveryTime,
     maxQuantity: stockData.quantity,
@@ -450,13 +436,15 @@ function cartReducer(state: CartState, action: CartAction): CartState {
 
     case 'UPDATE_QUANTITY': {
       const { id, quantity } = action.payload;
-      console.log(`Updating quantity for ${id}: ${quantity}`);
+      console.log(`🔄 [REDUCER] UPDATE_QUANTITY for ${id}: ${quantity}`);
+      console.log(`🔄 [REDUCER] Current state items:`, state.items.map(i => ({ id: i.id, quantity: i.quantity })));
 
       if (quantity <= 0) {
         // Remove item if quantity is 0 or less
-        console.log('Removing item due to zero quantity');
+        console.log('🗑️ [REDUCER] Removing item due to zero quantity');
         const newItems = state.items.filter((item) => item.id !== id);
         const totals = calculateTotals(newItems, state.appliedPromo);
+        console.log(`🗑️ [REDUCER] Items after removal:`, newItems.map(i => ({ id: i.id, quantity: i.quantity })));
 
         return {
           ...state,
@@ -472,6 +460,8 @@ function cartReducer(state: CartState, action: CartAction): CartState {
       );
 
       const totals = calculateTotals(newItems, state.appliedPromo);
+      console.log(`✅ [REDUCER] Items after quantity update:`, newItems.map(i => ({ id: i.id, quantity: i.quantity })));
+      console.log(`✅ [REDUCER] New totals:`, totals);
 
       return {
         ...state,
@@ -605,7 +595,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
       const data = await response.json();
 
-      if (!response) {
+      if (!response.ok) {
         throw new Error(data.message || `HTTP ${response.status}: ${response.statusText}`);
       }
 
@@ -629,15 +619,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
         // Convert server cart format to local cart format
         const serverCart = response.data;
         const cartItems: CartItem[] = serverCart.items?.map((item: any) => ({
-          id: `${item.productId._id}-${item.pharmacyId}`,
+          id: `${item.productId._id} || item.pharmacyId}`,
           productId: item.productId._id,
           name: item.productName || item.productId.name,
           nameAr: item.productId.nameAr || '',
           price: item.price,
           originalPrice: item.originalPrice,
           quantity: item.quantity,
-          pharmacy: item.pharmacyName,
-          pharmacyId: item.pharmacyId,
+          pharmacy: item.pharmacyId.pharmacyName || item.pharmacyId.name,
+          pharmacyId: item.pharmacyId._id,
           cityId: item.productId.cityId || '',
           governorateId: item.productId.governorateId || '',
           image: item.image || (item.productId.images && item.productId.images.length > 0 ? item.productId.images[0].url : '/placeholder-medicine.png'),
@@ -649,6 +639,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           activeIngredient: item.productId.activeIngredient || '',
           dosage: item.productId.dosage || '',
           packSize: item.productId.packSize || '',
+          packagingType:item.packagingType,
           deliveryFee: 15, // Default delivery fee
           estimatedDeliveryTime: '2-3 hours',
           maxQuantity: 99,
@@ -659,13 +650,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
           prescription:item.prescription
         })) || [];
 
-        const totals = calculateTotals(cartItems);
+        // Preserve the current applied promo when loading cart from server
+        const totals = calculateTotals(cartItems, state.appliedPromo);
         console.log(response, 'cart items saad')
         dispatch({ 
           type: 'LOAD_CART', 
           payload: {
             items: cartItems,
-            appliedPromo: undefined,
+            appliedPromo: state.appliedPromo, // Preserve current promo code
             prescriptionMetadata: {},
             ...totals,
           }
@@ -808,48 +800,81 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   // Update item quantity with API sync
   const updateQuantity = useCallback(async (itemId: string, quantity: number) => {
-    console.log(`Updating quantity for ${itemId}: ${quantity}`);
+    console.log(`🔄 [UPDATE_QUANTITY] Starting update for itemId: ${itemId}, new quantity: ${quantity}`);
+    console.log(`🔄 [UPDATE_QUANTITY] Current cart items:`, state.items.map(i => ({ id: i.id, quantity: i.quantity })));
     
     // Find the item to get productId and pharmacyId
     const item = state.items.find(item => item.id === itemId);
     if (!item) {
-      console.error('Item not found in cart:', itemId);
+      console.error('❌ [UPDATE_QUANTITY] Item not found in cart:', itemId);
       return;
     }
 
+    console.log(`🔄 [UPDATE_QUANTITY] Found item:`, { 
+      id: item.id, 
+      productId: item.productId, 
+      pharmacyId: item.pharmacyId, 
+      currentQuantity: item.quantity,
+      fullItem: item
+    });
+
     // Optimistic update - update local state first
+    console.log(`🔄 [UPDATE_QUANTITY] Dispatching optimistic update...`);
     dispatch({ type: 'UPDATE_QUANTITY', payload: { id: itemId, quantity } });
-    console.log('Item quantity updated in local cart');
+    console.log(`✅ [UPDATE_QUANTITY] Optimistic update dispatched`);
 
     // Sync with server if user is authenticated
     if (user) {
       try {
+        console.log(`🌐 [UPDATE_QUANTITY] User authenticated, syncing with server...`);
         dispatch({ type: 'SET_LOADING', payload: true });
         dispatch({ type: 'SET_ERROR', payload: undefined });
         
+        // Extract productId from combined cart item ID (format: productId-pharmacyId)
+        const productId = itemId.split('-')[0];
+        
+        const requestBody = {
+          productId,
+          quantity,
+        };
+        
+        console.log(`🔍 [UPDATE_QUANTITY] Request data:`, { 
+          itemId,
+          productId,
+          quantity
+        });
+        console.log(`🌐 [UPDATE_QUANTITY] API request body:`, requestBody);
+        
         const response = await apiCall('/cart/update', {
           method: 'PUT',
-          body: JSON.stringify({
-            productId: item.productId,
-            pharmacyId: item.pharmacyId,
-            quantity,
-          }),
+          body: JSON.stringify(requestBody),
         });
+
+        console.log(`🌐 [UPDATE_QUANTITY] API response:`, response);
 
         if (!response.success) {
           throw new Error(response.message);
         }
         
-        console.log('Item quantity update synced with server');
+        console.log(`✅ [UPDATE_QUANTITY] Server sync successful`);
+        
+        // Reload cart from server to ensure consistency
+        await loadCartFromServer();
+        console.log(`✅ [UPDATE_QUANTITY] Cart reloaded from server`);
+        
       } catch (error: any) {
-        console.error('Error syncing quantity update with server:', error);
+        console.error('❌ [UPDATE_QUANTITY] Error syncing with server:', error);
         dispatch({ type: 'SET_ERROR', payload: error.message });
-        // TODO: You might want to revert the optimistic update here
+        // Revert optimistic update on error
+        console.log(`🔄 [UPDATE_QUANTITY] Reverting optimistic update...`);
+        dispatch({ type: 'UPDATE_QUANTITY', payload: { id: itemId, quantity: item.quantity } });
       } finally {
         dispatch({ type: 'SET_LOADING', payload: false });
       }
+    } else {
+      console.log(`ℹ️ [UPDATE_QUANTITY] User not authenticated, local update only`);
     }
-  }, [state.items, user, apiCall]);
+  }, [state.items, user, apiCall, loadCartFromServer]);
 
   // Clear entire cart with API sync
   const clearCart = useCallback(async () => {
@@ -884,18 +909,44 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, [user, apiCall]);
 
-  // Apply promo code (local only - no API sync needed)
-  const applyPromoCode = useCallback((code: string): boolean => {
+  // Apply promo code (dynamic API call)
+  const applyPromoCode = useCallback(async (code: string): Promise<boolean> => {
     console.log('Applying promo code:', code);
-    const promoCode = PROMO_CODES[code.toUpperCase()];
-    if (promoCode && state.subtotal >= (promoCode.minOrderAmount || 0)) {
-      dispatch({ type: 'APPLY_PROMO', payload: promoCode });
-      console.log('Promo code applied successfully');
-      return true;
+    
+    try {
+      dispatch({ type: 'SET_LOADING', payload: true });
+      
+      const response = await apiCall('/promo-codes/validate', {
+        method: 'POST',
+        body: JSON.stringify({
+          promoCode: code,
+          orderTotal: state.subtotal
+        })
+      });
+
+      if (response.success) {
+        const promoData = {
+          code: response.data.promoCode,
+          discount: response.data.discountPercentage / 100, // Convert percentage to decimal
+          minOrderAmount: response.data.minimumOrder,
+          description: `${response.data.discountPercentage}% off`,
+          maxDiscount: response.data.maxDiscount || Infinity
+        };
+        
+        dispatch({ type: 'APPLY_PROMO', payload: promoData });
+        console.log('Promo code applied successfully:', response.message);
+        return true;
+      } else {
+        console.log('Promo code validation failed:', response.error);
+        return false;
+      }
+    } catch (error) {
+      console.error('Error applying promo code:', error);
+      return false;
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: false });
     }
-    console.log('Invalid promo code or minimum order not met');
-    return false;
-  }, [state.subtotal]);
+  }, [state.subtotal, apiCall]);
 
   // Remove promo code (local only)
   const removePromoCode = useCallback(() => {
@@ -967,7 +1018,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
     const selectedItems = state.items.map(item => ({
       medicineId: item.productId,
-      pharmacyId: item.pharmacyId,
+      pharmacyId: item.pharmacyId ? item.pharmacyId : null,
+      vendorId:item.vendorId ? item.vendorId : null,
       quantity: item.quantity,
       price: item.price,
       pharmacyName:item.pharmacy,
@@ -978,7 +1030,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
       items: selectedItems,
       deliveryAddress,
       useCredits,
-      prescriptionVerified:selectedItems.prescription ? true : false
+      prescriptionVerified:selectedItems.prescription ? true : false,
+      appliedPromo: state.appliedPromo,
+      discount: state.discount,
+      total: state.total,
+      subtotal: state.subtotal,
+      deliveryFee: state.deliveryFee,
+      totalAmount: state.total
     };
 
     try {

@@ -370,11 +370,11 @@ const Page = memo(function Page() {
                         <div className="mt-2 flex-grow flex flex-col justify-end">
                             <div className="flex items-center space-x-2">
                                 <span className="text-cura-primary font-bold text-base">
-                                    {formatPrice(product?.priceReference || product.overallAveragePrice)}
+                                    {formatPrice(product?.overallLowestPrice)}
                                 </span>
                                 {product.originalPrice && product.originalPrice > product.price && (
                                     <span className="text-gray-400 text-xs line-through">
-                                        {formatPrice(product.originalPrice)}
+                                        {formatPrice(product.overallHighestPrice)}
                                     </span>
                                 )}
                             </div>

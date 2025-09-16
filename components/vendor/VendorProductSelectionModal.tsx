@@ -31,6 +31,8 @@ interface VendorProductSelectionModalProps {
 interface InventoryData {
     stock: number;
     price: number;
+    pricePerBlister?: number;
+    pricePerBox?: number;
     expiryDate: string;
     batchNumber: string;
     minStockThreshold: number;
@@ -49,6 +51,8 @@ export function VendorProductSelectionModal({
     const [inventoryData, setInventoryData] = useState<InventoryData>({
         stock: 0,
         price: 0,
+        pricePerBlister: undefined,
+        pricePerBox: undefined,
         expiryDate: '',
         batchNumber: '',
         minStockThreshold: 10,
@@ -146,7 +150,9 @@ export function VendorProductSelectionModal({
                 productId: product._id,
                 productName: product.name,
                 sku: inventoryData.batchNumber || `SKU-${product.id}-${Date.now()}`,
-                price: parseFloat(inventoryData.price),
+                price: inventoryData.pricePerBox || inventoryData.price,
+                pricePerBlister: inventoryData.pricePerBlister,
+                pricePerBox: inventoryData.pricePerBox || inventoryData.price,
                 originalPrice: getProductPrice(product),
                 stockQuantity: parseInt(inventoryData.stock),
                 minimumOrderQuantity: 1,
@@ -154,7 +160,9 @@ export function VendorProductSelectionModal({
                 deliveryTime: "1-2 days",
                 deliveryFee: 0,
                 specialOffers: [],
-                bulkPricing: []
+                bulkPricing: [],
+                expiryDate: inventoryData.expiryDate,
+                batchNumber: inventoryData.batchNumber
             };
             console.log('adding product', productPayload)
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/vendors/add-product/${vendorId}`, {
@@ -204,6 +212,8 @@ export function VendorProductSelectionModal({
         setInventoryData({
             stock: 0,
             price: 0,
+            pricePerBlister: undefined,
+            pricePerBox: undefined,
             expiryDate: '',
             batchNumber: '',
             minStockThreshold: 10,
@@ -572,25 +582,49 @@ export function VendorProductSelectionModal({
                                         className="block text-sm font-medium text-gray-700 mb-2"
                                         data-oid="lay42o_"
                                     >
-                                        Price (EGP) *
+                                        Box Price (EGP) *
                                     </label>
                                     <Input
                                         type="number"
                                         min="0"
                                         step="0.01"
-                                        value={inventoryData.price === 0 ? '' : inventoryData.price}
+                                        value={inventoryData.pricePerBox || inventoryData.price || ''}
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+                                            setInventoryData((prev) => ({
+                                                ...prev,
+                                                pricePerBox: value ? parseFloat(value) : 0,
+                                                price: value ? parseFloat(value) : 0, // Keep for backward compatibility
+                                            }));
+                                        }}
+                                        placeholder="Enter box price"
+                                        className="border-[#1F1F6F]/20 focus:border-[#1F1F6F]"
+                                        data-oid="53yz67v"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label
+                                        className="block text-sm font-medium text-gray-700 mb-2"
+                                    >
+                                        Blister Price (EGP)
+                                    </label>
+                                    <Input
+                                        type="number"
+                                        min="0"
+                                        step="0.01"
+                                        value={inventoryData.pricePerBlister || ''}
                                         onChange={(e) =>
                                             setInventoryData((prev) => ({
                                                 ...prev,
-                                                price:
+                                                pricePerBlister:
                                                     e.target.value === ''
-                                                        ? 0
+                                                        ? undefined
                                                         : parseFloat(e.target.value) || 0,
                                             }))
                                         }
-                                        placeholder="Enter price"
+                                        placeholder="Enter blister price (optional)"
                                         className="border-[#1F1F6F]/20 focus:border-[#1F1F6F]"
-                                        data-oid="53yz67v"
                                     />
                                 </div>
 

@@ -76,7 +76,6 @@ const Header = memo(function Header({ className = '', variant = 'default' }: Hea
     // Memoize user info to prevent re-renders
     const userInfo = useMemo(() => {
         if (!user) return null;
-        loadCartFromServer();
         return {
             initial: user.name.charAt(0).toUpperCase(),
             name: user.name,

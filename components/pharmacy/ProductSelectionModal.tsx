@@ -31,6 +31,8 @@ interface ProductSelectionModalProps {
 interface InventoryData {
     stock: number;
     price: number;
+    pricePerBlister?: number;
+    pricePerBox?: number;
     expiryDate: string;
     batchNumber: string;
     minStockThreshold: number;
@@ -49,6 +51,8 @@ export function ProductSelectionModal({
     const [inventoryData, setInventoryData] = useState<InventoryData>({
         stock: 0,
         price: 0,
+        pricePerBlister: 0,
+        pricePerBox: 0,
         expiryDate: '',
         batchNumber: '',
         minStockThreshold: 10,
@@ -144,6 +148,8 @@ export function ProductSelectionModal({
                 productName: product.name,
                 sku: inventoryData.batchNumber || `SKU-${product.id}-${Date.now()}`,
                 price: parseFloat(inventoryData.price),
+                pricePerBlister: inventoryData.pricePerBlister ? parseFloat(inventoryData.pricePerBlister) : undefined,
+                pricePerBox: inventoryData.pricePerBox ? parseFloat(inventoryData.pricePerBox) : undefined,
                 originalPrice: getProductPrice(product),
                 stockQuantity: parseInt(inventoryData.stock),
                 minimumOrderQuantity: 1,
@@ -593,6 +599,60 @@ export function ProductSelectionModal({
                                         placeholder="Enter price"
                                         className="border-[#1F1F6F]/20 focus:border-[#1F1F6F]"
                                         data-oid="53yz67v"
+                                    />
+                                </div>
+
+                                <div data-oid="pricePerBlister">
+                                    <label
+                                        className="block text-sm font-medium text-gray-700 mb-2"
+                                        data-oid="blister-label"
+                                    >
+                                        Price per Blister (EGP)
+                                    </label>
+                                    <Input
+                                        type="number"
+                                        min="0"
+                                        step="0.01"
+                                        value={inventoryData.pricePerBlister === 0 ? '' : inventoryData.pricePerBlister}
+                                        onChange={(e) =>
+                                            setInventoryData((prev) => ({
+                                                ...prev,
+                                                pricePerBlister:
+                                                    e.target.value === ''
+                                                        ? 0
+                                                        : parseFloat(e.target.value) || 0,
+                                            }))
+                                        }
+                                        placeholder="Enter price per blister"
+                                        className="border-[#1F1F6F]/20 focus:border-[#1F1F6F]"
+                                        data-oid="blister-input"
+                                    />
+                                </div>
+
+                                <div data-oid="pricePerBox">
+                                    <label
+                                        className="block text-sm font-medium text-gray-700 mb-2"
+                                        data-oid="box-label"
+                                    >
+                                        Price per Box (EGP)
+                                    </label>
+                                    <Input
+                                        type="number"
+                                        min="0"
+                                        step="0.01"
+                                        value={inventoryData.pricePerBox === 0 ? '' : inventoryData.pricePerBox}
+                                        onChange={(e) =>
+                                            setInventoryData((prev) => ({
+                                                ...prev,
+                                                pricePerBox:
+                                                    e.target.value === ''
+                                                        ? 0
+                                                        : parseFloat(e.target.value) || 0,
+                                            }))
+                                        }
+                                        placeholder="Enter price per box"
+                                        className="border-[#1F1F6F]/20 focus:border-[#1F1F6F]"
+                                        data-oid="box-input"
                                     />
                                 </div>
 

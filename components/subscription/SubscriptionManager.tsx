@@ -36,11 +36,14 @@ export function SubscriptionManager({ customerId }: SubscriptionManagerProps) {
         try {
             setLoading(true);
             console.log('Loading subscriptions for customer:', customerId);
-            const customerSubscriptions = subscriptionService.getCustomerSubscriptions(customerId);
+            const customerSubscriptions = await subscriptionService.getCustomerSubscriptions(customerId);
             console.log('Loaded subscriptions:', customerSubscriptions);
-            setSubscriptions(customerSubscriptions);
+            // Ensure we have an array, fallback to empty array if null/undefined
+            setSubscriptions(Array.isArray(customerSubscriptions) ? customerSubscriptions : []);
         } catch (error) {
             console.error('Error loading subscriptions:', error);
+            // Set empty array on error to prevent filter issues
+            setSubscriptions([]);
         } finally {
             setLoading(false);
         }
@@ -48,10 +51,13 @@ export function SubscriptionManager({ customerId }: SubscriptionManagerProps) {
 
     const loadPlans = async () => {
         try {
-            const subscriptionPlans = subscriptionService.getSubscriptionPlans();
-            setPlans(subscriptionPlans);
+            const subscriptionPlans = await subscriptionService.getSubscriptionPlans();
+            // Ensure we have an array, fallback to empty array if null/undefined
+            setPlans(Array.isArray(subscriptionPlans) ? subscriptionPlans : []);
         } catch (error) {
             console.error('Error loading plans:', error);
+            // Set empty array on error
+            setPlans([]);
         }
     };
 
@@ -73,7 +79,7 @@ export function SubscriptionManager({ customerId }: SubscriptionManagerProps) {
         }
     };
 
-    const filteredSubscriptions = subscriptions.filter((sub) => {
+    const filteredSubscriptions = Array.isArray(subscriptions) ? subscriptions.filter((sub) => {
         switch (activeTab) {
             case 'active':
                 return sub.isActive && sub.status === 'active';
@@ -82,9 +88,10 @@ export function SubscriptionManager({ customerId }: SubscriptionManagerProps) {
             default:
                 return true;
         }
-    });
+    }) : [];
 
     const getTabCount = (status: 'active' | 'cancelled') => {
+        if (!Array.isArray(subscriptions)) return 0;
         return subscriptions.filter((sub) => {
             switch (status) {
                 case 'active':

@@ -1059,6 +1059,20 @@ export default function PharmacyOrdersPage() {
                                                                     Qty: {item.quantity}
                                                                 </span>
                                                             </div>
+                                                            {/* Packaging Information */}
+                                                            {item.packagingType && (
+                                                                <div className="flex items-center justify-between mt-1">
+                                                                    <span className="text-xs text-gray-500">
+                                                                        Package: {item.packagingType}
+                                                                    </span>
+                                                                    {item.pricePerBlister && item.pricePerBox && (
+                                                                        <div className="text-xs text-gray-500">
+                                                                            <span>Blister: EGP {item.pricePerBlister}</span>
+                                                                            <span className="ml-2">Box: EGP {item.pricePerBox}</span>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            )}
                                                         </div>
                                                         {item.prescription.length>0 && (
                                                             <div

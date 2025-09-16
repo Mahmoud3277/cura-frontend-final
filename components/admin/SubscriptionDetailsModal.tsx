@@ -1,8 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { products } from '@/lib/data/products';
-import { pharmacies } from '@/lib/data/pharmacies';
 
 interface Subscription {
     id: string;
@@ -14,6 +12,12 @@ interface Subscription {
         pharmacyId: string;
         quantity: number;
         unitType: string;
+        productName?: string;
+        productNameAr?: string;
+        pricePerBox?: number;
+        images?: string[];
+        manufacturer?: string;
+        category?: string;
     }>;
     frequency: 'weekly' | 'bi-weekly' | 'monthly' | 'quarterly';
     nextDelivery: Date;
@@ -78,13 +82,11 @@ export function SubscriptionDetailsModal({
     };
 
     const subscriptionProducts = subscription.products.map((p) => {
-        const product = products.find((prod) => prod.id.toString() === p.productId);
-        const pharmacy = pharmacies.find((pharm) => pharm.id === p.pharmacyId);
         return {
             ...p,
-            productName: product?.name || 'Unknown Product',
-            productPrice: product?.price || 0,
-            pharmacyName: pharmacy?.name || 'Unknown Pharmacy',
+            productName: p.productName || 'Unknown Product',
+            productPrice: p.pricePerBox || 0,
+            pharmacyName: 'Pharmacy', // Will be populated from backend in future
         };
     });
 

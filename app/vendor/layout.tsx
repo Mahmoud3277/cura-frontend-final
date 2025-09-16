@@ -66,24 +66,54 @@ export default function VendorLayout({ children }: VendorLayoutProps) {
         }
     };
     const [totalOrders, settotalOrders] = useState(0);
-    const token = getAuthToken();
-    const getUser = async():Promise<string>=>{
-        const token = Cookies.get('authToken')
-        const user = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/auth/me`,{
-            headers: {
-                'Content-Type': 'application/json',
-                ...(token && { Authorization: `Bearer ${token}` }),
-            },
-        })
-        const data = await user.json()
-        console.log(data)
-        return data.data.user._id;
+    const [totalReturnOrders, settotalReturnOrders] = useState(0);
+    const [vendorData, setVendorData] = useState<any>(null);
+    
+    const getUser = async(): Promise<any> => {
+        const token = getAuthToken();
+        if (token) {
+            const user = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/auth/me`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token && { Authorization: `Bearer ${token}` }),
+                },
+            });
+            const data = await user.json();
+            console.log(data);
+            setVendorData(data.data);
+            return data.data.vendor;
+        }
+        return undefined;
     }
-    const fetchTotalOrders = async()=>{
-        const id = await getUser()
-        const data = await providerOrderService.getAllOrders({}, id)
-        console.log(data)
-        settotalOrders(data.pagination.totalRecords)
+    
+    const fetchTotalOrders = async() => {
+        const vendor = await getUser();
+        if (vendor) {
+            console.log('getting orders for vendor:', vendor);
+            console.log('vendor._id:', vendor._id);
+            const data = await providerOrderService.getAllOrders({}, vendor._id);
+            console.log('order : ',data);
+            if (data) {
+                // Filter orders that are not delivered and not in return process
+                const activeOrders = data.data.filter((order: any) =>
+                    order.status !== "delivered" &&
+                    order.status !== "approved" &&
+                    order.status !== "rejected" &&
+                    order.status !== "refunded" &&
+                    order.status !== "return-requested"
+                );
+                settotalOrders(activeOrders.length);
+
+                // Count return-related orders
+                const returnOrders = data.data.filter((order: any) =>
+                    order.status === "approved" ||
+                    order.status === "rejected" ||
+                    order.status === "refunded" ||
+                    order.status === "return-requested"
+                );
+                settotalReturnOrders(returnOrders.length);
+            }
+        }
     }
     useEffect(() => {
         fetchTotalOrders()
@@ -91,20 +121,78 @@ export default function VendorLayout({ children }: VendorLayoutProps) {
     }, []);
     const navigation = [
         {
-            name: 'Dashboard',
-            href: '/vendor/dashboard',
-            current: pathname === '/vendor/dashboard',
-        },
-        {
             name: 'Orders',
             href: '/vendor/orders',
             badge: totalOrders,
             current: pathname === '/vendor/orders',
+            icon: (
+                <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    data-oid="1q5rzun"
+                >
+                    <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                        data-oid="ieh3v1-"
+                    />
+                </svg>
+            ),
+        },
+        {
+            name: 'Dashboard',
+            href: '/vendor/dashboard',
+            current: pathname === '/vendor/dashboard',
+            icon: (
+                <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    data-oid="171u5t4"
+                >
+                    <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"
+                        data-oid="63t:1.:"
+                    />
+                    <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 5a2 2 0 012-2h4a2 2 0 012 2v6H8V5z"
+                        data-oid="9tdv15f"
+                    />
+                </svg>
+            ),
         },
         {
             name: 'Products',
             href: '/vendor/products',
             current: pathname === '/vendor/products',
+            icon: (
+                <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    data-oid="dph743u"
+                >
+                    <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                        data-oid="t6oxof3"
+                    />
+                </svg>
+            ),
         },
     ];
 
@@ -190,7 +278,7 @@ export default function VendorLayout({ children }: VendorLayoutProps) {
                                                 className="text-white text-sm font-semibold"
                                                 data-oid="1qt1rbg"
                                             >
-                                                E
+                                                {vendorData?.vendor?.vendorName?.charAt(0)?.toUpperCase() || 'V'}
                                             </span>
                                         </div>
                                         <div
@@ -203,10 +291,10 @@ export default function VendorLayout({ children }: VendorLayoutProps) {
                                             className="text-sm font-semibold text-gray-800"
                                             data-oid="nxv2vuz"
                                         >
-                                            ElectroPlus Vendor
+                                            {vendorData?.vendor?.vendorName || 'Vendor'}
                                         </p>
                                         <p className="text-xs text-gray-500" data-oid=".upl69v">
-                                            Vendor Manager
+                                            {vendorData?.vendor?.vendorType || 'Vendor Manager'}
                                         </p>
                                     </div>
                                     <svg
@@ -241,13 +329,13 @@ export default function VendorLayout({ children }: VendorLayoutProps) {
                                                 className="text-sm font-medium text-gray-900 truncate"
                                                 data-oid="a-6olsv"
                                             >
-                                                ElectroPlus Vendor
+                                                {vendorData?.vendor?.vendorName || 'Vendor'}
                                             </p>
                                             <p
                                                 className="text-xs text-gray-500 truncate"
                                                 data-oid="tqyixr8"
                                             >
-                                                electroplus@vendor.com
+                                                {vendorData?.vendor?.email || vendorData?.user?.email || 'vendor@cura.com'}
                                             </p>
                                         </div>
 
@@ -363,133 +451,64 @@ export default function VendorLayout({ children }: VendorLayoutProps) {
                             {!sidebarCollapsed && 'MAIN MENU'}
                         </div>
                         {navigation.map((item) => (
-                            <button
-                                key={item.name}
-                                onClick={() => router.push(item.href)}
-                                className={`w-full flex items-center px-2 py-2 rounded-lg text-left transition-all duration-200 group ${
-                                    item.current
-                                        ? 'bg-cura-gradient text-white shadow-md'
-                                        : 'text-gray-700 hover:bg-cura-primary/5 hover:text-cura-primary'
-                                }`}
-                                title={sidebarCollapsed ? item.name : undefined}
-                                data-oid="of46eho"
-                            >
-                                {sidebarCollapsed ? (
-                                    <div className="w-full flex justify-center" data-oid="a--yb8z">
-                                        <div
-                                            className="w-6 h-6 flex items-center justify-center"
-                                            data-oid="vjapke5"
-                                        >
-                                            {item.name === 'Orders' && (
-                                                <svg
-                                                    className="w-5 h-5"
-                                                    fill="none"
-                                                    stroke="currentColor"
-                                                    viewBox="0 0 24 24"
-                                                    data-oid=".riyg2."
-                                                >
-                                                    <path
-                                                        strokeLinecap="round"
-                                                        strokeLinejoin="round"
-                                                        strokeWidth={2}
-                                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                                                        data-oid="51jl_0s"
-                                                    />
-                                                </svg>
-                                            )}
-
-                                            {item.name === 'Dashboard' && (
-                                                <svg
-                                                    className="w-5 h-5"
-                                                    fill="none"
-                                                    stroke="currentColor"
-                                                    viewBox="0 0 24 24"
-                                                    data-oid="dxp.jml"
-                                                >
-                                                    <path
-                                                        strokeLinecap="round"
-                                                        strokeLinejoin="round"
-                                                        strokeWidth={2}
-                                                        d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"
-                                                        data-oid=":jq:t7n"
-                                                    />
-
-                                                    <path
-                                                        strokeLinecap="round"
-                                                        strokeLinejoin="round"
-                                                        strokeWidth={2}
-                                                        d="M8 5a2 2 0 012-2h4a2 2 0 012 2v6H8V5z"
-                                                        data-oid="93ekx-v"
-                                                    />
-                                                </svg>
-                                            )}
-                                            {item.name === 'Products' && (
-                                                <svg
-                                                    className="w-5 h-5"
-                                                    fill="none"
-                                                    stroke="currentColor"
-                                                    viewBox="0 0 24 24"
-                                                    data-oid="ajswcik"
-                                                >
-                                                    <path
-                                                        strokeLinecap="round"
-                                                        strokeLinejoin="round"
-                                                        strokeWidth={2}
-                                                        d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-                                                        data-oid="_7re:f4"
-                                                    />
-                                                </svg>
-                                            )}
-                                            {item.name === 'Inventory' && (
-                                                <svg
-                                                    className="w-5 h-5"
-                                                    fill="none"
-                                                    stroke="currentColor"
-                                                    viewBox="0 0 24 24"
-                                                    data-oid="0rqde34"
-                                                >
-                                                    <path
-                                                        strokeLinecap="round"
-                                                        strokeLinejoin="round"
-                                                        strokeWidth={2}
-                                                        d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
-                                                        data-oid="9jz0v7j"
-                                                    />
-                                                </svg>
-                                            )}
+                            <div key={item.name} className="relative group" data-oid="19wdzb-">
+                                <button
+                                    onClick={() => router.push(item.href)}
+                                    className={`w-full flex items-center px-2 py-2 rounded-lg text-left transition-all duration-200 group ${
+                                        item.current
+                                            ? 'bg-cura-gradient text-white shadow-md'
+                                            : 'text-gray-700 hover:bg-cura-primary/5 hover:text-cura-primary'
+                                    }`}
+                                    data-oid="g365-0v"
+                                >
+                                    <div
+                                        className="flex items-center space-x-3 flex-1"
+                                        data-oid="--q1xbx"
+                                    >
+                                        <div className="flex-shrink-0" data-oid="cn1k-gk">
+                                            {item.icon}
                                         </div>
+                                        {!sidebarCollapsed && (
+                                            <span
+                                                className="flex-1 font-medium text-sm"
+                                                data-oid="j_ew4gz"
+                                            >
+                                                {item.name}
+                                            </span>
+                                        )}
+                                    </div>
+                                    {!sidebarCollapsed && item.badge && (
+                                        <span
+                                            className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+                                                item.current
+                                                    ? 'bg-white/20 text-white'
+                                                    : 'bg-red-500 text-white'
+                                            }`}
+                                            data-oid="fqqe:j3"
+                                        >
+                                            {item.badge}
+                                        </span>
+                                    )}
+                                </button>
+
+                                {/* Tooltip for collapsed state */}
+                                {sidebarCollapsed && (
+                                    <div
+                                        className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50"
+                                        data-oid="jxuiv2o"
+                                    >
+                                        {item.name}
                                         {item.badge && (
                                             <span
-                                                className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center"
-                                                data-oid="g7h8ghw"
+                                                className="ml-2 px-1.5 py-0.5 bg-red-500 rounded-full text-xs"
+                                                data-oid="ua0qfl5"
                                             >
                                                 {item.badge}
                                             </span>
                                         )}
                                     </div>
-                                ) : (
-                                    <>
-                                        <span
-                                            className="flex-1 font-medium text-sm"
-                                            data-oid="_ngslpf"
-                                        >
-                                            {item.name}
-                                        </span>
-                                        {item.badge && (
-                                            <span
-                                                className={`px-2 py-0.5 rounded-full text-xs font-bold ${
-                                                    item.current
-                                                        ? 'bg-white/20 text-white'
-                                                        : 'bg-red-500 text-white'
-                                                }`}
-                                                data-oid="levl.2r"
-                                            >
-                                                {item.badge}
-                                            </span>
-                                        )}
-                                    </>
                                 )}
-                            </button>
+                            </div>
                         ))}
                     </nav>
                 </div>

@@ -3,8 +3,9 @@ import { useState, useEffect } from 'react';
 import { useLanguage } from '@/lib/contexts/LanguageContext';
 import { useTranslation } from '@/lib/hooks/useTranslation';
 import { subscriptionService, SubscriptionPlan } from '@/lib/services/subscriptionService';
-import { products } from '@/lib/data/products';
+import { filterProducts, Product as DataProduct } from '@/lib/data/products';
 import { Product } from '@/lib/types';
+import { useCity } from '@/lib/contexts/CityContext';
 
 interface DeliveryAddress {
     firstName: string;
@@ -30,13 +31,53 @@ interface CreateSubscriptionModalProps {
 }
 
 // Helper component for price information
-function PriceInfo({ productName }: { productName: string }) {
+function PriceInfo({ productName, products }: { productName: string; products: Product[] }) {
+    if (!products || !Array.isArray(products) || products.length === 0) return null;
+    
     const sameProducts = products.filter(
         (product) => product.name === productName && product.availability?.inStock,
     );
 
     if (sameProducts.length === 0) return null;
 
+    // Find the product with pricePerBox
+    const productWithBoxPrice = sameProducts.find(p => p.pricePerBox);
+    
+    if (productWithBoxPrice?.pricePerBox) {
+        return (
+            <div className="text-xs text-gray-500" data-oid="xj2jmk5">
+                <div className="text-sm font-semibold text-[#1F1F6F]" data-oid=".yetqrf">
+                    Price: {productWithBoxPrice.pricePerBox.toFixed(2)} EGP
+                </div>
+            </div>
+        );
+    }
+
+    // Fallback to pricePerBox calculation if not found above
+    const productsWithBoxPrice = sameProducts.filter(p => p.pricePerBox);
+    
+    if (productsWithBoxPrice.length > 0) {
+        const totalBoxPrice = productsWithBoxPrice.reduce((sum, product) => sum + (product.pricePerBox || 0), 0);
+        const avgBoxPrice = totalBoxPrice / productsWithBoxPrice.length;
+        const boxPrices = productsWithBoxPrice.map((p) => p.pricePerBox || 0);
+        const minBoxPrice = Math.min(...boxPrices);
+        const maxBoxPrice = Math.max(...boxPrices);
+
+        return (
+            <div className="text-xs text-gray-500" data-oid="xj2jmk5">
+                <div className="text-sm font-semibold text-[#1F1F6F]" data-oid=".yetqrf">
+                    Avg: {avgBoxPrice.toFixed(2)} EGP
+                </div>
+                {productsWithBoxPrice.length > 1 && (
+                    <div data-oid="ng941aj">
+                        Range: {minBoxPrice.toFixed(2)} - {maxBoxPrice.toFixed(2)} EGP
+                    </div>
+                )}
+            </div>
+        );
+    }
+
+    // Final fallback to regular price if no pricePerBox available
     const totalPrice = sameProducts.reduce((sum, product) => sum + product.price, 0);
     const avgPrice = totalPrice / sameProducts.length;
     const prices = sameProducts.map((p) => p.price);
@@ -62,18 +103,23 @@ function SelectedProductPriceInfo({
     productName,
     isMedicine,
     unitType,
+    products,
 }: {
     productName: string;
     isMedicine: boolean;
     unitType: 'blister' | 'box';
+    products: Product[];
 }) {
+    if (!products || !Array.isArray(products)) return null;
+    
     const sameProducts = products.filter(
         (product) => product.name === productName && product.availability?.inStock,
     );
 
     if (sameProducts.length === 0) return null;
 
-    const totalPrice = sameProducts.reduce((sum, product) => sum + product.price, 0);
+    // Use pricePerBox if available, fallback to price
+    const totalPrice = sameProducts.reduce((sum, product) => sum + (product.pricePerBox || product.price), 0);
     const avgPrice = totalPrice / sameProducts.length;
     const avgUnitPrice = isMedicine && unitType === 'blister' ? avgPrice * 0.4 : avgPrice;
 
@@ -92,6 +138,25 @@ export function CreateSubscriptionModal({
     onClose,
     onSuccess,
 }: CreateSubscriptionModalProps) {
+    const [products, setProducts] = useState<Product[]>([]);
+    const { selectedCity } = useCity();
+
+    useEffect(() => {
+        const fetch = async () => {
+            try {
+                const result = await filterProducts({
+                    cityIds: selectedCity ? [selectedCity.id] : undefined,
+                    page: 1,
+                    limit: 100,
+                });
+                console.log(result.products, 'results')
+                setProducts(result.products);
+            } catch (e) {
+                setProducts([]);
+            }
+        };
+        fetch();
+    }, [selectedCity]);
     console.log('CreateSubscriptionModal initialized with:', {
         customerId,
         plansLength: plans.length,
@@ -142,10 +207,11 @@ export function CreateSubscriptionModal({
     };
 
     const getUnitPrice = (product: Product, unitType: 'blister' | 'box'): number => {
+        const basePrice = product.pricePerBox ?? product.price ?? 0;
         if (isMedicine(product) && unitType === 'blister') {
-            return product.price * 0.4; // Blister is 40% of box price
+            return basePrice * 0.4; // Blister is 40% of box price
         }
-        return product.price;
+        return basePrice;
     };
 
     const getMedicineDetails = (product: Product) => {
@@ -226,12 +292,12 @@ export function CreateSubscriptionModal({
     }, [customerId]);
 
     const addProduct = (product: Product) => {
-        const existing = selectedProducts.find((item) => item.productId === product.id.toString());
+        const existing = selectedProducts.find((item) => item.productId === product._id.toString());
         if (existing) {
             // Allow quantity increase for all products
             setSelectedProducts((prev) =>
                 prev.map((item) =>
-                    item.productId === product.id.toString()
+                    item.productId === product._id.toString()
                         ? { ...item, quantity: item.quantity + 1 }
                         : item,
                 ),
@@ -240,7 +306,7 @@ export function CreateSubscriptionModal({
             setSelectedProducts((prev) => [
                 ...prev,
                 {
-                    productId: product.id.toString(),
+                    productId: product._id.toString(),
                     pharmacyId: product.pharmacyId,
                     quantity: 1,
                     product,
@@ -527,7 +593,7 @@ export function CreateSubscriptionModal({
                                                     data-oid="ke_k7bw"
                                                 >
                                                     <img
-                                                        src={item.product.image}
+                                                        src={item.product.images?.[0]?.url || '/placeholder-image.jpg'}
                                                         alt={item.product.name}
                                                         className="w-12 h-12 object-cover rounded-lg"
                                                         data-oid="k5t_b4m"
@@ -552,6 +618,7 @@ export function CreateSubscriptionModal({
                                                                     item.product,
                                                                 )}
                                                                 unitType={item.unitType}
+                                                                products={products}
                                                                 data-oid="167fj36"
                                                             />
                                                         </div>
@@ -812,7 +879,7 @@ export function CreateSubscriptionModal({
                                                 data-oid="bi67y_q"
                                             >
                                                 <img
-                                                    src={product.image}
+                                                    src={product.images?.[0]?.url || '/placeholder-image.jpg'}
                                                     alt={product.name}
                                                     className="w-16 h-16 object-cover rounded-lg"
                                                     data-oid="1bla0nn"
@@ -843,6 +910,7 @@ export function CreateSubscriptionModal({
                                                     <div className="space-y-1" data-oid="zlfvpkb">
                                                         <PriceInfo
                                                             productName={product.name}
+                                                            products={products}
                                                             data-oid="_tmaejw"
                                                         />
                                                     </div>
