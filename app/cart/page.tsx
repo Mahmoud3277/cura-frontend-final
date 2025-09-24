@@ -13,6 +13,7 @@ import { useAuth } from '@/lib/contexts/AuthContext';
 import { useLanguage } from '@/lib/contexts/LanguageContext';
 import { useTranslation } from '@/lib/hooks/useTranslation';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { getAuthToken } from '@/lib/utils/cookies';
 
 export default function CartPage() {
     const { user, isAuthenticated, isLoading } = useAuth();
@@ -22,9 +23,12 @@ export default function CartPage() {
     const router = useRouter();
     // Handle authentication redirect with proper Next.js routing
     useEffect(() => {
-        // Only redirect if we're not loading AND the user is definitely not authenticated
-        if (!isLoading && !isAuthenticated && !user) {
-            console.log('User not authenticated, redirecting to login...');
+        // First check if we have an authToken cookie
+        const authToken = getAuthToken();
+        
+        // Only redirect if we don't have an authToken AND we're not loading AND the user is definitely not authenticated
+        if (!authToken && !isLoading && !isAuthenticated && !user) {
+            console.log('No auth token found and user not authenticated, redirecting to login...');
             router.push('/auth/login');
         }
     }, [isLoading, isAuthenticated, user, router]);
@@ -41,8 +45,9 @@ export default function CartPage() {
         );
     }
 
-    // Don't render anything while redirecting - only if we're sure user is not authenticated
-    if (!isLoading && !isAuthenticated && !user) {
+    // Don't render anything while redirecting - only if we're sure user is not authenticated AND no auth token
+    const authToken = getAuthToken();
+    if (!authToken && !isLoading && !isAuthenticated && !user) {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <div className="text-center">
