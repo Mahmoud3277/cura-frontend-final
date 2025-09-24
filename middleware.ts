@@ -87,13 +87,13 @@ const publicRoutes = [
     '/search',
     '/store-locator',
     '/emergency-medicine',
+    '/cart',
 ];
 
 // Routes that require authentication but are accessible to all authenticated users
 const authenticatedRoutes = [
     '/profile',
     '/settings',
-    '/cart',
     '/checkout',
     '/orders',
     '/medicine',
