@@ -447,283 +447,65 @@ const Page = memo(function Page() {
                         </ClientOnly>
                     </div>
 
-                    {/* Mobile Hero Slider - From second code */}
-                    <div
-                        ref={sliderRef}
-                        className="relative rounded-2xl overflow-hidden shadow-lg mb-6 h-32 touch-manipulation"
-                        data-oid="mobile-hero-slider"
-                        onTouchStart={onTouchStart}
-                        onTouchMove={onTouchMove}
-                        onTouchEnd={onTouchEnd}
-                    >
-                        {/* Slides Container */}
-                        <div
-                            className="flex transition-transform duration-500 ease-out h-full"
-                            style={{ transform: `translateX(-${currentSlide * 100}%)` }}
-                            data-oid="mobile-slides-container"
-                        >
-                            {/* Pharmacy Slide - CURA Primary Colors */}
-                            <div
-                                className="w-full flex-shrink-0 bg-gradient-to-r from-cura-primary to-cura-secondary relative"
-                                data-oid="mobile-slide"
-                            >
-                                {/* Background Pattern */}
-                                <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
-                                <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-12 translate-x-12"></div>
-                                <div className="relative flex items-center h-full px-4 py-3">
-                                    {/* Left Content */}
-                                    <div className="flex-1 space-y-1 text-white">
-                                        <div className="inline-flex items-center space-x-1 bg-white/20 rounded-full px-2 py-0.5 text-xs font-medium">
-                                            <span className="text-xs">15% OFF</span>
-                                        </div>
-                                        <h1 className="text-base font-bold leading-tight">Local pharmacy</h1>
-                                        <p className="text-xs text-blue-100 leading-tight">Delivery at your doorstep</p>
-                                    <Link href="/shop" className="inline-block bg-white text-cura-primary px-3 py-1 rounded-lg font-semibold hover:bg-gray-50 transition-all duration-300 shadow-sm text-xs mt-1">
-                                        Shop now
-                                    </Link>
-                                    </div>
-                                    {/* Right Content - Medical Illustration */}
-                                    <div className="flex-shrink-0 ml-3">
-                                        <div className="relative">
-                                            <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center">
-                                                <span className="text-2xl">🏥</span>
-                                            </div>
-                                            <div className="absolute -top-1 -right-1 w-4 h-4 bg-white/30 rounded-full flex items-center justify-center">
-                                                <span className="text-xs text-white">+</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            {/* Health & Wellness Slide - CURA Accent Colors */}
-                            <div className="w-full flex-shrink-0 bg-gradient-to-r from-cura-accent to-cura-light relative">
-                                {/* Background Pattern */}
-                                <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
-                                <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-12 translate-x-12"></div>
-                                <div className="relative flex items-center h-full px-4 py-3">
-                                    {/* Left Content */}
-                                    <div className="flex-1 space-y-1 text-white">
-                                        <div className="inline-flex items-center space-x-1 bg-white/20 rounded-full px-2 py-0.5 text-xs font-medium">
-                                            <span className="text-xs">TRUSTED</span>
-                                        </div>
-                                        <h1 className="text-base font-bold leading-tight">Health & Wellness</h1>
-                                        <p className="text-xs text-gray-100 leading-tight">Quality medicines & care</p>
-                                        <Link href="/shop" className="inline-block bg-white text-cura-accent px-3 py-1 rounded-lg font-semibold hover:bg-gray-50 transition-all duration-300 shadow-sm text-xs mt-1">
-                                            Shop now
-                                        </Link>
-                                    </div>
-                                    {/* Right Content - Medical Illustration */}
-                                    <div className="flex-shrink-0 ml-3">
-                                        <div className="relative">
-                                            <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center">
-                                                <span className="text-2xl">💊</span>
-                                            </div>
-                                            <div className="absolute -top-1 -right-1 w-4 h-4 bg-white/30 rounded-full flex items-center justify-center">
-                                                <span className="text-xs text-white">+</span>
-                                            </div>
-                                        </div>
-                                    </div>
+                    {/* Wellness Banner V2 */}
+                    <div className="relative w-full aspect-[21/7] max-w-screen-xl mx-auto max-h-48 md:max-h-56 lg:max-h-64 overflow-hidden rounded-2xl shadow-[0_20px_60px_rgba(20,39,78,0.15)] mb-6" data-oid="banner-container">
+                        <div className="w-full h-full bg-gradient-to-br from-[#14274E] to-[#394867] flex flex-col justify-center items-center text-center p-[5%_8%] relative overflow-hidden" data-oid="banner">
+                            {/* Organic Shapes */}
+                            <div className="absolute top-[-20%] right-[-10%] w-[400px] h-[400px] bg-[#9BA4B4]/8 rounded-[60%_40%_70%_30%_/_40%_50%_60%_50%] animate-morphing-1"></div>
+                            <div className="absolute bottom-[-15%] left-[-8%] w-[300px] h-[300px] bg-[#9BA4B4]/6 rounded-[40%_60%_30%_70%_/_50%_60%_40%_50%] animate-morphing-2"></div>
+                            <div className="absolute top-[40%] left-[10%] w-[200px] h-[200px] bg-white/8 rounded-[40%_60%_70%_30%_/_40%_50%_60%_50%] animate-morphing-3"></div>
+
+                            {/* Texture Overlay */}
+                            <div className="absolute inset-0 bg-radial-1 opacity-3 bg-radial-2 opacity-2"></div>
+
+                            {/* Content - Mobile Layout */}
+                            <div className="relative z-10 max-w-[900px] px-2 h-full" data-oid="content">
+                                {/* Text at top left */}
+                                <div className="animate-fade-in-up-delay-1">
+                                    <h1 className="text-lg sm:text-xl font-bold text-white mb-3 leading-tight tracking-tight text-left" data-oid="headline">
+                                        Confidence, Curated.
+                                    </h1>
+                                    <p className="text-xs sm:text-sm text-[#9BA4B4] leading-relaxed text-left max-w-none" data-oid="subheadline">
+                                        Your trusted wellness guide for Ismailia. Discover the best, most effective products, hand-picked for you.
+                                    </p>
                                 </div>
                             </div>
                         </div>
-                        {/* Mobile slider indicator dots */}
-                        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex space-x-1">
-                            {bannerSlides.map((slide, index) => (
-                                <div
-                                    key={slide.id}
-                                    className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${index === currentSlide ? 'bg-white w-5' : 'bg-white/50'}`}
-                                ></div>
-                            ))}
-                        </div>
-                        {/* Swipe Indicator - Subtle visual hint */}
-                        <div className="absolute bottom-2 right-2 text-white/50 text-xs">← Swipe →</div>
                     </div>
 
 
                 </div>
             </section>
 
-            {/* Desktop Hero Slider Section - From second code */}
+            {/* Desktop Wellness Banner */}
             <section className="relative bg-white overflow-hidden hidden md:block">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                    {/* Simple Animated Slider */}
-                    <div className="relative rounded-2xl overflow-hidden shadow-lg h-64 md:h-80">
-                        {/* Slides Container */}
-                        <div
-                            className="flex transition-transform duration-500 ease-out h-full"
-                            style={{ transform: `translateX(-${currentSlide * 100}%)` }}
-                        >
-                            {bannerSlides.map((slide) => (
-                                <div
-                                    key={slide.id}
-                                    className={`w-full flex-shrink-0 bg-gradient-to-r ${slide.bgGradient} relative`}
-                                >
-                                    {/* Background Pattern */}
-                                    <div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 to-transparent"></div>
-                                    <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full -translate-y-24 translate-x-24"></div>
-                                    <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full translate-y-16 -translate-x-16"></div>
+                <div className="w-full max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                    <div className="relative w-full aspect-[21/7] max-w-screen-xl mx-auto max-h-48 md:max-h-56 lg:max-h-64 overflow-hidden rounded-2xl shadow-[0_20px_60px_rgba(20,39,78,0.15)]" data-oid="desktop-banner-container">
+                        <div className="w-full h-full bg-gradient-to-br from-[#14274E] to-[#394867] flex flex-col justify-center items-center text-center p-[5%_8%] relative overflow-hidden" data-oid="desktop-banner">
+                            {/* Organic Shapes */}
+                            <div className="absolute top-[-20%] right-[-10%] w-[400px] h-[400px] lg:w-[800px] lg:h-[800px] bg-[#9BA4B4]/8 rounded-[60%_40%_70%_30%_/_40%_50%_60%_50%] animate-morphing-1"></div>
+                            <div className="absolute bottom-[-15%] left-[-8%] w-[300px] h-[300px] lg:w-[600px] lg:h-[600px] bg-[#9BA4B4]/6 rounded-[40%_60%_30%_70%_/_50%_60%_40%_50%] animate-morphing-2"></div>
+                            <div className="absolute top-[30%] left-[15%] w-[250px] h-[250px] lg:w-[500px] lg:h-[500px] bg-white/6 rounded-[40%_60%_70%_30%_/_40%_50%_60%_50%] animate-morphing-3"></div>
 
-                                    <div className="relative flex items-center h-full p-6 md:p-8">
-                                        {/* Left Content */}
-                                        <div className="flex-1 space-y-4 text-white">
-                                            <div className="inline-flex items-center space-x-2 bg-white/20 rounded-full px-3 py-1 text-xs font-medium">
-                                                <span className="text-lg">{slide.emoji}</span>
-                                                <span>{slide.subtitle}</span>
-                                            </div>
-                                            <h1 className="text-2xl md:text-4xl font-bold leading-tight">
-                                                {slide.title.split(' ').slice(0, -2).join(' ')}{' '}
-                                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-blue-200 block">
-                                                    {slide.title.split(' ').slice(-2).join(' ')}
-                                                </span>
-                                            </h1>
-                                            <p className="text-sm md:text-base text-blue-100 max-w-md">
-                                                {slide.description}
-                                            </p>
+                            {/* Texture Overlay */}
+                            <div className="absolute inset-0 bg-radial-gradient opacity-3"></div>
 
-                                            {/* Features for subscription slide */}
-                                            {slide.type === 'subscription' && (
-                                                <div className="flex flex-wrap gap-4 text-sm text-blue-100 mb-4">
-                                                    {slide.features.map((feature, index) => (
-                                                        <span key={index} className="flex items-center space-x-1">
-                                                            <span className="w-2 h-2 bg-green-400 rounded-full"></span>
-                                                            <span>{feature}</span>
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                            )}
-
-                                            <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                                                <Link
-                                                    href={slide.primaryButton.href || '/shop'}
-                                                    className="bg-white text-[#1F1F6F] px-6 py-2.5 rounded-lg font-semibold hover:bg-blue-50 transition-all duration-300 shadow-md text-sm flex items-center justify-center space-x-2"
-                                                >
-                                                    {slide.primaryButton.icon === 'plus' && (
-                                                        <svg
-                                                            className="w-4 h-4"
-                                                            fill="none"
-                                                            stroke="currentColor"
-                                                            viewBox="0 0 24 24"
-                                                        >
-                                                            <path
-                                                                strokeLinecap="round"
-                                                                strokeLinejoin="round"
-                                                                strokeWidth={2}
-                                                                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                                                            />
-                                                        </svg>
-                                                    )}
-                                                    <span>{slide.primaryButton.text}</span>
-                                                </Link>
-                                                <Link
-                                                    href={slide.secondaryButton.href}
-                                                    className="border border-white text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-white hover:text-[#1F1F6F] transition-all duration-300 text-sm flex items-center justify-center space-x-2"
-                                                >
-                                                    <span>{slide.secondaryButton.text}</span>
-                                                    <svg
-                                                        className="w-4 h-4"
-                                                        fill="none"
-                                                        stroke="currentColor"
-                                                        viewBox="0 0 24 24"
-                                                    >
-                                                        <path
-                                                            strokeLinecap="round"
-                                                            strokeLinejoin="round"
-                                                            strokeWidth={2}
-                                                            d="M9 5l7 7-7 7"
-                                                        />
-                                                    </svg>
-                                                </Link>
-                                            </div>
-                                        </div>
-
-                                        {/* Right Content */}
-                                        <div className="hidden md:flex flex-1 justify-center items-center">
-                                            <div className="relative">
-                                                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 text-center">
-                                                    <div className="text-5xl mb-3">
-                                                        {slide.type === 'subscription' ? '📅' : '🏥'}
-                                                    </div>
-                                                    <h3 className="text-lg font-bold text-white mb-1">
-                                                        {slide.type === 'subscription'
-                                                            ? tHomepage('hardcoded.autoDelivery')
-                                                            : tHomepage('hardcoded.licenseAndTrusted')}
-                                                    </h3>
-                                                    <p className="text-xs text-blue-200">
-                                                        {slide.type === 'subscription'
-                                                            ? tHomepage('hardcoded.saveUpTo')
-                                                            : tHomepage('hardcoded.qualityGuaranteed')}
-                                                    </p>
-                                                </div>
-                                                {/* Floating Icons */}
-                                                <div className="absolute -top-2 -right-2 bg-white rounded-full p-2 shadow-md">
-                                                    <div className="text-lg">
-                                                        {slide.type === 'subscription' ? '💰' : '💊'}
-                                                    </div>
-                                                </div>
-                                                <div className="absolute -bottom-2 -left-2 bg-white rounded-full p-2 shadow-md">
-                                                    <div className="text-lg">🚚</div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                            {/* Content */}
+                            <div className="relative z-10 max-w-[900px]" data-oid="desktop-content">
+                                <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-3 md:mb-4 leading-tight tracking-tight animate-fade-in-up-delay-1" data-oid="desktop-headline">
+                                    Confidence, Curated.
+                                </h1>
+                                <p className="text-base md:text-lg text-[#9BA4B4] max-w-[700px] mx-auto mb-5 md:mb-6 leading-relaxed font-medium animate-fade-in-up-delay-3" data-oid="desktop-subheadline">
+                                    Your trusted wellness guide for Ismailia. Discover the best, most effective products, hand-picked for you.
+                                </p>
+                                <div className="relative animate-fade-in-up-delay-5" data-oid="desktop-cta-button">
+                                    <Link href="/shop" className="inline-block px-6 sm:px-8 py-3 sm:py-4 bg-white text-[#14274E] font-semibold text-base rounded-lg no-underline shadow-[0_6px_20px_rgba(0,0,0,0.12)] hover:shadow-[0_8px_25px_rgba(0,0,0,0.18)] hover:-translate-y-0.5 transition-all duration-300 relative overflow-hidden group">
+                                        <span className="relative z-1">Shop the Founding Collection</span>
+                                        <div className="absolute inset-0 bg-[#9BA4B4]/1 scale-0 group-hover:scale-100 transition-transform duration-500 rounded-lg"></div>
+                                    </Link>
                                 </div>
-                            ))}
+                            </div>
                         </div>
-
-                        {/* Slider Dots */}
-                        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-                            {bannerSlides.map((_, index) => (
-                                <button
-                                    key={index}
-                                    onClick={() => setCurrentSlide(index)}
-                                    className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                                        index === currentSlide ? 'bg-white' : 'bg-white/50'
-                                    }`}
-                                ></button>
-                            ))}
-                        </div>
-
-                        {/* Navigation Arrows */}
-                        <button
-                            onClick={() =>
-                                setCurrentSlide(
-                                    (prev) => (prev - 1 + bannerSlides.length) % bannerSlides.length,
-                                )
-                            }
-                            className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/20 hover:bg-white/30 rounded-full p-2 transition-all duration-300"
-                        >
-                            <svg
-                                className="w-4 h-4 text-white"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M15 19l-7-7 7-7"
-                                />
-                            </svg>
-                        </button>
-                        <button
-                            onClick={() => setCurrentSlide((prev) => (prev + 1) % bannerSlides.length)}
-                            className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/20 hover:bg-white/30 rounded-full p-2 transition-all duration-300"
-                        >
-                            <svg
-                                className="w-4 h-4 text-white"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M9 5l7 7-7 7"
-                                />
-                            </svg>
-                        </button>
                     </div>
                 </div>
             </section>

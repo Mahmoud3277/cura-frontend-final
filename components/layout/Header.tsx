@@ -89,25 +89,20 @@ const Header = memo(function Header({ className = '', variant = 'default' }: Hea
     const customerNavItems = useMemo(
         () => [
             { href: '/customer/dashboard', label: t('myDashboard') },
-            { href: '/medicine', label: t('shopMedicines') },
             { href: '/cart', label: t('myCart') },
             { href: '/customer/orders', label: t('myOrders') },
-            { href: '/customer/prescriptions', label: t('myPrescriptions') },
-            { href: '/prescription/status', label: t('prescription.status.title') },
-            { href: '/customer/subscriptions', label: t('mySubscriptions') },
         ],
 
         [t],
     );
 
-    const guestNavItems = useMemo(
-        () => [
-            { href: '/auth/login', label: t('login') },
-            { href: '/auth/register', label: t('register') },
-        ],
+const guestNavItems = useMemo(
+    () => [
+        { href: '/auth/login', label: t('login') },
+    ],
 
-        [t],
-    );
+    [t],
+);
 
     return (
         <header
@@ -296,10 +291,7 @@ const Header = memo(function Header({ className = '', variant = 'default' }: Hea
                                                 <Link
                                                     key={item.href}
                                                     href={item.href}
-                                                    className={`block px-4 py-3 text-sm transition-all duration-200 rounded-lg mx-2 ${
-                                                        item.className ||
-                                                        'text-gray-700 hover:bg-gradient-to-r hover:from-slate-50 hover:to-gray-50'
-                                                    }`}
+                                                    className="block px-4 py-3 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-slate-50 hover:to-gray-50 transition-all duration-200 rounded-lg mx-2"
                                                     onClick={closeProfileDropdown}
                                                     data-oid=":24llak"
                                                 >
@@ -488,9 +480,7 @@ const Header = memo(function Header({ className = '', variant = 'default' }: Hea
                                     <Link
                                         key={item.href}
                                         href={item.href}
-                                        className={`block px-4 py-3 text-sm transition-colors ${
-                                            item.className || 'text-gray-700 hover:bg-gray-50'
-                                        }`}
+                                        className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                                         onClick={closeMobileMenu}
                                         data-oid="o:51dgk"
                                     >
