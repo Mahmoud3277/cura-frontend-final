@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/lib/contexts/LanguageContext';
 import { useTranslation } from '@/lib/hooks/useTranslation';
 import { useCity } from '@/lib/contexts/CityContext';
-import { PrescriptionUploadModal } from '@/components/prescription/PrescriptionUploadModal';
+
 import {
     searchService,
     SearchResult,
@@ -44,7 +44,7 @@ export function ComprehensiveSearch({
     const [selectedIndex, setSelectedIndex] = useState(-1);
     const [filters, setFilters] = useState<SearchFilters>({});
     const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
-    const [isPrescriptionModalOpen, setIsPrescriptionModalOpen] = useState(false);
+
 
     const searchRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -286,22 +286,7 @@ export function ComprehensiveSearch({
                 </div>
             )}
 
-            {/* Upload Prescription Button - Small button inside search bar */}
-            {!query && (
-                <button
-                    onClick={() => setIsPrescriptionModalOpen(true)}
-                    className="absolute inset-y-0 right-2 flex items-center transition-all duration-300"
-                    title="Upload Your Prescription"
-                    data-oid="0v9d.u0"
-                >
-                    <div
-                        className="bg-gradient-to-r from-[#1F1F6F] to-[#14274E] text-white px-2 py-1 rounded-md hover:from-[#14274E] hover:to-[#394867] transition-all duration-300 font-medium text-[10px] hover:scale-105 shadow-sm hover:shadow-md whitespace-nowrap"
-                        data-oid="b0j7pa8"
-                    >
-                        <span data-oid="oj33v16">{t('uploadPrescription') || 'Upload Rx'}</span>
-                    </div>
-                </button>
-            )}
+
 
             {/* Clear Button */}
             {query && (
@@ -682,26 +667,13 @@ export function ComprehensiveSearch({
                     {renderSearchInput()}
 
                     {variant === 'page' && (
-                        <React.Fragment>
-                            <button
-                                onClick={() => setIsPrescriptionModalOpen(true)}
-                                className="bg-gradient-to-r from-[#1F1F6F] to-[#14274E] text-white px-4 py-3 rounded-xl hover:from-[#14274E] hover:to-[#394867] transition-all duration-300 font-semibold flex items-center space-x-2 hover:scale-105 shadow-lg hover:shadow-xl"
-                                title="Upload Your Prescription"
-                                data-oid="e-cx5xi"
-                            >
-                                <span className="text-lg" data-oid="or8z-9j">
-                                    📄
-                                </span>
-                                <span data-oid="58._q9b">Upload Prescription</span>
-                            </button>
-                            <button
-                                onClick={handleSearch}
-                                className="px-6 py-3 bg-gradient-to-r from-[#1F1F6F] to-[#14274E] text-white rounded-xl font-semibold hover:from-[#14274E] hover:to-[#394867] transition-all duration-300"
-                                data-oid="4s02qc2"
-                            >
-                                Search
-                            </button>
-                        </React.Fragment>
+                        <button
+                            onClick={handleSearch}
+                            className="px-6 py-3 bg-gradient-to-r from-[#1F1F6F] to-[#14274E] text-white rounded-xl font-semibold hover:from-[#14274E] hover:to-[#394867] transition-all duration-300"
+                            data-oid="4s02qc2"
+                        >
+                            Search
+                        </button>
                     )}
                 </div>
 
@@ -709,19 +681,7 @@ export function ComprehensiveSearch({
                 {renderFilters()}
             </div>
 
-            {/* Prescription Upload Modal - Rendered outside to avoid z-index issues */}
-            {isPrescriptionModalOpen && (
-                <PrescriptionUploadModal
-                    isOpen={isPrescriptionModalOpen}
-                    onClose={() => setIsPrescriptionModalOpen(false)}
-                    onUploadComplete={(files, formData) => {
-                        console.log('Prescription uploaded:', { files, formData });
-                        setIsPrescriptionModalOpen(false);
-                        // You can add additional logic here like showing a success message
-                    }}
-                    data-oid="ji2m6g7"
-                />
-            )}
+
         </React.Fragment>
     );
 }

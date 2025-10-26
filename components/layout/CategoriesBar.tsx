@@ -11,7 +11,6 @@ interface Category {
 }
 
 const categories: Category[] = [
-    { nameKey: 'medications', icon: '', href: '/medicine' },
     { nameKey: 'hairCare', icon: '', href: '/haircare' },
     { nameKey: 'skinCare', icon: '', href: '/skincare' },
     { nameKey: 'dailyEssentials', icon: '', href: '/daily-essentials' },

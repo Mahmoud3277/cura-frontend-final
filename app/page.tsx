@@ -8,7 +8,7 @@ import { CategoriesBar } from '@/components/layout/CategoriesBar';
 import { Logo } from '@/components/ui/Logo';
 import { useLanguage } from '@/lib/contexts/LanguageContext';
 import { useTranslation, useHomepageTranslation } from '@/lib/hooks/useTranslation';
-import { PrescriptionUploadModal } from '@/components/prescription/PrescriptionUploadModal';
+
 import { useCart } from '@/lib/contexts/CartContext';
 import { ClientOnly } from '@/components/common/ClientOnly';
 import { FloatingNavigation } from '@/components/FloatingNavigation';
@@ -39,7 +39,7 @@ const CATEGORY_MAPPINGS = {
 };
 
 const Page = memo(function Page() {
-    const [showUploadModal, setShowUploadModal] = useState(false);
+
     const [toastMessage, setToastMessage] = useState('');
     const [showToast, setShowToast] = useState(false);
     const [addedItems, setAddedItems] = useState<{ [key: string]: number }>({});
@@ -181,30 +181,30 @@ const Page = memo(function Page() {
                 bgGradient: 'from-[#1F1F6F] to-[#14274E]',
                 emoji: '📅',
             },
-            {
-                id: 2,
-                type: 'healthcare',
-                title: tHomepage('hero.healthWellness'),
-                subtitle: "Egypt's Leading Online Pharmacy",
-                description: tHomepage('hero.healthWellnessDesc'),
-                features: [
-                    'Licensed & Trusted',
-                    'Quality guaranteed',
-                    tHomepage('features.freeDelivery'),
-                ],
-                primaryButton: {
-                    text: tHomepage('prescription.uploadButton').replace('📄 ', ''),
-                    action: 'upload',
-                    icon: 'upload',
-                },
-                secondaryButton: {
-                    text: tHomepage('hero.browseProducts'),
-                    href: '/shop',
-                    icon: 'arrow',
-                },
-                bgGradient: 'from-[#1F1F6F] to-[#14274E]',
-                emoji: '🏥',
+        {
+            id: 2,
+            type: 'healthcare',
+            title: 'Confidence, Curated.',
+            subtitle: 'Your trusted wellness guide for Ismailia',
+            description: 'Discover the best, most effective products, hand-picked for you.',
+            features: [
+                'Licensed & Trusted',
+                'Quality guaranteed',
+                'Free Delivery',
+            ],
+            primaryButton: {
+                text: 'Shop the Founding Collection',
+                href: '/shop',
+                icon: 'plus',
             },
+            secondaryButton: {
+                text: 'Browse Products',
+                href: '/shop',
+                icon: 'arrow',
+            },
+            bgGradient: 'from-[#1F1F6F] to-[#14274E]',
+            emoji: '🏥',
+        },
         ],
         [tHomepage],
     );
@@ -417,23 +417,7 @@ const Page = memo(function Page() {
         }
     };
 
-    // Memoize callback functions
-    const handleUploadPrescription = useCallback(() => {
-        setShowUploadModal(true);
-    }, []);
 
-    const closeUploadModal = useCallback(() => {
-        setShowUploadModal(false);
-    }, []);
-
-    const handleUploadComplete = useCallback(
-        (files: any, formData: any) => {
-            console.log('Prescription uploaded:', { files, formData });
-            closeUploadModal();
-            window.location.href = '/prescription/status?success=true';
-        },
-        [closeUploadModal],
-    );
     
     return (
         <div className="min-h-screen bg-gray-50 md:bg-white" data-oid="dyk4epq">
@@ -494,9 +478,9 @@ const Page = memo(function Page() {
                                         </div>
                                         <h1 className="text-base font-bold leading-tight">Local pharmacy</h1>
                                         <p className="text-xs text-blue-100 leading-tight">Delivery at your doorstep</p>
-                                        <button onClick={handleUploadPrescription} className="bg-white text-cura-primary px-3 py-1 rounded-lg font-semibold hover:bg-gray-50 transition-all duration-300 shadow-sm text-xs mt-1">
-                                            Shop now
-                                        </button>
+                                    <Link href="/shop" className="inline-block bg-white text-cura-primary px-3 py-1 rounded-lg font-semibold hover:bg-gray-50 transition-all duration-300 shadow-sm text-xs mt-1">
+                                        Shop now
+                                    </Link>
                                     </div>
                                     {/* Right Content - Medical Illustration */}
                                     <div className="flex-shrink-0 ml-3">
@@ -555,40 +539,7 @@ const Page = memo(function Page() {
                         <div className="absolute bottom-2 right-2 text-white/50 text-xs">← Swipe →</div>
                     </div>
 
-                    {/* Quick Actions */}
-                    <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 mb-6">
-                        <div className="flex items-center space-x-3">
-                            <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                                <svg
-                                    className="w-6 h-6 text-cura-primary"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                                    />
-                                </svg>
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <h3 className="font-semibold text-gray-900 mb-1">
-                                    Prescription Status Tracker
-                                </h3>
-                                <p className="text-sm text-gray-500">
-                                    Track your prescription order status
-                                </p>
-                            </div>
-                            <Link
-                                href="/prescription/status"
-                                className="bg-cura-primary text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-cura-secondary transition-colors duration-200 flex-shrink-0"
-                            >
-                                Track Status
-                            </Link>
-                        </div>
-                    </div>
+
                 </div>
             </section>
 
@@ -642,11 +593,11 @@ const Page = memo(function Page() {
                                             )}
 
                                             <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                                                {slide.primaryButton.action === 'upload' ? (
-                                                    <button
-                                                        onClick={handleUploadPrescription}
-                                                        className="bg-white text-[#1F1F6F] px-6 py-2.5 rounded-lg font-semibold hover:bg-blue-50 transition-all duration-300 shadow-md text-sm flex items-center justify-center space-x-2"
-                                                    >
+                                                <Link
+                                                    href={slide.primaryButton.href || '/shop'}
+                                                    className="bg-white text-[#1F1F6F] px-6 py-2.5 rounded-lg font-semibold hover:bg-blue-50 transition-all duration-300 shadow-md text-sm flex items-center justify-center space-x-2"
+                                                >
+                                                    {slide.primaryButton.icon === 'plus' && (
                                                         <svg
                                                             className="w-4 h-4"
                                                             fill="none"
@@ -657,34 +608,12 @@ const Page = memo(function Page() {
                                                                 strokeLinecap="round"
                                                                 strokeLinejoin="round"
                                                                 strokeWidth={2}
-                                                                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                                                                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
                                                             />
                                                         </svg>
-                                                        <span>{slide.primaryButton.text}</span>
-                                                    </button>
-                                                ) : (
-                                                    <Link
-                                                        href={slide.primaryButton.href || '/shop'}
-                                                        className="bg-white text-[#1F1F6F] px-6 py-2.5 rounded-lg font-semibold hover:bg-blue-50 transition-all duration-300 shadow-md text-sm flex items-center justify-center space-x-2"
-                                                    >
-                                                        {slide.primaryButton.icon === 'plus' && (
-                                                            <svg
-                                                                className="w-4 h-4"
-                                                                fill="none"
-                                                                stroke="currentColor"
-                                                                viewBox="0 0 24 24"
-                                                            >
-                                                                <path
-                                                                    strokeLinecap="round"
-                                                                    strokeLinejoin="round"
-                                                                    strokeWidth={2}
-                                                                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                                                                />
-                                                            </svg>
-                                                        )}
-                                                        <span>{slide.primaryButton.text}</span>
-                                                    </Link>
-                                                )}
+                                                    )}
+                                                    <span>{slide.primaryButton.text}</span>
+                                                </Link>
                                                 <Link
                                                     href={slide.secondaryButton.href}
                                                     className="border border-white text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-white hover:text-[#1F1F6F] transition-all duration-300 text-sm flex items-center justify-center space-x-2"
@@ -807,15 +736,14 @@ const Page = memo(function Page() {
                     </div>
                     <div className="overflow-x-auto scrollbar-hide">
                         <div className="flex space-x-3 px-4 pb-2">
-                            {[
-                                { name: 'Medications', href: '/medicine' },
-                                { name: 'Hair Care', href: '/haircare' },
-                                { name: 'Skin Care', href: '/skincare' },
-                                { name: 'Daily Essentials', href: '/daily-essentials' },
-                                { name: 'Baby Essentials', href: '/baby-essentials' },
-                                { name: 'Vitamins', href: '/vitamins' },
-                                { name: 'Sexual Wellness', href: '/sexual-wellness' },
-                            ].map((category, index) => (
+                        {[
+                            { name: 'Hair Care', href: '/haircare' },
+                            { name: 'Skin Care', href: '/skincare' },
+                            { name: 'Daily Essentials', href: '/daily-essentials' },
+                            { name: 'Baby Essentials', href: '/baby-essentials' },
+                            { name: 'Vitamins', href: '/vitamins' },
+                            { name: 'Sexual Wellness', href: '/sexual-wellness' },
+                        ].map((category, index) => (
                                 <Link
                                     key={index}
                                     href={category.href}
@@ -1396,14 +1324,7 @@ const Page = memo(function Page() {
                 </div>
             )}
 
-            {/* Prescription Upload Modal */}
-            {showUploadModal && (
-                <PrescriptionUploadModal
-                    isOpen={showUploadModal}
-                    onClose={closeUploadModal}
-                    onUploadComplete={handleUploadComplete}
-                />
-            )}
+
         </div>
     );
 });
